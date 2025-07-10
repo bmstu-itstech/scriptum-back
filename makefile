@@ -12,7 +12,8 @@ test:
 	@echo "Обработка покрытия..."
 
 	# Добавляем условие для исключения файлов
-	# cat $(COVERAGE_TMP) | grep -vE '...' > $(COVERAGE_OUT)
+	# cat $(COVERAGE_TMP) | grep -vE '' > $(COVERAGE_OUT)
+	cat $(COVERAGE_TMP) > $(COVERAGE_OUT)
 	rm $(COVERAGE_TMP)
 
 	go tool cover -func=$(COVERAGE_OUT)
