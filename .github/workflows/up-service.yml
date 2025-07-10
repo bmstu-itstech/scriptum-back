@@ -1,0 +1,53 @@
+name: Up Scriptum Service
+run-name: ${{ github.actor }} is deploying Scriptum Service
+on:
+  push:
+    branches: [ main, dev, ci ]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run tests
+      run: |
+        make test   
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run linter
+      uses: golangci/golangci-lint-action@v8
+      with:
+        version: v2.1
+  build:
+    needs: [ test, lint ]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: login to docker hub
+      run: |
+        echo "login to docker hub"
+    #   uses: docker/login-action@v3
+    #   with:
+    #     username: ${{ vars.DOCKER_USERNAME }}
+    #     password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: build and push to docker hub
+      run: |
+        echo -e "How to build and push to docker hub: "
+        echo "docker build -t <author>/<name>:latest -f <path/to/Dockerfile> ."
+        echo "docker push <author>/<name>:latest"
+
+  deploy:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ci'
+    # if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    steps:
+    - name: deploy Scriptum
+      run: |
+        echo "deploy Scriptum"
+      # ssh -i ${{ secrets.PRIVATE_KEY }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << EOF
+        # sudo docker-compose pull
+        # sudo docker-compose up -d --build
+      # EOF
