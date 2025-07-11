@@ -1,27 +1,20 @@
 package service
 
 import (
-	"context"
 	"fmt"
 	"sync"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
 
-type MockJobRepository interface {
-	GetJob(JobID scripts.JobID) (*scripts.Job, error)
-}
-
 type MockJobRepo struct {
-	context context.Context
 	sync.RWMutex
 	m map[scripts.JobID]scripts.Job
 }
 
 func NewMockJobRepository() (*MockJobRepo, error) {
 	return &MockJobRepo{
-		context: context.Background(),
-		m:       make(map[scripts.JobID]scripts.Job),
+		m: make(map[scripts.JobID]scripts.Job),
 	}, nil
 }
 

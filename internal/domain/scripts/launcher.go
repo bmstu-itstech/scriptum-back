@@ -1,5 +1,7 @@
 package scripts
 
+import "context"
+
 type Launcher interface {
-	Launch(Job) Result
+	Launch(context.Context, Job) Result
 }
