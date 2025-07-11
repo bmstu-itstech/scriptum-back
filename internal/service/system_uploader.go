@@ -2,10 +2,6 @@ package service
 
 import "github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 
-type FileUploader interface {
-	scripts.Uploader
-}
-
 type FileUpload struct{}
 
 func NewFileUploader() (*FileUpload, error) {

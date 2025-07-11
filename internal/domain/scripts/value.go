@@ -15,6 +15,10 @@ func NewVector(values []Value) (*Vector, error) {
 	return &Vector{values: values}, nil
 }
 
+func (v *Vector) Add(value Value) {
+	v.values = append(v.values, value)
+}
+
 type Value struct {
 	VariableType Type
 }
