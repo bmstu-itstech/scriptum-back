@@ -1,5 +1,7 @@
 package scripts
 
+import "context"
+
 type Notifier interface {
-	Notify(Result) error
+	Notify(context.Context, Result) error
 }

@@ -8,7 +8,13 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
 
-func ReadFile(_ context.Context, file multipart.File, header *multipart.FileHeader) (*scripts.File, error) {
+type HTTPFileReader struct{}
+
+func NewHTTPFileReader() (*HTTPFileReader, error) {
+	return &HTTPFileReader{}, nil
+}
+
+func (h *HTTPFileReader) ReadFile(_ context.Context, file multipart.File, header *multipart.FileHeader) (*scripts.File, error) {
 	defer func() {
 		if err := file.Close(); err != nil {
 			panic(err)

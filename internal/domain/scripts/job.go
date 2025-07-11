@@ -39,7 +39,7 @@ func NewJob(jobID JobID, userID UserID, in Vector, command string) (*Job, error)
 	if userID == 0 {
 		return nil, ErrInvalidUserID
 	}
-	if len(in.Values()) == 0 {
+	if in.Len() == 0 {
 		return nil, ErrEmptyVector
 	}
 	if command == "" {
@@ -53,4 +53,14 @@ func NewJob(jobID JobID, userID UserID, in Vector, command string) (*Job, error)
 		command:   command,
 		startedAt: time.Now(),
 	}, nil
+}
+
+func NewJobR(jobID JobID, userID UserID, in Vector, command string, startedAt time.Time) *Job {
+	return &Job{
+		jobID:     jobID,
+		userID:    userID,
+		in:        in,
+		command:   command,
+		startedAt: startedAt,
+	}
 }

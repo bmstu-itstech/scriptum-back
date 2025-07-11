@@ -25,7 +25,7 @@ func NewMockJobRepository() (*MockJobRepo, error) {
 	}, nil
 }
 
-func (r *MockJobRepo) GetUser(JobID scripts.JobID) (scripts.Job, error) {
+func (r *MockJobRepo) GetJob(JobID scripts.JobID) (scripts.Job, error) {
 	r.RLock()
 	defer r.RUnlock()
 
@@ -35,5 +35,3 @@ func (r *MockJobRepo) GetUser(JobID scripts.JobID) (scripts.Job, error) {
 	}
 	return job, nil
 }
-
-// так как нужно соответствие интерфейсу, то нужно реализовать все методы его (а именно GetJob)

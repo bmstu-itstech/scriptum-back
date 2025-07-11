@@ -1,5 +1,7 @@
 package scripts
 
+import "context"
+
 type Uploader interface {
-	Upload(File) (Path, error)
+	Upload(context.Context, File) (Path, error)
 }

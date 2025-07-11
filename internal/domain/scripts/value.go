@@ -1,19 +1,6 @@
 package scripts
 
-type Vector struct {
-	values []Value
-}
-
-func (v *Vector) Values() []Value {
-	return v.values
-}
-
-func NewVector(values []Value) (*Vector, error) {
-	if len(values) == 0 {
-		return nil, ErrEmptyVector
-	}
-	return &Vector{values: values}, nil
-}
+import "fmt"
 
 type Value struct {
 	VariableType Type
@@ -56,4 +43,16 @@ func (inte *Integer) Data() int64 {
 
 func NewInteger(data int64) (*Integer, error) {
 	return &Integer{data: data}, nil
+}
+
+func (c *Complex) String() string {
+	return fmt.Sprintf("Complex(%v)", c.data)
+}
+
+func (r *Real) String() string {
+	return fmt.Sprintf("Real(%f)", r.data)
+}
+
+func (i *Integer) String() string {
+	return fmt.Sprintf("Integer(%d)", i.data)
 }
