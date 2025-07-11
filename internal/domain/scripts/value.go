@@ -41,8 +41,8 @@ type Integer struct {
 	data int64
 }
 
-func (inte *Integer) Data() int64 {
-	return inte.data
+func (i *Integer) Data() int64 {
+	return i.data
 }
 
 func NewInteger(data int64) (*Integer, error) {
