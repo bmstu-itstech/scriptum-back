@@ -18,11 +18,11 @@ type MockUserRepo struct {
 	m map[scripts.UserID]scripts.User
 }
 
-func NewMockUserRepository() *MockUserRepo {
+func NewMockUserRepository() (*MockUserRepo, error) {
 	return &MockUserRepo{
 		context: context.Background(),
 		m:       make(map[scripts.UserID]scripts.User),
-	}
+	}, nil
 }
 
 func (r *MockUserRepo) GetUser(userId scripts.UserID) (scripts.User, error) {

@@ -9,5 +9,13 @@ const (
 )
 
 type Type struct {
-	Value TypeValue
+	value TypeValue
+}
+
+func (t *Type) Value() TypeValue {
+	return t.value
+}
+
+func NewType(value TypeValue) (*Type, error) {
+	return &Type{value: value}, nil
 }

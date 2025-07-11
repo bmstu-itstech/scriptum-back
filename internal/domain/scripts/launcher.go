@@ -1,5 +1,5 @@
 package scripts
 
 type Launcher interface {
-	launch(Job) Result
+	Launch(Job) Result
 }

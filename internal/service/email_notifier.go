@@ -8,8 +8,8 @@ type EmailNotifier interface {
 
 type EmailNotify struct{}
 
-func NewEmailNotifier() *EmailNotify {
-	return &EmailNotify{}
+func NewEmailNotifier() (*EmailNotify, error) {
+	return &EmailNotify{}, nil
 }
 
 func (e *EmailNotify) Notify(r scripts.Result) error {
