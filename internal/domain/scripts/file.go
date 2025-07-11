@@ -1,9 +1,18 @@
 package scripts
 
+import (
+	"context"
+	"mime/multipart"
+)
+
 type File struct {
 	name     string
 	fileType string
 	content  []byte
+}
+
+type FileReader interface {
+	ReadFile(context.Context, multipart.File, *multipart.FileHeader) (*File, error)
 }
 
 func (f *File) Name() string {

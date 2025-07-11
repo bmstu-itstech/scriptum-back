@@ -1,21 +1,40 @@
 package scripts
 
-type TypeValue int
+type Type struct {
+	s string
+}
 
-const (
-	INTEGER TypeValue = iota
-	REAL
-	COMPLEX
+var (
+	IntegerType = Type{"integer"}
+	RealType    = Type{"real"}
+	ComplexType = Type{"complex"}
 )
 
-type Type struct {
-	value TypeValue
+func (t Type) String() string {
+	return t.s
 }
 
-func (t *Type) Value() TypeValue {
-	return t.value
+func (t Type) IsInteger() bool {
+	return t == IntegerType
 }
 
-func NewType(value TypeValue) (*Type, error) {
-	return &Type{value: value}, nil
+func (t Type) IsReal() bool {
+	return t == RealType
+}
+
+func (t Type) IsComplex() bool {
+	return t == ComplexType
+}
+
+func NewType(s string) (Type, error) {
+	switch s {
+	case "integer":
+		return IntegerType, nil
+	case "real":
+		return RealType, nil
+	case "complex":
+		return ComplexType, nil
+	default:
+		return Type{}, ErrInvalidType
+	}
 }

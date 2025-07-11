@@ -21,4 +21,5 @@ var (
 	ErrPathEmpty          = errors.New("path cannot be empty")
 	ErrFullNameEmpty      = errors.New("full name cannot be empty")
 	ErrEmailEmpty         = errors.New("email cannot be empty")
+	ErrInvalidType        = errors.New("invalid type")
 )

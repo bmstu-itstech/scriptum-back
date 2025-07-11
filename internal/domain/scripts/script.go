@@ -5,11 +5,11 @@ import "time"
 type Path = string
 type ScriptID = uint32
 
-type Visibility int
+type Visibility string
 
 const (
-	GLOBAL Visibility = iota
-	PRIVATE
+	VisibilityGlobal  Visibility = "global"
+	VisibilityPrivate Visibility = "private"
 )
 
 type PythonScript struct {
@@ -18,6 +18,15 @@ type PythonScript struct {
 
 func (p *PythonScript) Interpreter() Path {
 	return p.interpreter
+}
+
+func IsGlobal(v Visibility) bool {
+	switch v {
+	case VisibilityGlobal:
+		return true
+	default:
+		return false
+	}
 }
 
 func NewPythonScript(interpreter Path) (*PythonScript, error) {

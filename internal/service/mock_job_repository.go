@@ -35,5 +35,3 @@ func (r *MockJobRepo) GetJob(JobID scripts.JobID) (scripts.Job, error) {
 	}
 	return job, nil
 }
-
-// так как нужно соответствие интерфейсу, то нужно реализовать все методы его (а именно GetJob)

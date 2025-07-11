@@ -1,6 +1,10 @@
 package service
 
-import "github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
+import (
+	"context"
+
+	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
+)
 
 type WsNotifier struct{}
 
@@ -8,7 +12,7 @@ func NewWsNotifier() (*WsNotifier, error) {
 	return &WsNotifier{}, nil
 }
 
-func (w *WsNotifier) Notify(r scripts.Result) error {
+func (w *WsNotifier) Notify(_ context.Context, r scripts.Result) error {
 
 	return nil
 }

@@ -7,7 +7,7 @@ type Result struct {
 	job      Job
 	code     StatusCode
 	out      Vector
-	errorMes ErrorMessage
+	errorMes *ErrorMessage
 }
 
 func (r *Result) Job() Job {
@@ -22,15 +22,24 @@ func (r *Result) Out() Vector {
 	return r.out
 }
 
-func (r *Result) ErrorMessage() ErrorMessage {
+func (r *Result) ErrorMessage() *ErrorMessage {
 	return r.errorMes
 }
 
-func NewResult(job Job, code StatusCode, out Vector, errorMes ErrorMessage) (*Result, error) {
+func NewResult(job Job, code StatusCode, out Vector, errorMes *ErrorMessage) (*Result, error) {
 	return &Result{
 		job:      job,
 		code:     code,
 		out:      out,
 		errorMes: errorMes,
+	}, nil
+}
+
+func NewResultOK(job Job, code StatusCode, out Vector) (*Result, error) {
+	return &Result{
+		job:      job,
+		code:     0,
+		out:      out,
+		errorMes: nil,
 	}, nil
 }
