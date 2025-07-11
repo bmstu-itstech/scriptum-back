@@ -26,16 +26,16 @@ func (r *Result) ErrorMessage() *ErrorMessage {
 	return r.errorMes
 }
 
-func NewResult(job Job, code StatusCode, out Vector, errorMes *ErrorMessage) (*Result, error) {
+func NewResult(job Job, code StatusCode, out Vector, errorMes ErrorMessage) (*Result, error) {
 	return &Result{
 		job:      job,
 		code:     code,
 		out:      out,
-		errorMes: errorMes,
+		errorMes: &errorMes,
 	}, nil
 }
 
-func NewResultOK(job Job, code StatusCode, out Vector) (*Result, error) {
+func NewResultOK(job Job, out Vector) (*Result, error) {
 	return &Result{
 		job:      job,
 		code:     0,

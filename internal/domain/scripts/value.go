@@ -3,7 +3,11 @@ package scripts
 import "fmt"
 
 type Value struct {
-	VariableType Type
+	variableType Type
+}
+
+func (v *Value) VariableType() Type {
+	return v.variableType
 }
 
 type Complex struct {

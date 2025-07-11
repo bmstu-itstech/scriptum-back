@@ -1,27 +1,20 @@
 package service
 
 import (
-	"context"
 	"fmt"
 	"sync"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
 
-type MockUserRepository interface {
-	GetUser(userId scripts.UserID) (scripts.User, error)
-}
-
 type MockUserRepo struct {
-	context context.Context
 	sync.RWMutex
 	m map[scripts.UserID]scripts.User
 }
 
 func NewMockUserRepository() (*MockUserRepo, error) {
 	return &MockUserRepo{
-		context: context.Background(),
-		m:       make(map[scripts.UserID]scripts.User),
+		m: make(map[scripts.UserID]scripts.User),
 	}, nil
 }
 
