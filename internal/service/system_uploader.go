@@ -12,7 +12,7 @@ func NewFileUploader() *FileUpload {
 	return &FileUpload{}
 }
 
-func (f *FileUpload) upload(file scripts.File) (scripts.Path, error) {
+func (f *FileUpload) Upload(file scripts.File) (scripts.Path, error) {
 
 	return "", nil
 }
