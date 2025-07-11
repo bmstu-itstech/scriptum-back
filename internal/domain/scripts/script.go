@@ -43,7 +43,7 @@ func (s Script) CreatedAt() time.Time {
 func (s Script) Assemble(input Vector) Job {
 	return Job{
 		JobID:     0,
-		UserID:    s.owner,
+		UserID:    s.Owner(),
 		In:        input,
 		Command:   s.Path(),
 		startedAt: time.Now(),
