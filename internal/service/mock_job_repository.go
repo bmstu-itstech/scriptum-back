@@ -9,7 +9,7 @@ import (
 )
 
 type MockJobRepository interface {
-	GetJob(JobID scripts.JobID) (scripts.Job, error)
+	GetJob(JobID scripts.JobID) (*scripts.Job, error)
 }
 
 type MockJobRepo struct {
@@ -18,11 +18,11 @@ type MockJobRepo struct {
 	m map[scripts.JobID]scripts.Job
 }
 
-func NewMockJobRepository() *MockJobRepo {
+func NewMockJobRepository() (*MockJobRepo, error) {
 	return &MockJobRepo{
 		context: context.Background(),
 		m:       make(map[scripts.JobID]scripts.Job),
-	}
+	}, nil
 }
 
 func (r *MockJobRepo) GetUser(JobID scripts.JobID) (scripts.Job, error) {
@@ -35,3 +35,5 @@ func (r *MockJobRepo) GetUser(JobID scripts.JobID) (scripts.Job, error) {
 	}
 	return job, nil
 }
+
+// так как нужно соответствие интерфейсу, то нужно реализовать все методы его (а именно GetJob)

@@ -8,8 +8,8 @@ type FileUploader interface {
 
 type FileUpload struct{}
 
-func NewFileUploader() *FileUpload {
-	return &FileUpload{}
+func NewFileUploader() (*FileUpload, error) {
+	return &FileUpload{}, nil
 }
 
 func (f *FileUpload) Upload(file scripts.File) (scripts.Path, error) {

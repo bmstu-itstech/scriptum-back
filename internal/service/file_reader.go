@@ -1,13 +1,14 @@
 package service
 
 import (
+	"context"
 	"io"
 	"mime/multipart"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
 
-func ReadFile(file multipart.File, header *multipart.FileHeader) (scripts.File, error) {
+func ReadFile(_ context.Context, file multipart.File, header *multipart.FileHeader) (*scripts.File, error) {
 	defer func() {
 		if err := file.Close(); err != nil {
 			panic(err)
@@ -16,7 +17,7 @@ func ReadFile(file multipart.File, header *multipart.FileHeader) (scripts.File, 
 
 	content, err := io.ReadAll(file)
 	if err != nil {
-		return scripts.File{}, err
+		return nil, err
 	}
 
 	mimeType := header.Header.Get("Content-Type")
@@ -24,9 +25,10 @@ func ReadFile(file multipart.File, header *multipart.FileHeader) (scripts.File, 
 		mimeType = "application/octet-stream"
 	}
 
-	return scripts.File{
-		Name:    header.Filename,
-		Type:    mimeType,
-		Content: content,
-	}, nil
+	resFile, err := scripts.NewFile(header.Filename, mimeType, content)
+	if err != nil {
+		return nil, err
+	}
+
+	return resFile, nil
 }

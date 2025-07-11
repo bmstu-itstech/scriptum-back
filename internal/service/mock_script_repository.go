@@ -18,11 +18,11 @@ type MockScriptRepo struct {
 	m map[scripts.ScriptID]scripts.Script
 }
 
-func NewMockScriptRepository() *MockScriptRepo {
+func NewMockScriptRepository() (*MockScriptRepo, error) {
 	return &MockScriptRepo{
 		context: context.Background(),
 		m:       make(map[scripts.ScriptID]scripts.Script),
-	}
+	}, nil
 }
 
 func (r *MockScriptRepo) GetScript(scriptID scripts.ScriptID) (scripts.Script, error) {
