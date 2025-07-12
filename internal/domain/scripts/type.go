@@ -14,15 +14,15 @@ func (t *Type) String() string {
 	return t.s
 }
 
-func NewType(s string) (Type, error) {
+func NewType(s string) (*Type, error) {
 	switch s {
 	case "integer":
-		return IntegerType, nil
+		return &IntegerType, nil
 	case "real":
-		return RealType, nil
+		return &RealType, nil
 	case "complex":
-		return ComplexType, nil
+		return &ComplexType, nil
 	default:
-		return Type{}, ErrInvalidType
+		return nil, ErrInvalidType
 	}
 }
