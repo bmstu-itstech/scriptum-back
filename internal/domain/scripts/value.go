@@ -15,8 +15,8 @@ type Complex struct {
 	data complex64
 }
 
-func (com *Complex) Data() complex64 {
-	return com.data
+func (c *Complex) Data() complex64 {
+	return c.data
 }
 
 func NewComplex(data complex64) (*Complex, error) {
@@ -28,8 +28,8 @@ type Real struct {
 	data float64
 }
 
-func (real *Real) Data() float64 {
-	return real.data
+func (r *Real) Data() float64 {
+	return r.data
 }
 
 func NewReal(data float64) (*Real, error) {
