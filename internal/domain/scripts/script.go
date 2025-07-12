@@ -84,5 +84,5 @@ func NewScript(fields []Field, path Path, owner UserID, visibility Visibility) (
 }
 
 func (s *Script) Assemble(input Vector) (*Job, error) {
-	return NewJobR(0, s.Owner(), input, s.Path(), time.Now()), nil
+	return NewJob(0, s.Owner(), input, s.Path(), time.Now())
 }
