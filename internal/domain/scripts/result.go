@@ -10,16 +10,16 @@ type Result struct {
 	errorMes *ErrorMessage
 }
 
-func (r *Result) Job() Job {
-	return r.job
+func (r *Result) Job() *Job {
+	return &r.job
 }
 
 func (r *Result) Code() StatusCode {
 	return r.code
 }
 
-func (r *Result) Out() Vector {
-	return r.out
+func (r *Result) Out() *Vector {
+	return &r.out
 }
 
 func (r *Result) ErrorMessage() *ErrorMessage {

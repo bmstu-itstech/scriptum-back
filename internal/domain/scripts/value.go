@@ -20,7 +20,10 @@ func (c *Complex) Data() complex64 {
 }
 
 func NewComplex(data complex64) (*Complex, error) {
-	return &Complex{data: data}, nil
+	return &Complex{
+		Value: Value{variableType: ComplexType},
+		data:  data,
+	}, nil
 }
 
 type Real struct {
@@ -33,7 +36,10 @@ func (r *Real) Data() float64 {
 }
 
 func NewReal(data float64) (*Real, error) {
-	return &Real{data: data}, nil
+	return &Real{
+		Value: Value{variableType: RealType},
+		data:  data,
+	}, nil
 }
 
 type Integer struct {
@@ -46,7 +52,10 @@ func (i *Integer) Data() int64 {
 }
 
 func NewInteger(data int64) (*Integer, error) {
-	return &Integer{data: data}, nil
+	return &Integer{
+		Value: Value{variableType: IntegerType},
+		data:  data,
+	}, nil
 }
 
 func (c *Complex) String() string {
