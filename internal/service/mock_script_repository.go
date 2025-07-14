@@ -1,11 +1,20 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
+
+type ScriptService interface {
+	CreateScript(ctx context.Context, script scripts.Script) (scripts.ScriptID, error)
+	GetScript(ctx context.Context, scriptID scripts.ScriptID) (scripts.Script, error)
+	DeleteScript(ctx context.Context, scriptID scripts.ScriptID) error
+	GetScripts(ctx context.Context) ([]scripts.Script, error)
+	GetUserScripts(ctx context.Context, userID scripts.UserID) ([]scripts.Script, error)
+}
 
 type MockScriptRepo struct {
 	sync.RWMutex
@@ -18,7 +27,7 @@ func NewMockScriptRepository() (*MockScriptRepo, error) {
 	}, nil
 }
 
-func (r *MockScriptRepo) GetScript(scriptID scripts.ScriptID) (scripts.Script, error) {
+func (r *MockScriptRepo) GetScript(_ context.Context, scriptID scripts.ScriptID) (scripts.Script, error) {
 	r.RLock()
 	defer r.RUnlock()
 
