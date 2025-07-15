@@ -10,12 +10,14 @@ type ScriptRunUC struct {
 	scriptS   scripts.ScriptRepository
 	jobS      scripts.JobRepository
 	launcherS scripts.Launcher
+	notifierS scripts.Notifier
 }
 
 func NewScriptRunUC(
 	scriptS scripts.ScriptRepository,
 	jobS scripts.JobRepository,
 	launcherS scripts.Launcher,
+	notifierS scripts.Notifier,
 ) (*ScriptRunUC, error) {
 	if scriptS == nil {
 		return nil, scripts.ErrInvalidScriptService
@@ -26,12 +28,16 @@ func NewScriptRunUC(
 	if launcherS == nil {
 		return nil, scripts.ErrInvalidLauncherService
 	}
+	if notifierS == nil {
+		return nil, scripts.ErrInvalidNotifierService
+	}
 	return &ScriptRunUC{scriptS: scriptS}, nil
 }
 
 type ScriptRunInput struct {
-	ScriptID uint32
-	InParams []ValueDTO
+	ScriptID     uint32
+	InParams     []ValueDTO
+	needToNotify bool
 }
 
 func (s *ScriptRunUC) RunScript(ctx context.Context, input ScriptRunInput) (ResultDTO, error) {
@@ -81,5 +87,11 @@ func (s *ScriptRunUC) RunScript(ctx context.Context, input ScriptRunInput) (Resu
 		ErrorMes: result.ErrorMessage(),
 	}
 
+	if input.needToNotify {
+		err = s.notifierS.Notify(ctx, result)
+		if err != nil {
+			return ResultDTO{}, err
+		}
+	}
 	return ucResult, nil
 }

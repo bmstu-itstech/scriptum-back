@@ -27,5 +27,6 @@ var (
 	ErrInvalidScriptService   = errors.New("scriptService is nil")
 	ErrInvalidLauncherService = errors.New("launcherService is nil")
 	ErrInvalidUserService     = errors.New("userService is nil")
-	ErrInvalidJobService	  = errors.New("jobService is nil")
+	ErrInvalidJobService      = errors.New("jobService is nil")
+	ErrInvalidNotifierService = errors.New("notifierService is nil")
 )

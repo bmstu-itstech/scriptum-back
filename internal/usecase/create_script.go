@@ -17,7 +17,7 @@ func NewScriptCreateUC(scriptS scripts.ScriptRepository) (*ScriptCreateUC, error
 	return &ScriptCreateUC{scriptS: scriptS}, nil
 }
 
-func (u *ScriptCreateUC) CreateScript(ctx context.Context, input ScriptDTO) (scripts.ScriptID, error) {
+func (u *ScriptCreateUC) CreateScript(ctx context.Context, input ScriptDTO) (uint32, error) {
 	script, err := DTOToScript(input)
 	if err != nil {
 		// логируем ошибку
@@ -28,5 +28,5 @@ func (u *ScriptCreateUC) CreateScript(ctx context.Context, input ScriptDTO) (scr
 		// логируем ошибку
 		return 0, err
 	}
-	return scriptId, nil
+	return uint32(scriptId), nil
 }
