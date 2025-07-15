@@ -15,9 +15,11 @@ type Complex struct {
 }
 
 func NewComplex(data complex64) (*Complex, error) {
-	return &Complex{
-		data: data,
-	}, nil
+	return &Complex{data: data}, nil
+}
+
+func (c *Complex) Data() complex64 {
+	return c.data
 }
 
 func (c *Complex) VariableType() Type {
@@ -28,12 +30,16 @@ func (c *Complex) String() string {
 	return fmt.Sprintf("Complex(%v)", c.data)
 }
 
-func (c *Complex) Data() complex64 {
-	return c.data
-}
-
 type Real struct {
 	data float64
+}
+
+func NewReal(data float64) (*Real, error) {
+	return &Real{data: data}, nil
+}
+
+func (r *Real) Data() float64 {
+	return r.data
 }
 
 func (r *Real) VariableType() Type {
@@ -44,18 +50,16 @@ func (r *Real) String() string {
 	return fmt.Sprintf("Real(%f)", r.data)
 }
 
-func (r *Real) Data() float64 {
-	return r.data
-}
-
-func NewReal(data float64) (*Real, error) {
-	return &Real{
-		data: data,
-	}, nil
-}
-
 type Integer struct {
 	data int64
+}
+
+func NewInteger(data int64) (*Integer, error) {
+	return &Integer{data: data}, nil
+}
+
+func (i *Integer) Data() int64 {
+	return i.data
 }
 
 func (i *Integer) VariableType() Type {
@@ -63,17 +67,7 @@ func (i *Integer) VariableType() Type {
 }
 
 func (i *Integer) String() string {
-	return fmt.Sprintf("Integer(%d)", i.data)
-}
-
-func (i *Integer) Data() int64 {
-	return i.data
-}
-
-func NewInteger(data int64) (*Integer, error) {
-	return &Integer{
-		data: data,
-	}, nil
+	return fmt.Sprintf("Integer(%f)", i.data)
 }
 
 func NewIntegerString(data string) (*Integer, error) {
@@ -93,19 +87,12 @@ func NewRealString(data string) (*Real, error) {
 }
 
 func NewComplexString(data string) (*Complex, error) {
-	var r, i float64
-
-	n, err := fmt.Sscanf(data, "%f+%fi", &r, &i)
-	if err != nil || n != 2 {
-		n, err = fmt.Sscanf(data, "%f-%fi", &r, &i)
-		if err != nil || n != 2 {
-			return nil, ErrComplexConversion
-		}
-		i = -i
+	c, err := strconv.ParseComplex(data, 64)
+	if err != nil {
+		return nil, ErrComplexConversion
 	}
 
-	c := complex(float32(r), float32(i))
-	return NewComplex(c)
+	return NewComplex(complex64(c))
 }
 
 func NewValue(fieldType string, data string) (Value, error) {

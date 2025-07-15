@@ -2,7 +2,7 @@ package scripts
 
 import "time"
 
-type JobID = int
+type JobID = uint32
 
 type Job struct {
 	jobID     JobID
@@ -34,7 +34,7 @@ func (j *Job) StartedAt() time.Time {
 
 func NewJob(jobID JobID, userID UserID, in Vector, command string, startedAt time.Time) (*Job, error) {
 	if in.Len() == 0 {
-		return nil, ErrEmptyVector
+		return nil, ErrVectorEmpty
 	}
 	return &Job{
 		jobID:     jobID,

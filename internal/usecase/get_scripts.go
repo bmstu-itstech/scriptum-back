@@ -8,11 +8,11 @@ import (
 )
 
 type GetScriptsUC struct {
-	scriptS service.ScriptService
-	userS   userspb.UserServiceClient
+	scriptS scripts.ScriptRepository
+	userS   service.UserServiceClient
 }
 
-func NewGetScriptsUС(scriptS service.ScriptService, userS userspb.UserServiceClient) (*GetScriptsUC, error) {
+func NewGetScriptsUС(scriptS scripts.ScriptRepository, userS userspb.UserServiceClient) (*GetScriptsUC, error) {
 	if scriptS == nil {
 		return nil, scripts.ErrInvalidScriptService
 	}
@@ -24,52 +24,33 @@ func NewGetScriptsUС(scriptS service.ScriptService, userS userspb.UserServiceCl
 	return &GetScriptsUC{scriptS: scriptS, userS: userS}, nil
 }
 
-func (u *GetScriptsUC) GetScripts(ctx context.Context, userID uint32) ([]UseCaseScript, error) {
+func (u *GetScriptsUC) Scripts(ctx context.Context, userID uint32) ([]ScriptDTO, error) {
 	var err error
 	var gotScripts []scripts.Script
+	var user scripts.User
 
-	user, err := u.userS.GetUser(ctx, &userspb.GetUserRequest{UserId: userID})
+	user, err = u.userS.User(ctx, &userspb.GetUserRequest{UserId: userID})
 	if err != nil {
 		return nil, err
 	}
 
-	switch user.Visibility() {
-	case scripts.VisibilityGlobal:
-		gotScripts, err = u.scriptS.GetScripts(ctx)
-
-	case scripts.VisibilityPrivate:
-		gotScripts, err = u.scriptS.GetUserScripts(ctx, userID)
-
-	default:
-		return nil, scripts.ErrInvalidVisibility
-	}
-
+	gotScripts, err = u.scriptS.PublicScripts(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	scriptsOut := make([]UseCaseScript, len(gotScripts))
-	for _, script := range gotScripts {
-		ucFields := make([]UseCaseField, len(script.Fields()))
-		for _, field := range script.Fields() {
-			sType := field.FieldType()
-			if err != nil {
-				return nil, err
-			}
-			ucFields = append(ucFields, UseCaseField{
-				Type:        sType.String(),
-				Name:        field.Name(),
-				Description: field.Description(),
-				Unit:        field.Unit(),
-			})
+	if !user.IsAdmin() {
+		userScripts, err := u.scriptS.UserScripts(ctx, scripts.UserID(userID))
+		if err != nil {
+			return nil, err
 		}
-		scriptsOut = append(scriptsOut, UseCaseScript{
-			Fields:     ucFields,
-			Path:       script.Path(),
-			Owner:      int64(script.Owner()),
-			Visibility: string(script.Visibility()),
-			CreatedAt:  script.CreatedAt(),
-		})
+		gotScripts = append(gotScripts, userScripts...)
 	}
+
+	scriptsOut := make([]ScriptDTO, 0, len(gotScripts))
+	for _, script := range gotScripts {
+		scriptsOut = append(scriptsOut, ScriptToDTO(script))
+	}
+
 	return scriptsOut, nil
 }

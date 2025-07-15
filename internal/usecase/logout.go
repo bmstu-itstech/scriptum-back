@@ -7,22 +7,18 @@ package usecase
 // 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 // )
 
-// type UserLogoutUC interface {
-// 	Logout(ctx context.Context, token string) error
+// type UserLogoutUC struct {
+// 	authS authpb.SessionServiceClient
 // }
 
-// type UserLogoutUCImp struct {
-// 	sessionService authpb.SessionServiceClient
-// }
-
-// func NewUserLogoutUCImp(sessionService authpb.SessionServiceClient) (*UserLogoutUCImp, error) {
-// 	if sessionService == nil {
+// func NewUserLogoutUC(authS authpb.SessionServiceClient) (*UserLogoutUC, error) {
+// 	if authS == nil {
 // 		return nil, scripts.ErrInvalidSessionService
 // 	}
-// 	return &UserLogoutUCImp{sessionService: sessionService}, nil
+// 	return &UserLogoutUC{authS: authS}, nil
 // }
 
-// func (u *UserLogoutUCImp) Logout(ctx context.Context, token string) error {
-// 	_, err := u.sessionService.Logout(ctx, &authpb.LogoutRequest{Token: token})
+// func (u *UserLogoutUC) Logout(ctx context.Context, token string) error {
+// 	_, err := u.authS.Logout(ctx, &authpb.LogoutRequest{Token: token})
 // 	return err
 // }

@@ -4,14 +4,13 @@ import (
 	"context"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
-	"github.com/bmstu-itstech/scriptum-back/internal/service"
 )
 
 type ScriptDeleteUC struct {
-	scriptS service.ScriptService
+	scriptS scripts.ScriptRepository
 }
 
-func NewScriptDeleteUC(scriptS service.ScriptService) (*ScriptDeleteUC, error) {
+func NewScriptDeleteUC(scriptS scripts.ScriptRepository) (*ScriptDeleteUC, error) {
 	if scriptS == nil {
 		return nil, scripts.ErrInvalidScriptService
 	}

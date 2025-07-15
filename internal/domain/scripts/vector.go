@@ -10,7 +10,7 @@ func (v *Vector) Values() []Value {
 
 func NewVector(values []Value) (*Vector, error) {
 	if len(values) == 0 {
-		return nil, ErrEmptyVector
+		return nil, ErrVectorEmpty
 	}
 	return &Vector{values: values}, nil
 }
