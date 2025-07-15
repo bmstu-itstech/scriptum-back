@@ -41,11 +41,11 @@ func (e *EmailNotifier) Notify(_ context.Context, r scripts.Result, email script
 	for _, v := range r.Out().Values() {
 		switch v.VariableType() {
 		case scripts.ComplexType:
-			values = append(values, "a")
+			values = append(values, v.String())
 		case scripts.RealType:
-			values = append(values, "d")
+			values = append(values, v.String())
 		case scripts.IntegerType:
-			values = append(values, "g")
+			values = append(values, v.String())
 		default:
 			values = append(values, "unknown value")
 		}

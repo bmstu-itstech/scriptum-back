@@ -22,4 +22,8 @@ var (
 	ErrFullNameEmpty      = errors.New("full name cannot be empty")
 	ErrEmailEmpty         = errors.New("email cannot be empty")
 	ErrInvalidType        = errors.New("invalid type")
+	ErrJobNotExists       = errors.New("job не найден")
+	ErrComplexConversion  = errors.New("не удалось привести число к комплексному виду")
+	ErrRealConversion     = errors.New("не удалось привести число к дробному виду")
+	ErrIntegerConversion  = errors.New("не удалось привести число к целочисленному виду")
 )
