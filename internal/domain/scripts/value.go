@@ -107,3 +107,27 @@ func NewComplexString(data string) (*Complex, error) {
 	c := complex(float32(r), float32(i))
 	return NewComplex(c)
 }
+
+func NewValue(fieldType string, data string) (Value, error) {
+	var val Value
+	var err error
+
+	switch fieldType {
+	case "integer":
+		val, err = NewIntegerString(data)
+		if err != nil {
+			return nil, err
+		}
+	case "real":
+		val, err = NewRealString(data)
+		if err != nil {
+			return nil, err
+		}
+	case "complex":
+		val, err = NewComplexString(data)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return val, nil
+}

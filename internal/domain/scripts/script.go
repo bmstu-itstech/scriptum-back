@@ -3,7 +3,7 @@ package scripts
 import "time"
 
 type Path = string
-type ScriptID = uint32
+type ScriptID = int
 
 type Visibility string
 

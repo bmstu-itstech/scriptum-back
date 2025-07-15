@@ -7,11 +7,19 @@ import (
 	"time"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4"
 )
 
+type ScriptDBConn interface {
+	Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
+	Exec(ctx context.Context, sql string, args ...interface{}) (pgconn.CommandTag, error)
+	BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error)
+}
+
 type ScriptRepo struct {
-	DB *pgx.Conn
+	DB ScriptDBConn
 }
 
 func NewScriptRepo(ctx context.Context) (*ScriptRepo, error) {
@@ -119,10 +127,12 @@ func (r *ScriptRepo) GetScripts(ctx context.Context) ([]scripts.Script, error) {
 	defer rows.Close()
 
 	var (
-		scriptsList  []scripts.Script
-		lastScriptID int64 = -1
-		fields       []scripts.Field
+		scriptsList []scripts.Script
 
+		currentScriptID int64 = -1
+		currentFields   []scripts.Field
+
+		// переменные для текущей строки
 		scriptID   int64
 		path       string
 		ownerID    int64
@@ -132,6 +142,10 @@ func (r *ScriptRepo) GetScripts(ctx context.Context) ([]scripts.Script, error) {
 		name       string
 		desc       string
 		unit       string
+
+		lastPath       string
+		lastOwnerID    int64
+		lastVisibility string
 	)
 
 	for rows.Next() {
@@ -139,15 +153,17 @@ func (r *ScriptRepo) GetScripts(ctx context.Context) ([]scripts.Script, error) {
 			return nil, err
 		}
 
-		if lastScriptID != -1 && scriptID != lastScriptID {
-			script, err := scripts.NewScript(fields, path, scripts.UserID(ownerID), scripts.Visibility(visibility))
+		// Если начался новый скрипт — пушим старый
+		if currentScriptID != -1 && scriptID != currentScriptID {
+			script, err := scripts.NewScript(currentFields, lastPath, scripts.UserID(lastOwnerID), scripts.Visibility(lastVisibility))
 			if err != nil {
 				return nil, err
 			}
 			scriptsList = append(scriptsList, *script)
-			fields = nil
+			currentFields = nil
 		}
 
+		// Собираем поле
 		t, err := scripts.NewType(fieldType)
 		if err != nil {
 			return nil, err
@@ -156,12 +172,18 @@ func (r *ScriptRepo) GetScripts(ctx context.Context) ([]scripts.Script, error) {
 		if err != nil {
 			return nil, err
 		}
-		fields = append(fields, *f)
-		lastScriptID = scriptID
+		currentFields = append(currentFields, *f)
+
+		// Обновляем текущий scriptID и связанные с ним данные
+		currentScriptID = scriptID
+		lastPath = path
+		lastOwnerID = ownerID
+		lastVisibility = visibility
 	}
 
-	if lastScriptID != -1 {
-		script, err := scripts.NewScript(fields, path, scripts.UserID(ownerID), scripts.Visibility(visibility))
+	// Добавляем последний скрипт
+	if currentScriptID != -1 {
+		script, err := scripts.NewScript(currentFields, lastPath, scripts.UserID(lastOwnerID), scripts.Visibility(lastVisibility))
 		if err != nil {
 			return nil, err
 		}
@@ -202,12 +224,12 @@ func (r *ScriptRepo) GetUserScripts(ctx context.Context, userID scripts.UserID) 
 
 	var (
 		scriptsList  []scripts.Script
-		lastScriptID int64 = -1
+		lastScriptID int = -1
 		fields       []scripts.Field
 
-		scriptID   int64
+		scriptID   int
 		path       string
-		ownerID    int64
+		ownerID    int
 		visibility string
 		createdAt  time.Time
 		fieldType  string

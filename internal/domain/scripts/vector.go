@@ -22,3 +22,20 @@ func (v *Vector) Add(value Value) {
 func (v *Vector) Len() int {
 	return len(v.values)
 }
+
+func (v *Vector) Get() []string {
+	values := []string{}
+	for _, v := range v.Values() {
+		switch v.VariableType() {
+		case ComplexType:
+			values = append(values, v.String())
+		case RealType:
+			values = append(values, v.String())
+		case IntegerType:
+			values = append(values, v.String())
+		default:
+			values = append(values, "unknown value")
+		}
+	}
+	return values
+}

@@ -37,19 +37,7 @@ func (e *EmailNotifier) Notify(_ context.Context, r scripts.Result, email script
 		return err
 	}
 
-	values := []string{}
-	for _, v := range r.Out().Values() {
-		switch v.VariableType() {
-		case scripts.ComplexType:
-			values = append(values, v.String())
-		case scripts.RealType:
-			values = append(values, v.String())
-		case scripts.IntegerType:
-			values = append(values, v.String())
-		default:
-			values = append(values, "unknown value")
-		}
-	}
+	values := r.Out().Get()
 
 	var errorMsg string
 	if r.ErrorMessage() != nil {

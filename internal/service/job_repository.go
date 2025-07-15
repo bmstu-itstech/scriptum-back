@@ -6,11 +6,18 @@ import (
 	"time"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4"
 )
 
+type JobDBConn interface {
+	Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
+	Exec(ctx context.Context, sql string, args ...interface{}) (pgconn.CommandTag, error)
+}
+
 type JobRepo struct {
-	DB *pgx.Conn
+	DB JobDBConn
 }
 
 func NewJobRepo(ctx context.Context) (*JobRepo, error) {
@@ -82,28 +89,7 @@ func (r *JobRepo) GetResult(ctx context.Context, jobID scripts.JobID) (*scripts.
 		parsedJob = true
 
 		if valStr != nil && paramType != nil {
-			var val scripts.Value
-
-			switch fieldType {
-			case "integer":
-				val, err = scripts.NewIntegerString(*valStr)
-				if err != nil {
-					return nil, err
-				}
-			case "real":
-				val, err = scripts.NewRealString(*valStr)
-				if err != nil {
-					return nil, err
-				}
-			case "complex":
-				val, err = scripts.NewComplexString(*valStr)
-				if err != nil {
-					return nil, err
-				}
-			default:
-				err = fmt.Errorf("неизвестный тип поля: %s", fieldType)
-			}
-
+			val, err := scripts.NewValue(fieldType, *valStr)
 			if err != nil {
 				return nil, err
 			}
@@ -212,17 +198,7 @@ func (r *JobRepo) GetResultsForUser(ctx context.Context, userID scripts.UserID) 
 		}
 
 		if valStr != nil && paramType != nil {
-			var val scripts.Value
-			switch fieldType {
-			case "integer":
-				val, err = scripts.NewIntegerString(*valStr)
-			case "real":
-				val, err = scripts.NewRealString(*valStr)
-			case "complex":
-				val, err = scripts.NewComplexString(*valStr)
-			default:
-				err = fmt.Errorf("неизвестный тип поля: %s", fieldType)
-			}
+			val, err := scripts.NewValue(fieldType, *valStr)
 			if err != nil {
 				return nil, err
 			}
@@ -262,14 +238,14 @@ func (r *JobRepo) GetResultsForUser(ctx context.Context, userID scripts.UserID) 
 
 const PostJobQuery = `
 		INSERT INTO jobs (user_id, script_id, started_at)
-		VALUES ($1, $3, CURRENT_TIMESTAMP)
+		VALUES ($1, $2, CURRENT_TIMESTAMP)
 		RETURNING job_id;
 	`
 
 func (r *JobRepo) PostJob(ctx context.Context, job scripts.Job, scriptID scripts.ScriptID) (scripts.JobID, error) {
 	var id scripts.JobID
 	err := r.DB.QueryRow(ctx, PostJobQuery,
-		job.UserID,
+		job.UserID(),
 		scriptID,
 	).Scan(&id)
 	if err != nil {
@@ -289,7 +265,7 @@ const CloseJobQuery = `
 func (r *JobRepo) CloseJob(ctx context.Context, jobID scripts.JobID, res *scripts.Result) error {
 	_, err := r.DB.Exec(ctx, CloseJobQuery,
 		res.Code(),
-		res.ErrorMessage(),
+		*res.ErrorMessage(),
 		jobID,
 	)
 	return err

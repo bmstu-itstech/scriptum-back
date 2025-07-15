@@ -2,7 +2,7 @@ package scripts
 
 import "time"
 
-type JobID = uint32
+type JobID = int
 
 type Job struct {
 	jobID     JobID
