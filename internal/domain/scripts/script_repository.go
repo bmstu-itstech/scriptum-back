@@ -9,4 +9,5 @@ type ScriptRepository interface {
 	PublicScripts(ctx context.Context) ([]Script, error)
 	UserScripts(ctx context.Context, userID UserID) ([]Script, error)
 	SearchScripts(ctx context.Context, scriptNamePart string) ([]Script, error)
+	UpdateScript(ctx context.Context, script Script) error
 }
