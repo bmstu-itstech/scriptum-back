@@ -11,10 +11,6 @@ type ScriptRunUC struct {
 	scriptS service.ScriptService
 }
 
-func (s *ScriptRunUC) ScriptS() service.ScriptService {
-	return s.scriptS
-}
-
 func NewScriptRunUC(scriptS service.ScriptService) (*ScriptRunUC, error) {
 	if scriptS == nil {
 		return nil, scripts.ErrInvalidScriptService

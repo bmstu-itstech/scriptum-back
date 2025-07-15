@@ -11,10 +11,6 @@ type ScriptDeleteUC struct {
 	service service.ScriptService
 }
 
-func (s *ScriptDeleteUC) Service() service.ScriptService {
-	return s.service
-}
-
 func NewScriptDeleteUC(service service.ScriptService) (*ScriptDeleteUC, error) {
 	if service == nil {
 		return nil, scripts.ErrInvalidScriptService
@@ -24,7 +20,7 @@ func NewScriptDeleteUC(service service.ScriptService) (*ScriptDeleteUC, error) {
 }
 
 func (u *ScriptDeleteUC) DeleteScript(ctx context.Context, scriptID scripts.ScriptID) error {
-	err := u.Service().DeleteScript(ctx, scriptID)
+	err := u.service.DeleteScript(ctx, scriptID)
 	// логи
 	return err
 }

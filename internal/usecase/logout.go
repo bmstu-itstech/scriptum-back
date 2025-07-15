@@ -15,10 +15,6 @@ package usecase
 // 	sessionService authpb.SessionServiceClient
 // }
 
-// func (l *UserLogoutUCImp) SessionService() authpb.SessionServiceClient {
-// 	return l.sessionService
-// }
-
 // func NewUserLogoutUCImp(sessionService authpb.SessionServiceClient) (*UserLogoutUCImp, error) {
 // 	if sessionService == nil {
 // 		return nil, scripts.ErrInvalidSessionService
@@ -27,6 +23,6 @@ package usecase
 // }
 
 // func (u *UserLogoutUCImp) Logout(ctx context.Context, token string) error {
-// 	_, err := u.SessionService().Logout(ctx, &authpb.LogoutRequest{Token: token})
+// 	_, err := u.sessionService.Logout(ctx, &authpb.LogoutRequest{Token: token})
 // 	return err
 // }

@@ -15,10 +15,6 @@ package usecase
 // 	sessionService authpb.SessionServiceClient
 // }
 
-// func (l *UserLoginUCImp) SessionService() authpb.SessionServiceClient {
-// 	return l.sessionService
-// }
-
 // func NewUserLoginUCImp(sessionService authpb.SessionServiceClient) (*UserLoginUCImp, error) {
 // 	if sessionService == nil {
 // 		return nil, scripts.ErrInvalidSessionService
@@ -27,7 +23,7 @@ package usecase
 // }
 
 // func (l *UserLoginUCImp) Login(ctx context.Context, login, password string) (string, error) {
-// 	resp, err := l.SessionService().Login(ctx, &authpb.LoginRequest{Login: login, Password: password})
+// 	resp, err := l.sessionService.Login(ctx, &authpb.LoginRequest{Login: login, Password: password})
 // 	if err != nil {
 // 		return "", err
 // 	}
