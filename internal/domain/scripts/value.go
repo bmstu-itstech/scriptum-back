@@ -67,7 +67,7 @@ func (i *Integer) VariableType() Type {
 }
 
 func (i *Integer) String() string {
-	return fmt.Sprintf("Integer(%f)", i.data)
+	return fmt.Sprintf("Integer(%d)", i.data)
 }
 
 func NewIntegerString(data string) (*Integer, error) {
