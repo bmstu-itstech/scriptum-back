@@ -1,6 +1,9 @@
 package scripts
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 type Value interface {
 	VariableType() Type
@@ -8,21 +11,19 @@ type Value interface {
 }
 
 type Complex struct {
-	variableType Type
-	data         complex64
+	data complex64
 }
 
 func NewComplex(data complex64) (*Complex, error) {
-	t, _ := NewType("complex")
-	return &Complex{variableType: *t, data: data}, nil
-}
-
-func (c *Complex) VariableType() Type {
-	return c.variableType
+	return &Complex{data: data}, nil
 }
 
 func (c *Complex) Data() complex64 {
 	return c.data
+}
+
+func (c *Complex) VariableType() Type {
+	return ComplexType
 }
 
 func (c *Complex) String() string {
@@ -30,21 +31,19 @@ func (c *Complex) String() string {
 }
 
 type Real struct {
-	variableType Type
-	data         float64
+	data float64
 }
 
 func NewReal(data float64) (*Real, error) {
-	t, _ := NewType("real")
-	return &Real{variableType: *t, data: data}, nil
-}
-
-func (r *Real) VariableType() Type {
-	return r.variableType
+	return &Real{data: data}, nil
 }
 
 func (r *Real) Data() float64 {
 	return r.data
+}
+
+func (r *Real) VariableType() Type {
+	return RealType
 }
 
 func (r *Real) String() string {
@@ -52,23 +51,70 @@ func (r *Real) String() string {
 }
 
 type Integer struct {
-	variableType Type
-	data         int64
+	data int64
 }
 
 func NewInteger(data int64) (*Integer, error) {
-	t, _ := NewType("integer")
-	return &Integer{variableType: *t, data: data}, nil
-}
-
-func (i *Integer) VariableType() Type {
-	return i.variableType
+	return &Integer{data: data}, nil
 }
 
 func (i *Integer) Data() int64 {
 	return i.data
 }
 
+func (i *Integer) VariableType() Type {
+	return IntegerType
+}
+
 func (i *Integer) String() string {
-	return fmt.Sprintf("Integer(%d)", i.data)
+	return fmt.Sprintf("Integer(%f)", i.data)
+}
+
+func NewIntegerString(data string) (*Integer, error) {
+	i, err := strconv.ParseInt(data, 10, 64)
+	if err != nil {
+		return nil, ErrIntegerConversion
+	}
+	return NewInteger(i)
+}
+
+func NewRealString(data string) (*Real, error) {
+	f, err := strconv.ParseFloat(data, 64)
+	if err != nil {
+		return nil, ErrRealConversion
+	}
+	return NewReal(f)
+}
+
+func NewComplexString(data string) (*Complex, error) {
+	c, err := strconv.ParseComplex(data, 64)
+	if err != nil {
+		return nil, ErrComplexConversion
+	}
+
+	return NewComplex(complex64(c))
+}
+
+func NewValue(fieldType string, data string) (Value, error) {
+	var val Value
+	var err error
+
+	switch fieldType {
+	case "integer":
+		val, err = NewIntegerString(data)
+		if err != nil {
+			return nil, err
+		}
+	case "real":
+		val, err = NewRealString(data)
+		if err != nil {
+			return nil, err
+		}
+	case "complex":
+		val, err = NewComplexString(data)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return val, nil
 }

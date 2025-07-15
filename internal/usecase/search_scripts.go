@@ -17,8 +17,8 @@ func NewScriptSearchUC(scriptS scripts.ScriptRepository) (*ScriptSearchUC, error
 	return &ScriptSearchUC{scriptS: scriptS}, nil
 }
 
-func (u *ScriptSearchUC) Search(ctx context.Context, scriptNamePart string) ([]ScriptDTO, error) {
-	scripts, err := u.scriptS.SearchScripts(ctx, scriptNamePart)
+func (u *ScriptSearchUC) Search(ctx context.Context, namePart string) ([]ScriptDTO, error) {
+	scripts, err := u.scriptS.SearchScripts(ctx, namePart)
 	if err != nil {
 		return nil, err
 	}

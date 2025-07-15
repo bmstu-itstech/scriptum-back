@@ -11,6 +11,7 @@ type ScriptRunUC struct {
 	jobS      scripts.JobRepository
 	launcherS scripts.Launcher
 	notifierS scripts.Notifier
+	userS     scripts.UserRepository
 }
 
 func NewScriptRunUC(
@@ -18,6 +19,7 @@ func NewScriptRunUC(
 	jobS scripts.JobRepository,
 	launcherS scripts.Launcher,
 	notifierS scripts.Notifier,
+	userS scripts.UserRepository,
 ) (*ScriptRunUC, error) {
 	if scriptS == nil {
 		return nil, scripts.ErrInvalidScriptService
@@ -31,7 +33,16 @@ func NewScriptRunUC(
 	if notifierS == nil {
 		return nil, scripts.ErrInvalidNotifierService
 	}
-	return &ScriptRunUC{scriptS: scriptS}, nil
+	if userS == nil {
+		return nil, scripts.ErrInvalidUserService
+	}
+	return &ScriptRunUC{
+		scriptS:   scriptS,
+		jobS:      jobS,
+		launcherS: launcherS,
+		notifierS: notifierS,
+		userS:     userS,
+	}, nil
 }
 
 type ScriptRunInput struct {
@@ -70,7 +81,7 @@ func (s *ScriptRunUC) RunScript(ctx context.Context, input ScriptRunInput) (Resu
 	resJob := result.Job()
 
 	ucValues := VectorToDTO(resJob.In())
-	ucOut := VectorToDTO(result.Out())
+	ucOut := VectorToDTO(*result.Out())
 
 	ucJob := JobDTO{
 		jobID:     uint32(resJob.JobID()),
@@ -88,7 +99,11 @@ func (s *ScriptRunUC) RunScript(ctx context.Context, input ScriptRunInput) (Resu
 	}
 
 	if input.needToNotify {
-		err = s.notifierS.Notify(ctx, result)
+		user, err := s.userS.User(ctx, resJob.UserID())
+		if err != nil {
+			return ResultDTO{}, err
+		}
+		err = s.notifierS.Notify(ctx, result, user.Email())
 		if err != nil {
 			return ResultDTO{}, err
 		}

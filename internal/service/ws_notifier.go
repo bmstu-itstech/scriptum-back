@@ -12,7 +12,7 @@ func NewWsNotifier() (*WsNotifier, error) {
 	return &WsNotifier{}, nil
 }
 
-func (w *WsNotifier) Notify(_ context.Context, r scripts.Result) error {
+func (w *WsNotifier) Notify(_ context.Context, r scripts.Result, email scripts.Email) error {
 
 	return nil
 }
