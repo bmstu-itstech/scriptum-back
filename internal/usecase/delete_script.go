@@ -8,19 +8,19 @@ import (
 )
 
 type ScriptDeleteUC struct {
-	service service.ScriptService
+	scriptS service.ScriptService
 }
 
-func NewScriptDeleteUC(service service.ScriptService) (*ScriptDeleteUC, error) {
-	if service == nil {
+func NewScriptDeleteUC(scriptS service.ScriptService) (*ScriptDeleteUC, error) {
+	if scriptS == nil {
 		return nil, scripts.ErrInvalidScriptService
 	}
 
-	return &ScriptDeleteUC{service: service}, nil
+	return &ScriptDeleteUC{scriptS: scriptS}, nil
 }
 
-func (u *ScriptDeleteUC) DeleteScript(ctx context.Context, scriptID scripts.ScriptID) error {
-	err := u.service.DeleteScript(ctx, scriptID)
+func (u *ScriptDeleteUC) DeleteScript(ctx context.Context, scriptID uint32) error {
+	err := u.scriptS.DeleteScript(ctx, scripts.ScriptID(scriptID))
 	// логи
 	return err
 }
