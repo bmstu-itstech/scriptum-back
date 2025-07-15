@@ -39,11 +39,16 @@ func NewPythonScript(interpreter Path) (*PythonScript, error) {
 }
 
 type Script struct {
+	id         ScriptID
 	fields     []Field
 	path       Path
 	owner      UserID
 	visibility Visibility
 	createdAt  time.Time
+}
+
+func (s *Script) ID() ScriptID {
+	return s.id
 }
 
 func (s *Script) Fields() []Field {

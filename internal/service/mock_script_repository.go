@@ -8,14 +8,6 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
 
-type ScriptService interface {
-	CreateScript(ctx context.Context, script scripts.Script) (scripts.ScriptID, error)
-	Script(ctx context.Context, scriptID scripts.ScriptID) (scripts.Script, error)
-	DeleteScript(ctx context.Context, scriptID scripts.ScriptID) error
-	PublicScripts(ctx context.Context) ([]scripts.Script, error)
-	UserScripts(ctx context.Context, userID scripts.UserID) ([]scripts.Script, error)
-}
-
 type MockScriptRepo struct {
 	sync.RWMutex
 	m map[scripts.ScriptID]scripts.Script

@@ -3,5 +3,5 @@ package scripts
 import "context"
 
 type Launcher interface {
-	Launch(context.Context, Job) Result
+	Launch(context.Context, Job) (Result, error)
 }

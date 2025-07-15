@@ -8,11 +8,11 @@ import (
 )
 
 type GetScriptsUC struct {
-	scriptS service.ScriptService
-	userS   userspb.UserServiceClient
+	scriptS scripts.ScriptRepository
+	userS   service.UserServiceClient
 }
 
-func NewGetScriptsUС(scriptS service.ScriptService, userS userspb.UserServiceClient) (*GetScriptsUC, error) {
+func NewGetScriptsUС(scriptS scripts.ScriptRepository, userS userspb.UserServiceClient) (*GetScriptsUC, error) {
 	if scriptS == nil {
 		return nil, scripts.ErrInvalidScriptService
 	}
@@ -24,7 +24,7 @@ func NewGetScriptsUС(scriptS service.ScriptService, userS userspb.UserServiceCl
 	return &GetScriptsUC{scriptS: scriptS, userS: userS}, nil
 }
 
-func (u *GetScriptsUC) Scripts(ctx context.Context, userID uint32) ([]UseCaseScript, error) {
+func (u *GetScriptsUC) Scripts(ctx context.Context, userID uint32) ([]ScriptDTO, error) {
 	var err error
 	var gotScripts []scripts.Script
 	var user scripts.User
@@ -40,35 +40,17 @@ func (u *GetScriptsUC) Scripts(ctx context.Context, userID uint32) ([]UseCaseScr
 	}
 
 	if !user.IsAdmin() {
-		userScripts, err := u.scriptS.UserScripts(ctx, userID)
+		userScripts, err := u.scriptS.UserScripts(ctx, scripts.UserID(userID))
 		if err != nil {
 			return nil, err
 		}
 		gotScripts = append(gotScripts, userScripts...)
 	}
 
-	scriptsOut := make([]UseCaseScript, len(gotScripts))
+	scriptsOut := make([]ScriptDTO, 0, len(gotScripts))
 	for _, script := range gotScripts {
-		ucFields := make([]UseCaseField, len(script.Fields()))
-		for _, field := range script.Fields() {
-			sType := field.FieldType()
-			if err != nil {
-				return nil, err
-			}
-			ucFields = append(ucFields, UseCaseField{
-				Type:        sType.String(),
-				Name:        field.Name(),
-				Description: field.Description(),
-				Unit:        field.Unit(),
-			})
-		}
-		scriptsOut = append(scriptsOut, UseCaseScript{
-			Fields:     ucFields,
-			Path:       script.Path(),
-			Owner:      int64(script.Owner()),
-			Visibility: string(script.Visibility()),
-			CreatedAt:  script.CreatedAt(),
-		})
+		scriptsOut = append(scriptsOut, ScriptToDTO(script))
 	}
+
 	return scriptsOut, nil
 }
