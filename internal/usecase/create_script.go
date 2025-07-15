@@ -19,22 +19,22 @@ func NewScriptCreateUC(scriptS service.ScriptService) (*ScriptCreateUC, error) {
 	return &ScriptCreateUC{scriptS: scriptS}, nil
 }
 
-type FieldInput struct {
+type UseCaseField struct {
 	Type        string
 	Name        string
 	Description string
 	Unit        string
 }
 
-type ScriptCreateInput struct {
-	Fields     []FieldInput
+type UseCaseScript struct {
+	Fields     []UseCaseField
 	Path       string
 	Owner      int64
-	Visibility int
+	Visibility string
 	CreatedAt  time.Time
 }
 
-func (u *ScriptCreateUC) CreateScript(ctx context.Context, input ScriptCreateInput) (scripts.ScriptID, error) {
+func (u *ScriptCreateUC) CreateScript(ctx context.Context, input UseCaseScript) (scripts.ScriptID, error) {
 	scriptFields := make([]scripts.Field, len(input.Fields))
 	for _, field := range input.Fields {
 		type_, err := scripts.NewType(field.Type)
