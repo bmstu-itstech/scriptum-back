@@ -10,10 +10,10 @@ import (
 
 type ScriptService interface {
 	CreateScript(ctx context.Context, script scripts.Script) (scripts.ScriptID, error)
-	GetScript(ctx context.Context, scriptID scripts.ScriptID) (scripts.Script, error)
+	Script(ctx context.Context, scriptID scripts.ScriptID) (scripts.Script, error)
 	DeleteScript(ctx context.Context, scriptID scripts.ScriptID) error
-	GetScripts(ctx context.Context) ([]scripts.Script, error)
-	GetUserScripts(ctx context.Context, userID scripts.UserID) ([]scripts.Script, error)
+	PublicScripts(ctx context.Context) ([]scripts.Script, error)
+	UserScripts(ctx context.Context, userID scripts.UserID) ([]scripts.Script, error)
 }
 
 type MockScriptRepo struct {
@@ -27,7 +27,7 @@ func NewMockScriptRepository() (*MockScriptRepo, error) {
 	}, nil
 }
 
-func (r *MockScriptRepo) GetScript(_ context.Context, scriptID scripts.ScriptID) (scripts.Script, error) {
+func (r *MockScriptRepo) Script(_ context.Context, scriptID scripts.ScriptID) (scripts.Script, error) {
 	r.RLock()
 	defer r.RUnlock()
 

@@ -24,28 +24,27 @@ func NewGetScriptsUС(scriptS service.ScriptService, userS userspb.UserServiceCl
 	return &GetScriptsUC{scriptS: scriptS, userS: userS}, nil
 }
 
-func (u *GetScriptsUC) GetScripts(ctx context.Context, userID uint32) ([]UseCaseScript, error) {
+func (u *GetScriptsUC) Scripts(ctx context.Context, userID uint32) ([]UseCaseScript, error) {
 	var err error
 	var gotScripts []scripts.Script
+	var user scripts.User
 
-	user, err := u.userS.GetUser(ctx, &userspb.GetUserRequest{UserId: userID})
+	user, err = u.userS.User(ctx, &userspb.GetUserRequest{UserId: userID})
 	if err != nil {
 		return nil, err
 	}
 
-	switch user.Visibility() {
-	case scripts.VisibilityGlobal:
-		gotScripts, err = u.scriptS.GetScripts(ctx)
-
-	case scripts.VisibilityPrivate:
-		gotScripts, err = u.scriptS.GetUserScripts(ctx, userID)
-
-	default:
-		return nil, scripts.ErrInvalidVisibility
-	}
-
+	gotScripts, err = u.scriptS.PublicScripts(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	if !user.IsAdmin() {
+		userScripts, err := u.scriptS.UserScripts(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+		gotScripts = append(gotScripts, userScripts...)
 	}
 
 	scriptsOut := make([]UseCaseScript, len(gotScripts))
