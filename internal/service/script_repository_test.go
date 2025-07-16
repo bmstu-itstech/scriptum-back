@@ -35,7 +35,7 @@ func TestGetScript(t *testing.T) {
 			"field_type", "name", "description", "unit",
 		}).AddRow(path, ownerID, visibility, createdAt, fieldType, name, desc, unit))
 
-	script, err := repo.GetScript(ctx, scriptID)
+	script, err := repo.Script(ctx, scriptID)
 	require.NoError(t, err)
 	require.Equal(t, path, script.Path())
 	require.Equal(t, scripts.UserID(ownerID), script.Owner())
@@ -141,7 +141,7 @@ func TestCreateScript(t *testing.T) {
 
 	mock.ExpectCommit()
 
-	id, err := repo.CreateScript(ctx, *script)
+	id, err := repo.StoreScript(ctx, *script)
 	require.NoError(t, err)
 	require.Equal(t, scripts.ScriptID(1), id)
 }

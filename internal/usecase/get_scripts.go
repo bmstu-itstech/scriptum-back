@@ -29,13 +29,13 @@ func (u *GetScriptsUC) Scripts(ctx context.Context, userID uint32) ([]ScriptDTO,
 		return nil, err
 	}
 
-	allScripts, err := u.scriptS.PublicScripts(ctx)
+	allScripts, err := u.scriptS.GetPublicScripts(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	if !user.IsAdmin() {
-		userScripts, err := u.scriptS.UserScripts(ctx, scripts.UserID(userID))
+		userScripts, err := u.scriptS.GetUserScripts(ctx, scripts.UserID(userID))
 		if err != nil {
 			return nil, err
 		}

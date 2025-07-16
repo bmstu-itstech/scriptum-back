@@ -57,10 +57,10 @@ const GetScriptQuery = `
 	WHERE s.script_id = $1;
 `
 
-func (r *ScriptRepo) GetScript(ctx context.Context, scriptID scripts.ScriptID) (*scripts.Script, error) {
+func (r *ScriptRepo) Script(ctx context.Context, scriptID scripts.ScriptID) (scripts.Script, error) {
 	rows, err := r.DB.Query(ctx, GetScriptQuery, scriptID)
 	if err != nil {
-		return nil, err
+		return scripts.Script{}, err
 	}
 	defer rows.Close()
 
@@ -81,25 +81,25 @@ func (r *ScriptRepo) GetScript(ctx context.Context, scriptID scripts.ScriptID) (
 		)
 
 		if err := rows.Scan(&path, &ownerID, &visibility, &createdAt, &fieldType, &name, &desc, &unit); err != nil {
-			return nil, err
+			return scripts.Script{}, err
 		}
 		newType, err := scripts.NewType(fieldType)
 		if err != nil {
-			return nil, err
+			return scripts.Script{}, err
 		}
 
 		f, err := scripts.NewField(*newType, name, desc, unit)
 		if err != nil {
-			return nil, err
+			return scripts.Script{}, err
 		}
 		fields = append(fields, *f)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return scripts.Script{}, err
 	}
-
-	return scripts.NewScript(fields, path, scripts.UserID(ownerID), scripts.Visibility(visibility))
+	script, err := scripts.NewScript(fields, path, scripts.UserID(ownerID), scripts.Visibility(visibility))
+	return *script, err
 }
 
 const GetScriptsQuery = `
@@ -305,7 +305,7 @@ const InsertScriptFieldQuery = `
 	VALUES ($1, $2);
 `
 
-func (r *ScriptRepo) CreateScript(ctx context.Context, script scripts.Script) (scripts.ScriptID, error) {
+func (r *ScriptRepo) StoreScript(ctx context.Context, script scripts.Script) (scripts.ScriptID, error) {
 	tx, err := r.DB.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return 0, err
@@ -365,4 +365,330 @@ func (r *ScriptRepo) CreateScript(ctx context.Context, script scripts.Script) (s
 	}
 
 	return scripts.ScriptID(scriptID), nil
+}
+
+const GetPublicScriptsQuery = `
+	SELECT 
+		s.script_id,
+    	s.path,
+    	s.owner_id,
+    	s.visibility,
+    	s.created_at,
+    	f.field_type,
+    	f.name,
+    	f.description,
+    	f.unit
+	FROM scripts s
+	LEFT JOIN script_fields sf ON s.script_id = sf.script_id
+	LEFT JOIN fields f ON sf.field_id = f.field_id
+	WHERE s.visibility = 'public'
+	ORDER BY s.script_id;
+`
+
+func (r *ScriptRepo) GetPublicScripts(ctx context.Context) ([]scripts.Script, error) {
+	rows, err := r.DB.Query(ctx, GetPublicScriptsQuery)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var (
+		scriptsList  []scripts.Script
+		lastScriptID = -1
+		fields       []scripts.Field
+
+		scriptID   int
+		path       string
+		ownerID    int
+		visibility string
+		createdAt  time.Time
+		fieldType  string
+		name       string
+		desc       string
+		unit       string
+	)
+
+	for rows.Next() {
+		if err := rows.Scan(&scriptID, &path, &ownerID, &visibility, &createdAt, &fieldType, &name, &desc, &unit); err != nil {
+			return nil, err
+		}
+
+		if lastScriptID != -1 && scriptID != lastScriptID {
+			script, err := scripts.NewScript(fields, path, scripts.UserID(ownerID), scripts.Visibility(visibility))
+			if err != nil {
+				return nil, err
+			}
+			scriptsList = append(scriptsList, *script)
+			fields = nil
+		}
+
+		t, err := scripts.NewType(fieldType)
+		if err != nil {
+			return nil, err
+		}
+		f, err := scripts.NewField(*t, name, desc, unit)
+		if err != nil {
+			return nil, err
+		}
+		fields = append(fields, *f)
+		lastScriptID = scriptID
+	}
+
+	if lastScriptID != -1 {
+		script, err := scripts.NewScript(fields, path, scripts.UserID(ownerID), scripts.Visibility(visibility))
+		if err != nil {
+			return nil, err
+		}
+		scriptsList = append(scriptsList, *script)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return scriptsList, nil
+}
+
+const SearchPublicScriptsQuery = `
+	SELECT 
+		s.script_id,
+    	s.path,
+    	s.owner_id,
+    	s.visibility,
+    	s.created_at,
+    	f.field_type,
+    	f.name,
+    	f.description,
+    	f.unit
+	FROM scripts s
+	LEFT JOIN script_fields sf ON s.script_id = sf.script_id
+	LEFT JOIN fields f ON sf.field_id = f.field_id
+	WHERE s.visibility = 'public'
+	  AND s.path ILIKE '%' || $1 || '%'
+	ORDER BY s.script_id;
+`
+
+func (r *ScriptRepo) SearchPublicScripts(ctx context.Context, substr string) ([]scripts.Script, error) {
+	rows, err := r.DB.Query(ctx, SearchPublicScriptsQuery, substr)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var (
+		scriptsList  []scripts.Script
+		lastScriptID = -1
+		fields       []scripts.Field
+
+		scriptID   int
+		path       string
+		ownerID    int
+		visibility string
+		createdAt  time.Time
+		fieldType  string
+		name       string
+		desc       string
+		unit       string
+	)
+
+	for rows.Next() {
+		if err := rows.Scan(&scriptID, &path, &ownerID, &visibility, &createdAt, &fieldType, &name, &desc, &unit); err != nil {
+			return nil, err
+		}
+
+		if lastScriptID != -1 && scriptID != lastScriptID {
+			script, err := scripts.NewScript(fields, path, scripts.UserID(ownerID), scripts.Visibility(visibility))
+			if err != nil {
+				return nil, err
+			}
+			scriptsList = append(scriptsList, *script)
+			fields = nil
+		}
+
+		t, err := scripts.NewType(fieldType)
+		if err != nil {
+			return nil, err
+		}
+		f, err := scripts.NewField(*t, name, desc, unit)
+		if err != nil {
+			return nil, err
+		}
+		fields = append(fields, *f)
+		lastScriptID = scriptID
+	}
+
+	if lastScriptID != -1 {
+		script, err := scripts.NewScript(fields, path, scripts.UserID(ownerID), scripts.Visibility(visibility))
+		if err != nil {
+			return nil, err
+		}
+		scriptsList = append(scriptsList, *script)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return scriptsList, nil
+}
+
+const SearchUserScriptsQuery = `
+	SELECT 
+		s.script_id,
+    	s.path,
+    	s.owner_id,
+    	s.visibility,
+    	s.created_at,
+    	f.field_type,
+    	f.name,
+    	f.description,
+    	f.unit
+	FROM scripts s
+	LEFT JOIN script_fields sf ON s.script_id = sf.script_id
+	LEFT JOIN fields f ON sf.field_id = f.field_id
+	WHERE s.owner_id = $1
+	  AND s.path ILIKE '%' || $2 || '%'
+	ORDER BY s.script_id;
+`
+
+func (r *ScriptRepo) SearchUserScripts(ctx context.Context, userID scripts.UserID, substr string) ([]scripts.Script, error) {
+	rows, err := r.DB.Query(ctx, SearchUserScriptsQuery, userID, substr)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var (
+		scriptsList  []scripts.Script
+		lastScriptID = -1
+		fields       []scripts.Field
+
+		scriptID   int
+		path       string
+		ownerID    int
+		visibility string
+		createdAt  time.Time
+		fieldType  string
+		name       string
+		desc       string
+		unit       string
+	)
+
+	for rows.Next() {
+		if err := rows.Scan(&scriptID, &path, &ownerID, &visibility, &createdAt, &fieldType, &name, &desc, &unit); err != nil {
+			return nil, err
+		}
+
+		if lastScriptID != -1 && scriptID != lastScriptID {
+			script, err := scripts.NewScript(fields, path, scripts.UserID(ownerID), scripts.Visibility(visibility))
+			if err != nil {
+				return nil, err
+			}
+			scriptsList = append(scriptsList, *script)
+			fields = nil
+		}
+
+		t, err := scripts.NewType(fieldType)
+		if err != nil {
+			return nil, err
+		}
+		f, err := scripts.NewField(*t, name, desc, unit)
+		if err != nil {
+			return nil, err
+		}
+		fields = append(fields, *f)
+		lastScriptID = scriptID
+	}
+
+	if lastScriptID != -1 {
+		script, err := scripts.NewScript(fields, path, scripts.UserID(ownerID), scripts.Visibility(visibility))
+		if err != nil {
+			return nil, err
+		}
+		scriptsList = append(scriptsList, *script)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return scriptsList, nil
+}
+
+const UpdateScriptQuery = `
+	UPDATE scripts
+	SET visibility = $1
+	WHERE script_id = $2;
+`
+
+const DeleteScriptFieldsQuery = `
+	DELETE FROM script_fields
+	WHERE script_id = $1;
+`
+
+func (r *ScriptRepo) UpdateScript(ctx context.Context, script scripts.Script) error {
+	tx, err := r.DB.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			if rbErr := tx.Rollback(ctx); rbErr != nil {
+				// Логирование
+			}
+		} else {
+			if cmErr := tx.Commit(ctx); cmErr != nil {
+				// Логирование
+			}
+		}
+	}()
+
+	scriptID := int64(script.ID())
+
+	_, err = tx.Exec(ctx, UpdateScriptQuery,
+		string(script.Visibility()),
+		scriptID,
+	)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, DeleteScriptFieldsQuery, scriptID)
+	if err != nil {
+		return err
+	}
+
+	for _, field := range script.Fields() {
+		var fieldID int64
+
+		err = tx.QueryRow(ctx, SelectFieldQuery,
+			field.Name(),
+			field.Description(),
+			field.Unit(),
+			field.FieldType(),
+		).Scan(&fieldID)
+
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				err = tx.QueryRow(ctx, InsertFieldQuery,
+					field.Name(),
+					field.Description(),
+					field.Unit(),
+					field.FieldType(),
+				).Scan(&fieldID)
+				if err != nil {
+					return err
+				}
+			} else {
+				return err
+			}
+		}
+
+		_, err = tx.Exec(ctx, InsertScriptFieldQuery, scriptID, fieldID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
