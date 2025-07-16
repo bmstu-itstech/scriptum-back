@@ -7,20 +7,29 @@ import (
 )
 
 type SearchJobsUC struct {
-	jobS  scripts.JobRepository
-	userS scripts.UserRepository
+	jobS    scripts.JobRepository
+	userS   scripts.UserRepository
+	scriptS scripts.ScriptRepository
 }
 
-func NewSearchJobsUC(jobS scripts.JobRepository, userS scripts.UserRepository) (*SearchJobsUC, error) {
+func NewSearchJobsUC(
+	jobS scripts.JobRepository,
+	userS scripts.UserRepository,
+	scriptS scripts.ScriptRepository,
+) (*SearchJobsUC, error) {
 	if jobS == nil {
 		return nil, scripts.ErrInvalidJobService
 	}
 	if userS == nil {
 		return nil, scripts.ErrInvalidUserService
 	}
+	if scriptS == nil {
+		return nil, scripts.ErrInvalidScriptService
+	}
 	return &SearchJobsUC{
-		jobS:  jobS,
-		userS: userS,
+		jobS:    jobS,
+		userS:   userS,
+		scriptS: scriptS,
 	}, nil
 }
 
@@ -29,17 +38,29 @@ func (u *SearchJobsUC) SearchJobs(ctx context.Context, userID uint32, substr str
 	if err != nil {
 		return nil, err
 	}
-	jobs, err := u.jobS.SearchPublicJobs(ctx, substr)
+
+	adm := user.IsAdmin()
+
+	allScripts, err := u.scriptS.SearchPublicScripts(ctx, substr)
 	if err != nil {
 		return nil, err
 	}
 
-	if !user.IsAdmin() {
-		userJobs, err := u.jobS.SearchUserJobs(ctx, scripts.UserID(userID), substr)
+	if !adm {
+		userScripts, err := u.scriptS.SearchUserScripts(ctx, scripts.UserID(userID), substr)
 		if err != nil {
 			return nil, err
 		}
-		jobs = append(jobs, userJobs...)
+		allScripts = append(allScripts, userScripts...)
+	}
+
+	jobs := make([]scripts.Job, 0, len(allScripts)) // не факт, что разумно выбрано капасити
+	for _, script := range allScripts {
+		thisScriptJobs, err := u.jobS.JobsByScriptID(ctx, script.ID())
+		if err != nil {
+			return nil, err
+		}
+		jobs = append(jobs, thisScriptJobs...)
 	}
 
 	dto := make([]JobDTO, 0, len(jobs))
