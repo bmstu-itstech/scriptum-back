@@ -7,19 +7,23 @@ import (
 )
 
 type ScriptDeleteUC struct {
-	scriptS scripts.ScriptRepository
-	userS   scripts.UserRepository
+	scriptS   scripts.ScriptRepository
+	userS     scripts.UserRepository
+	uploaderS scripts.Uploader
 }
 
-func NewScriptDeleteUC(scriptS scripts.ScriptRepository, userS scripts.UserRepository) (*ScriptDeleteUC, error) {
+func NewScriptDeleteUC(scriptS scripts.ScriptRepository, userS scripts.UserRepository, uploaderS scripts.Uploader) (*ScriptDeleteUC, error) {
 	if scriptS == nil {
 		return nil, scripts.ErrInvalidScriptService
 	}
 	if userS == nil {
 		return nil, scripts.ErrInvalidUserService
 	}
+	if uploaderS == nil {
+		return nil, scripts.ErrInvalidUploaderService
+	}
 
-	return &ScriptDeleteUC{scriptS: scriptS, userS: userS}, nil
+	return &ScriptDeleteUC{scriptS: scriptS, userS: userS, uploaderS: uploaderS}, nil
 }
 
 func (u *ScriptDeleteUC) DeleteScript(ctx context.Context, actorID uint32, scriptID uint32) error {
@@ -35,6 +39,10 @@ func (u *ScriptDeleteUC) DeleteScript(ctx context.Context, actorID uint32, scrip
 
 	if adm := user.IsAdmin(); adm && script.Visibility() == scripts.VisibilityGlobal || !adm && script.Owner() == actorID {
 		err = u.scriptS.DeleteScript(ctx, scripts.ScriptID(scriptID))
+		if err != nil {
+			return err
+		}
+		err = u.uploaderS.Delete(ctx, script.Path())
 	} else {
 		err = scripts.ErrNoAccessToDelete
 	}
