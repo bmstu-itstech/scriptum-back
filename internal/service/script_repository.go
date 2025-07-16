@@ -132,7 +132,6 @@ func (r *ScriptRepo) GetScripts(ctx context.Context) ([]scripts.Script, error) {
 		currentScriptID int64 = -1
 		currentFields   []scripts.Field
 
-		// переменные для текущей строки
 		scriptID   int64
 		path       string
 		ownerID    int64
@@ -153,7 +152,6 @@ func (r *ScriptRepo) GetScripts(ctx context.Context) ([]scripts.Script, error) {
 			return nil, err
 		}
 
-		// Если начался новый скрипт — пушим старый
 		if currentScriptID != -1 && scriptID != currentScriptID {
 			script, err := scripts.NewScript(currentFields, lastPath, scripts.UserID(lastOwnerID), scripts.Visibility(lastVisibility))
 			if err != nil {
@@ -163,7 +161,6 @@ func (r *ScriptRepo) GetScripts(ctx context.Context) ([]scripts.Script, error) {
 			currentFields = nil
 		}
 
-		// Собираем поле
 		t, err := scripts.NewType(fieldType)
 		if err != nil {
 			return nil, err
@@ -174,14 +171,12 @@ func (r *ScriptRepo) GetScripts(ctx context.Context) ([]scripts.Script, error) {
 		}
 		currentFields = append(currentFields, *f)
 
-		// Обновляем текущий scriptID и связанные с ним данные
 		currentScriptID = scriptID
 		lastPath = path
 		lastOwnerID = ownerID
 		lastVisibility = visibility
 	}
 
-	// Добавляем последний скрипт
 	if currentScriptID != -1 {
 		script, err := scripts.NewScript(currentFields, lastPath, scripts.UserID(lastOwnerID), scripts.Visibility(lastVisibility))
 		if err != nil {
@@ -224,7 +219,7 @@ func (r *ScriptRepo) GetUserScripts(ctx context.Context, userID scripts.UserID) 
 
 	var (
 		scriptsList  []scripts.Script
-		lastScriptID int = -1
+		lastScriptID = -1
 		fields       []scripts.Field
 
 		scriptID   int
@@ -317,9 +312,13 @@ func (r *ScriptRepo) CreateScript(ctx context.Context, script scripts.Script) (s
 	}
 	defer func() {
 		if err != nil {
-			tx.Rollback(ctx)
+			if rbErr := tx.Rollback(ctx); rbErr != nil {
+				// Логирование
+			}
 		} else {
-			tx.Commit(ctx)
+			if cmErr := tx.Commit(ctx); cmErr != nil {
+				// Логирование
+			}
 		}
 	}()
 
