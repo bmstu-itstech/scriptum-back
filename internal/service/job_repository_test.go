@@ -162,7 +162,7 @@ func TestCloseJob(t *testing.T) {
 	errorMsg := scripts.ErrorMessage("some error")
 	status := scripts.StatusCode(1)
 
-	result, err := scripts.NewResult(*job, status, *outVec, errorMsg)
+	result, err := scripts.NewResult(*job, status, *outVec, &errorMsg)
 	require.NoError(t, err)
 
 	mock.ExpectExec("UPDATE jobs SET").

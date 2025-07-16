@@ -120,8 +120,8 @@ func (r *JobRepo) GetResult(ctx context.Context, jobID scripts.JobID) (*scripts.
 	if err != nil {
 		return nil, err
 	}
-
-	result, err := scripts.NewResult(*job, scripts.StatusCode(statusCode), *outVec, scripts.ErrorMessage(errorMessage))
+	errMsg := scripts.ErrorMessage(errorMessage)
+	result, err := scripts.NewResult(*job, scripts.StatusCode(statusCode), *outVec, &errMsg)
 	if err != nil {
 		return nil, err
 	}
@@ -170,6 +170,7 @@ func (r *JobRepo) GetResultsForUser(ctx context.Context, userID scripts.UserID) 
 
 	for rows.Next() {
 		var (
+			rawID      int
 			jobID      scripts.JobID
 			uid        scripts.UserID
 			startedAt  time.Time
@@ -181,9 +182,10 @@ func (r *JobRepo) GetResultsForUser(ctx context.Context, userID scripts.UserID) 
 			fieldType  string
 		)
 
-		if err := rows.Scan(&jobID, &uid, &startedAt, &statusCode, &errorMsg, &scriptID, &valStr, &paramType, &fieldType); err != nil {
+		if err := rows.Scan(&rawID, &uid, &startedAt, &statusCode, &errorMsg, &scriptID, &valStr, &paramType, &fieldType); err != nil {
 			return nil, err
 		}
+		jobID = scripts.JobID(rawID)
 
 		acc, ok := jobMap[jobID]
 		if !ok {
@@ -226,7 +228,8 @@ func (r *JobRepo) GetResultsForUser(ctx context.Context, userID scripts.UserID) 
 		if err != nil {
 			return nil, err
 		}
-		res, err := scripts.NewResult(*job, scripts.StatusCode(acc.statusCode), *outVec, scripts.ErrorMessage(acc.errorMessage))
+		errMsg := scripts.ErrorMessage(acc.errorMessage)
+		res, err := scripts.NewResult(*job, scripts.StatusCode(acc.statusCode), *outVec, &errMsg)
 		if err != nil {
 			return nil, err
 		}
@@ -243,15 +246,15 @@ const PostJobQuery = `
 	`
 
 func (r *JobRepo) PostJob(ctx context.Context, job scripts.Job, scriptID scripts.ScriptID) (scripts.JobID, error) {
-	var id scripts.JobID
+	var rawID int
 	err := r.DB.QueryRow(ctx, PostJobQuery,
 		job.UserID(),
 		scriptID,
-	).Scan(&id)
+	).Scan(&rawID)
 	if err != nil {
 		return 0, err
 	}
-	return id, nil
+	return scripts.JobID(rawID), nil
 }
 
 const CloseJobQuery = `
