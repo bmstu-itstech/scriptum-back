@@ -29,11 +29,11 @@ type ValueDTO struct {
 }
 
 type JobDTO struct {
-	jobID     uint32
-	userID    uint32
-	in        []ValueDTO
-	command   string
-	startedAt time.Time
+	JobID     uint32
+	UserID    uint32
+	In        []ValueDTO
+	Command   string
+	StartedAt time.Time
 }
 
 type ResultDTO struct {
@@ -41,6 +41,19 @@ type ResultDTO struct {
 	Code     int
 	Out      []ValueDTO
 	ErrorMes *string
+}
+
+type UserDTO struct {
+	ID       uint32
+	FullName string
+	Email    string
+	IsAdmin  bool
+}
+
+type FileDTO struct {
+	Name     string
+	FileType string
+	Content  []byte
 }
 
 func FieldsToDTO(fields []scripts.Field) []FieldDTO {
@@ -163,17 +176,103 @@ func DTOToVector(dto []ValueDTO) (scripts.Vector, error) {
 }
 
 func JobToDTO(job scripts.Job) JobDTO {
-	return JobDTO{}
+	dto := JobDTO{
+		JobID:     uint32(job.JobID()),
+		UserID:    uint32(job.UserID()),
+		In:        VectorToDTO(job.In()),
+		Command:   job.Command(),
+		StartedAt: job.StartedAt(),
+	}
+	return dto
 }
 
 func DTOToJob(dto JobDTO) (scripts.Job, error) {
-	return scripts.Job{}, nil
+	in, err := DTOToVector(dto.In)
+	if err != nil {
+		return scripts.Job{}, err
+	}
+
+	job, err := scripts.NewJob(
+		scripts.JobID(dto.JobID),
+		scripts.UserID(dto.UserID),
+		in,
+		dto.Command,
+		dto.StartedAt,
+	)
+	if err != nil {
+		return scripts.Job{}, err
+	}
+
+	return *job, nil
 }
 
 func ResultToDTO(result scripts.Result) ResultDTO {
-	return ResultDTO{}
+	return ResultDTO{
+		Job:      JobToDTO(*result.Job()),
+		Code:     result.Code(),
+		Out:      VectorToDTO(*result.Out()),
+		ErrorMes: result.ErrorMessage(),
+	}
 }
 
 func DTOToResult(dto ResultDTO) (scripts.Result, error) {
-	return scripts.Result{}, nil
+	job, err := DTOToJob(dto.Job)
+	if err != nil {
+		return scripts.Result{}, err
+	}
+
+	out, err := DTOToVector(dto.Out)
+	if err != nil {
+		return scripts.Result{}, err
+	}
+
+	result, err := scripts.NewResult(
+		job,
+		dto.Code,
+		out,
+		dto.ErrorMes,
+	)
+	if err != nil {
+		return scripts.Result{}, err
+	}
+
+	return *result, nil
+}
+
+func UserToDTO(user scripts.User) UserDTO {
+	return UserDTO{
+		ID:       uint32(user.UserID()),
+		FullName: user.FullName(),
+		Email:    user.Email(),
+		IsAdmin:  user.IsAdmin(),
+	}
+}
+
+func DTOToUser(dto UserDTO) (scripts.User, error) {
+	u, err := scripts.NewUser(
+		scripts.UserID(dto.ID),
+		dto.FullName,
+		dto.Email,
+		dto.IsAdmin,
+	)
+	if err != nil {
+		return scripts.User{}, err
+	}
+	return *u, nil
+}
+
+func FileToDTO(file scripts.File) FileDTO {
+	return FileDTO{
+		Name:     file.Name(),
+		FileType: file.FileType(),
+		Content:  file.Content(),
+	}
+}
+
+func DTOToFile(dto FileDTO) (scripts.File, error) {
+	f, err := scripts.NewFile(dto.Name, dto.FileType, dto.Content)
+	if err != nil {
+		return scripts.File{}, err
+	}
+	return *f, nil
 }

@@ -53,7 +53,7 @@ type ScriptRunInput struct {
 
 func (s *ScriptRunUC) RunScript(ctx context.Context, input ScriptRunInput) (ResultDTO, error) {
 	scriptId := scripts.ScriptID(input.ScriptID)
-	paramVector, err := DTOToVector(input.InParams)
+	params, err := DTOToVector(input.InParams)
 	if err != nil {
 		return ResultDTO{}, err
 	}
@@ -63,7 +63,7 @@ func (s *ScriptRunUC) RunScript(ctx context.Context, input ScriptRunInput) (Resu
 		return ResultDTO{}, err
 	}
 
-	job, err := script.Assemble(paramVector)
+	job, err := script.Assemble(params)
 	if err != nil {
 		return ResultDTO{}, err
 	}
@@ -78,27 +78,10 @@ func (s *ScriptRunUC) RunScript(ctx context.Context, input ScriptRunInput) (Resu
 		return ResultDTO{}, err
 	}
 
-	resJob := result.Job()
-
-	ucValues := VectorToDTO(resJob.In())
-	ucOut := VectorToDTO(*result.Out())
-
-	ucJob := JobDTO{
-		jobID:     uint32(resJob.JobID()),
-		userID:    uint32(resJob.UserID()),
-		in:        ucValues,
-		command:   resJob.Command(),
-		startedAt: resJob.StartedAt(),
-	}
-
-	ucResult := ResultDTO{
-		Job:      ucJob,
-		Code:     result.Code(),
-		Out:      ucOut,
-		ErrorMes: result.ErrorMessage(),
-	}
+	ucResult := ResultToDTO(result)
 
 	if input.needToNotify {
+		resJob := result.Job()
 		user, err := s.userS.User(ctx, resJob.UserID())
 		if err != nil {
 			return ResultDTO{}, err

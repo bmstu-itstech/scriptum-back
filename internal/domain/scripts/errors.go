@@ -35,4 +35,9 @@ var (
 	ErrInvalidLauncherService = errors.New("launcherService is nil")
 	ErrInvalidJobService      = errors.New("jobService is nil")
 	ErrInvalidNotifierService = errors.New("notifierService is nil")
+	ErrInvalidUploaderService = errors.New("uploaderService is nil")
+
+	ErrNotAdmin         = errors.New("not admin")
+	ErrNoAccessToDelete = errors.New("user has no access to delete script")
+	ErrNoAccessToUpdate = errors.New("user has no access to update script")
 )

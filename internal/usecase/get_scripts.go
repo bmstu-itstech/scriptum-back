@@ -4,15 +4,14 @@ import (
 	"context"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
-	"github.com/bmstu-itstech/scriptum-back/internal/service"
 )
 
 type GetScriptsUC struct {
 	scriptS scripts.ScriptRepository
-	userS   service.UserServiceClient
+	userS   scripts.UserRepository
 }
 
-func NewGetScriptsUС(scriptS scripts.ScriptRepository, userS userspb.UserServiceClient) (*GetScriptsUC, error) {
+func NewGetScriptsUС(scriptS scripts.ScriptRepository, userS scripts.UserRepository) (*GetScriptsUC, error) {
 	if scriptS == nil {
 		return nil, scripts.ErrInvalidScriptService
 	}
@@ -25,16 +24,12 @@ func NewGetScriptsUС(scriptS scripts.ScriptRepository, userS userspb.UserServic
 }
 
 func (u *GetScriptsUC) Scripts(ctx context.Context, userID uint32) ([]ScriptDTO, error) {
-	var err error
-	var gotScripts []scripts.Script
-	var user scripts.User
-
-	user, err = u.userS.User(ctx, &userspb.GetUserRequest{UserId: userID})
+	user, err := u.userS.User(ctx, scripts.UserID(userID))
 	if err != nil {
 		return nil, err
 	}
 
-	gotScripts, err = u.scriptS.PublicScripts(ctx)
+	allScripts, err := u.scriptS.PublicScripts(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -44,13 +39,13 @@ func (u *GetScriptsUC) Scripts(ctx context.Context, userID uint32) ([]ScriptDTO,
 		if err != nil {
 			return nil, err
 		}
-		gotScripts = append(gotScripts, userScripts...)
+		allScripts = append(allScripts, userScripts...)
 	}
 
-	scriptsOut := make([]ScriptDTO, 0, len(gotScripts))
-	for _, script := range gotScripts {
-		scriptsOut = append(scriptsOut, ScriptToDTO(script))
+	dto := make([]ScriptDTO, 0, len(allScripts))
+	for _, s := range allScripts {
+		dto = append(dto, ScriptToDTO(s))
 	}
 
-	return scriptsOut, nil
+	return dto, nil
 }
