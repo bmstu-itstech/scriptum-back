@@ -43,6 +43,19 @@ type ResultDTO struct {
 	ErrorMes *string
 }
 
+type UserDTO struct {
+	ID       uint32
+	FullName string
+	Email    string
+	IsAdmin  bool
+}
+
+type FileDTO struct {
+	Name     string
+	FileType string
+	Content  []byte
+}
+
 func FieldsToDTO(fields []scripts.Field) []FieldDTO {
 	dto := make([]FieldDTO, 0, len(fields))
 	for _, field := range fields {
@@ -224,4 +237,42 @@ func DTOToResult(dto ResultDTO) (scripts.Result, error) {
 	}
 
 	return *result, nil
+}
+
+func UserToDTO(user scripts.User) UserDTO {
+	return UserDTO{
+		ID:       uint32(user.UserID()),
+		FullName: user.FullName(),
+		Email:    user.Email(),
+		IsAdmin:  user.IsAdmin(),
+	}
+}
+
+func DTOToUser(dto UserDTO) (scripts.User, error) {
+	u, err := scripts.NewUser(
+		scripts.UserID(dto.ID),
+		dto.FullName,
+		dto.Email,
+		dto.IsAdmin,
+	)
+	if err != nil {
+		return scripts.User{}, err
+	}
+	return *u, nil
+}
+
+func FileToDTO(file scripts.File) FileDTO {
+	return FileDTO{
+		Name:     file.Name(),
+		FileType: file.FileType(),
+		Content:  file.Content(),
+	}
+}
+
+func DTOToFile(dto FileDTO) (scripts.File, error) {
+	f, err := scripts.NewFile(dto.Name, dto.FileType, dto.Content)
+	if err != nil {
+		return scripts.File{}, err
+	}
+	return *f, nil
 }
