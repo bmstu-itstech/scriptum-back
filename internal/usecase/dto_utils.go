@@ -29,11 +29,11 @@ type ValueDTO struct {
 }
 
 type JobDTO struct {
-	jobID     uint32
-	userID    uint32
-	in        []ValueDTO
-	command   string
-	startedAt time.Time
+	JobID     uint32
+	UserID    uint32
+	In        []ValueDTO
+	Command   string
+	StartedAt time.Time
 }
 
 type ResultDTO struct {
@@ -163,17 +163,65 @@ func DTOToVector(dto []ValueDTO) (scripts.Vector, error) {
 }
 
 func JobToDTO(job scripts.Job) JobDTO {
-	return JobDTO{}
+	dto := JobDTO{
+		JobID:     uint32(job.JobID()),
+		UserID:    uint32(job.UserID()),
+		In:        VectorToDTO(job.In()),
+		Command:   job.Command(),
+		StartedAt: job.StartedAt(),
+	}
+	return dto
 }
 
 func DTOToJob(dto JobDTO) (scripts.Job, error) {
-	return scripts.Job{}, nil
+	in, err := DTOToVector(dto.In)
+	if err != nil {
+		return scripts.Job{}, err
+	}
+
+	job, err := scripts.NewJob(
+		scripts.JobID(dto.JobID),
+		scripts.UserID(dto.UserID),
+		in,
+		dto.Command,
+		dto.StartedAt,
+	)
+	if err != nil {
+		return scripts.Job{}, err
+	}
+
+	return *job, nil
 }
 
 func ResultToDTO(result scripts.Result) ResultDTO {
-	return ResultDTO{}
+	return ResultDTO{
+		Job:      JobToDTO(*result.Job()),
+		Code:     result.Code(),
+		Out:      VectorToDTO(*result.Out()),
+		ErrorMes: result.ErrorMessage(),
+	}
 }
 
 func DTOToResult(dto ResultDTO) (scripts.Result, error) {
-	return scripts.Result{}, nil
+	job, err := DTOToJob(dto.Job)
+	if err != nil {
+		return scripts.Result{}, err
+	}
+
+	out, err := DTOToVector(dto.Out)
+	if err != nil {
+		return scripts.Result{}, err
+	}
+
+	result, err := scripts.NewResult(
+		job,
+		dto.Code,
+		out,
+		dto.ErrorMes,
+	)
+	if err != nil {
+		return scripts.Result{}, err
+	}
+
+	return *result, nil
 }

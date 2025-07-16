@@ -8,6 +8,7 @@ type ScriptRepository interface {
 	DeleteScript(ctx context.Context, scriptID ScriptID) error
 	PublicScripts(ctx context.Context) ([]Script, error)
 	UserScripts(ctx context.Context, userID UserID) ([]Script, error)
-	SearchScripts(ctx context.Context, namePart string) ([]Script, error)
+	SearchPublicScripts(ctx context.Context, substr string) ([]Script, error)
+	SearchUserScripts(ctx context.Context, userID UserID, substr string) ([]Script, error)
 	UpdateScript(ctx context.Context, script Script) error
 }

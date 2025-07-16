@@ -3,7 +3,7 @@ package scripts
 import "context"
 
 type JobRepository interface {
-	// Create(context.Context) (*Job, error)
-	// Get(context.Context, JobID) (Job, error)
 	Store(context.Context, Job) (JobID, error)
+	PublicJobs(context.Context) ([]Job, error)
+	UserJobs(context.Context, UserID) ([]Job, error)
 }
