@@ -3,15 +3,14 @@ package usecase
 import (
 	"context"
 
-	authpb "github.com/bmstu-itstech/scriptum-back/auth"
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
 
 type UserLoginUC struct {
-	authS authpb.SessionServiceClient
+	authS scripts.AuthService
 }
 
-func NewUserLoginUC(authS authpb.SessionServiceClient) (*UserLoginUC, error) {
+func NewUserLoginUC(authS scripts.AuthService) (*UserLoginUC, error) {
 	if authS == nil {
 		return nil, scripts.ErrInvalidSessionService
 	}
@@ -19,9 +18,9 @@ func NewUserLoginUC(authS authpb.SessionServiceClient) (*UserLoginUC, error) {
 }
 
 func (l *UserLoginUC) Login(ctx context.Context, login, password string) (string, error) {
-	resp, err := l.authS.Login(ctx, &authpb.LoginRequest{Login: login, Password: password})
+	resp, err := l.authS.Login(ctx, login, password)
 	if err != nil {
 		return "", err
 	}
-	return resp.Token(), nil
+	return resp, nil
 }
