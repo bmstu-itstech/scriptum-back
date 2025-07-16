@@ -299,7 +299,7 @@ type JobAccumulator struct {
 func (r *JobRepo) JobsByScriptID(ctx context.Context, scriptID scripts.ScriptID) ([]scripts.Job, error) {
 	rows, err := r.DB.Query(ctx, JobsByScriptIDQuery, scriptID)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка выполнения запроса: %w", err)
+		return nil, err
 	}
 	defer rows.Close()
 
