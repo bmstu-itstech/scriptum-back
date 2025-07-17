@@ -16,6 +16,8 @@ var (
 	ErrPathEmpty        = errors.New("path cannot be empty")
 	ErrFullNameEmpty    = errors.New("full name cannot be empty")
 	ErrEmailEmpty       = errors.New("email cannot be empty")
+	ErrNameEmpty        = errors.New("script name cannot be empty")
+	ErrDescriptionEmpty = errors.New("script description cannot be empty")
 
 	ErrInvalidJobID       = errors.New("invalid job id")
 	ErrInvalidUserID      = errors.New("invalid user id")
@@ -40,4 +42,8 @@ var (
 	ErrNotAdmin         = errors.New("not admin")
 	ErrNoAccessToDelete = errors.New("user has no access to delete script")
 	ErrNoAccessToUpdate = errors.New("user has no access to update script")
+
+	ErrFieldCnt = errors.New("число значений вывода не совпадает с числом полей ")
+
+	ErrScriptLaunch = errors.New("ошибка запуска скрипта")
 )

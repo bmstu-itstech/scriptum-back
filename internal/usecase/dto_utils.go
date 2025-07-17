@@ -15,12 +15,15 @@ type FieldDTO struct {
 }
 
 type ScriptDTO struct {
-	ID         uint32
-	Fields     []FieldDTO
-	Path       string
-	Owner      uint32
-	Visibility string
-	CreatedAt  time.Time
+	ID          uint32
+	Name        string
+	Description string
+	InFields    []FieldDTO
+	OutFields   []FieldDTO
+	Path        string
+	Owner       uint32
+	Visibility  string
+	CreatedAt   time.Time
 }
 
 type ValueDTO struct {
@@ -41,6 +44,7 @@ type ResultDTO struct {
 	Code     int
 	Out      []ValueDTO
 	ErrorMes *string
+	ClosedAt time.Time
 }
 
 type UserDTO struct {
@@ -87,27 +91,39 @@ func DTOToFields(dto []FieldDTO) ([]scripts.Field, error) {
 }
 
 func ScriptToDTO(script scripts.Script) ScriptDTO {
-	fds := FieldsToDTO(script.Fields())
+	inFiles := FieldsToDTO(script.InFields())
+	outFiles := FieldsToDTO(script.OutFields())
 	return ScriptDTO{
-		ID:         uint32(script.ID()),
-		Fields:     fds,
-		Path:       script.Path(),
-		Owner:      uint32(script.Owner()),
-		Visibility: string(script.Visibility()),
-		CreatedAt:  script.CreatedAt(),
+		ID:          uint32(script.ID()),
+		Name:        script.Name(),
+		Description: script.Description(),
+		InFields:    inFiles,
+		OutFields:   outFiles,
+		Path:        script.Path(),
+		Owner:       uint32(script.Owner()),
+		Visibility:  string(script.Visibility()),
+		CreatedAt:   script.CreatedAt(),
 	}
 }
 
 func DTOToScript(dto ScriptDTO) (scripts.Script, error) {
-	fields, err := DTOToFields(dto.Fields)
+	Infields, err := DTOToFields(dto.InFields)
+	if err != nil {
+		return scripts.Script{}, err
+	}
+	Outfields, err := DTOToFields(dto.OutFields)
 	if err != nil {
 		return scripts.Script{}, err
 	}
 	res, err := scripts.NewScript(
-		fields,
+		dto.ID,
+		Infields,
+		Outfields,
 		scripts.Path(dto.Path),
 		scripts.UserID(dto.Owner),
 		scripts.Visibility(dto.Visibility),
+		dto.Name,
+		dto.Description,
 	)
 	return *res, err
 }
@@ -212,6 +228,7 @@ func ResultToDTO(result scripts.Result) ResultDTO {
 		Code:     result.Code(),
 		Out:      VectorToDTO(*result.Out()),
 		ErrorMes: result.ErrorMessage(),
+		ClosedAt: result.ClosedAt(),
 	}
 }
 
@@ -231,6 +248,7 @@ func DTOToResult(dto ResultDTO) (scripts.Result, error) {
 		dto.Code,
 		out,
 		dto.ErrorMes,
+		dto.ClosedAt,
 	)
 	if err != nil {
 		return scripts.Result{}, err

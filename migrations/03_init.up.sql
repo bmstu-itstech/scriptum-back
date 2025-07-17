@@ -25,12 +25,15 @@ CREATE TABLE fields (
     description TEXT NOT NULL CHECK (LENGTH(description) <= 500),
     unit TEXT NOT NULL CHECK (LENGTH(unit) <= 20),
     field_type FIELD_TYPE NOT NULL,
+    param PARAM_TYPE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE scripts (
     script_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    path TEXT NOT NULL CHECK (LENGTH(path) <= 200),
+    name TEXT NOT NULL CHECK (LENGTH(name) <= 100),
+    description TEXT CHECK (LENGTH(description) <= 255),
+    А path TEXT NOT NULL CHECK (LENGTH(path) <= 200),
     visibility VISIBILITY NOT NULL,
     owner_id BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -65,7 +68,6 @@ CREATE TABLE jobs (
 CREATE TABLE job_params (
     job_id BIGINT NOT NULL,
     parameter_id BIGINT NOT NULL,
-    param PARAM_TYPE NOT NULL,
     PRIMARY KEY (job_id, parameter_id),
     CONSTRAINT fk_job_params_job FOREIGN KEY (job_id) REFERENCES jobs(job_id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_job_params_parameter FOREIGN KEY (parameter_id) REFERENCES parameters(parameter_id) ON DELETE CASCADE ON UPDATE CASCADE

@@ -36,10 +36,10 @@ func TestGetResult(t *testing.T) {
 	mock.ExpectQuery("SELECT(.*)FROM jobs").
 		WithArgs(jobID).
 		WillReturnRows(pgxmock.NewRows([]string{
-			"user_id", "started_at", "status_code", "error_message", "script_id", "value", "param", "field_type",
+			"user_id", "started_at", "closed_at", "status_code", "error_message", "script_id", "value", "param", "field_type",
 		}).
-			AddRow(userID, startedAt, statusCode, errorMessage, scriptID, &valStrIn, &paramTypeIn, fieldTypeIn).
-			AddRow(userID, startedAt, statusCode, errorMessage, scriptID, &valStr, &paramType, fieldType),
+			AddRow(userID, startedAt, startedAt, statusCode, errorMessage, scriptID, &valStrIn, &paramTypeIn, fieldTypeIn).
+			AddRow(userID, startedAt, startedAt, statusCode, errorMessage, scriptID, &valStr, &paramType, fieldType),
 		)
 
 	res, err := repo.GetResult(ctx, jobID)
@@ -134,7 +134,6 @@ func TestPostJob(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expectedID, id)
 }
-
 func TestCloseJob(t *testing.T) {
 	ctx := context.Background()
 	mock, err := pgxmock.NewConn()
@@ -158,13 +157,27 @@ func TestCloseJob(t *testing.T) {
 	errorMsg := scripts.ErrorMessage("some error")
 	status := scripts.StatusCode(1)
 
-	result, err := scripts.NewResult(*job, status, *outVec, &errorMsg)
+	result, err := scripts.NewResult(*job, status, *outVec, &errorMsg, time.Now())
 	require.NoError(t, err)
+
+	mock.ExpectBegin()
 
 	mock.ExpectExec("UPDATE jobs SET").
 		WithArgs(status, *result.ErrorMessage(), jobID).
 		WillReturnResult(pgxmock.NewResult("UPDATE", 1))
 
+	mock.ExpectQuery("INSERT INTO parameters").
+		WithArgs("3.14").
+		WillReturnRows(pgxmock.NewRows([]string{"parameter_id"}).AddRow(int64(555)))
+
+	mock.ExpectExec("INSERT INTO job_params").
+		WithArgs(jobID, int64(555)).
+		WillReturnResult(pgxmock.NewResult("INSERT", 1))
+
+	mock.ExpectCommit()
+
 	err = repo.CloseJob(ctx, jobID, result)
 	require.NoError(t, err)
+
+	require.NoError(t, mock.ExpectationsWereMet())
 }

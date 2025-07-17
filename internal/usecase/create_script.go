@@ -34,11 +34,12 @@ func NewScriptCreateUC(
 }
 
 type ScriptCreateInput struct {
-	File   FileDTO
-	Fields []FieldDTO
+	File      FileDTO
+	InFields  []FieldDTO
+	OutFields []FieldDTO
 }
 
-func (u *ScriptCreateUC) CreateScript(ctx context.Context, userID uint32, input ScriptCreateInput) (uint32, error) {
+func (u *ScriptCreateUC) CreateScript(ctx context.Context, userID uint32, scriptName string, scriptDescription string, input ScriptCreateInput) (uint32, error) {
 	user, err := u.userS.User(ctx, scripts.UserID(userID))
 	if err != nil {
 		return 0, err
@@ -63,10 +64,13 @@ func (u *ScriptCreateUC) CreateScript(ctx context.Context, userID uint32, input 
 	}
 
 	dto := ScriptDTO{
-		Fields:     input.Fields,
-		Path:       path,
-		Owner:      userID,
-		Visibility: string(vis),
+		InFields:    input.InFields,
+		OutFields:   input.OutFields,
+		Name:        scriptName,
+		Description: scriptDescription,
+		Path:        path,
+		Owner:       userID,
+		Visibility:  string(vis),
 	}
 
 	script, err := DTOToScript(dto)

@@ -1,5 +1,9 @@
 package scripts
 
+import (
+	"strings"
+)
+
 type Field struct {
 	fieldType Type
 	name      string
@@ -40,4 +44,21 @@ func NewField(fieldType Type, name, desc, unit string) (*Field, error) {
 		desc:      desc,
 		unit:      unit,
 	}, nil
+}
+
+func ParseOutputValues(output string, fields []Field) ([]Value, error) {
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+	if len(lines) != len(fields) {
+		return nil, ErrFieldCnt
+	}
+
+	values := make([]Value, 0, len(fields))
+	for i, line := range lines {
+		val, err := NewValue(fields[i].FieldType().String(), line)
+		if err != nil {
+			return nil, err
+		}
+		values = append(values, val)
+	}
+	return values, nil
 }

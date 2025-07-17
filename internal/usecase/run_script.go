@@ -68,12 +68,17 @@ func (s *ScriptRunUC) RunScript(ctx context.Context, input ScriptRunInput) (Resu
 		return ResultDTO{}, err
 	}
 
-	_, err = s.jobS.StoreJob(ctx, *job)
+	jobID, err := s.jobS.PostJob(ctx, *job, scriptId)
 	if err != nil {
 		return ResultDTO{}, err
 	}
 
-	result, err := s.launcherS.Launch(ctx, *job)
+	result, err := s.launcherS.Launch(ctx, *job, script.OutFields())
+	if err != nil {
+		return ResultDTO{}, err
+	}
+
+	err = s.jobS.CloseJob(ctx, jobID, &result)
 	if err != nil {
 		return ResultDTO{}, err
 	}

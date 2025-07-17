@@ -27,7 +27,7 @@ func (c *Complex) VariableType() Type {
 }
 
 func (c *Complex) String() string {
-	return fmt.Sprintf("Complex(%v)", c.data)
+	return fmt.Sprintf("%v", c.data)
 }
 
 type Real struct {
@@ -47,7 +47,7 @@ func (r *Real) VariableType() Type {
 }
 
 func (r *Real) String() string {
-	return fmt.Sprintf("Real(%f)", r.data)
+	return strconv.FormatFloat(r.data, 'f', -1, 64)
 }
 
 type Integer struct {
@@ -67,7 +67,7 @@ func (i *Integer) VariableType() Type {
 }
 
 func (i *Integer) String() string {
-	return fmt.Sprintf("Integer(%d)", i.data)
+	return strconv.Itoa(int(i.data))
 }
 
 func NewIntegerString(data string) (*Integer, error) {

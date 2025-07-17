@@ -3,8 +3,10 @@ package scripts
 import "context"
 
 type JobRepository interface {
-	StoreJob(context.Context, Job) (JobID, error)
+	GetResult(context.Context, JobID) (Result, error)
+	GetResultsForUser(context.Context, UserID) ([]Result, error)
+	PostJob(context.Context, Job, ScriptID) (JobID, error)
+	CloseJob(context.Context, JobID, *Result) error
 	JobsByScriptID(context.Context, ScriptID) ([]Job, error)
-	SearchPublicJobs(context.Context, string) ([]Job, error)
-	SearchUserJobs(context.Context, UserID, string) ([]Job, error)
+	SearchJobs(context.Context, UserID, string) ([]Result, error)
 }

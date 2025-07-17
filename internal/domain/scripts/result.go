@@ -1,5 +1,7 @@
 package scripts
 
+import "time"
+
 type StatusCode = int
 type ErrorMessage = string
 
@@ -8,6 +10,7 @@ type Result struct {
 	code     StatusCode
 	out      Vector
 	errorMes *ErrorMessage
+	closedAt time.Time
 }
 
 func (r *Result) Job() *Job {
@@ -26,20 +29,26 @@ func (r *Result) ErrorMessage() *ErrorMessage {
 	return r.errorMes
 }
 
-func NewResult(job Job, code StatusCode, out Vector, errorMes *ErrorMessage) (*Result, error) {
+func (r *Result) ClosedAt() time.Time {
+	return r.closedAt
+}
+
+func NewResult(job Job, code StatusCode, out Vector, errorMes *ErrorMessage, closedAt time.Time) (*Result, error) {
 	return &Result{
 		job:      job,
 		code:     code,
 		out:      out,
 		errorMes: errorMes,
+		closedAt: closedAt,
 	}, nil
 }
 
-func NewResultOK(job Job, out Vector) (*Result, error) {
+func NewResultOK(job Job, out Vector, closedAt time.Time) (*Result, error) {
 	return &Result{
 		job:      job,
 		code:     0,
 		out:      out,
 		errorMes: nil,
+		closedAt: closedAt,
 	}, nil
 }

@@ -13,6 +13,7 @@ import (
 type JobDBConn interface {
 	Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)
 	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
+	BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error)
 	Exec(ctx context.Context, sql string, args ...interface{}) (pgconn.CommandTag, error)
 }
 
@@ -40,100 +41,10 @@ func NewJobRepo(ctx context.Context) (*JobRepo, error) {
 }
 
 const GetResultQuery = `
-		SELECT
-			j.user_id,
-			j.started_at,
-			j.status_code,
-			j.error_message,
-			j.script_id,
-			p.value,
-			jp.param,
-			f.field_type
-		FROM jobs j
-		LEFT JOIN job_params jp ON j.job_id = jp.job_id
-		LEFT JOIN parameters p ON p.parameter_id = jp.parameter_id
-		LEFT JOIN fields f ON f.field_id = p.field_id
-		WHERE j.job_id = $1;
-
-	`
-
-func (r *JobRepo) GetResult(ctx context.Context, jobID scripts.JobID) (*scripts.Result, error) {
-	rows, err := r.DB.Query(ctx, GetResultQuery, jobID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var (
-		userID       scripts.UserID
-		startedAt    time.Time
-		statusCode   int
-		errorMessage string
-		scriptID     int64
-
-		inputVals, outputVals []scripts.Value
-		parsedJob             bool
-	)
-
-	for rows.Next() {
-		var (
-			valStr    *string
-			paramType *string
-			fieldType string
-		)
-		err = rows.Scan(&userID, &startedAt, &statusCode, &errorMessage, &scriptID, &valStr, &paramType, &fieldType)
-		if err != nil {
-			return nil, err
-		}
-
-		parsedJob = true
-
-		if valStr != nil && paramType != nil {
-			val, err := scripts.NewValue(fieldType, *valStr)
-			if err != nil {
-				return nil, err
-			}
-
-			switch *paramType {
-			case "in":
-				inputVals = append(inputVals, val)
-			case "out":
-				outputVals = append(outputVals, val)
-			}
-		}
-	}
-
-	if !parsedJob {
-		return nil, fmt.Errorf(scripts.ErrJobNotExists.Error(), jobID)
-	}
-
-	inVec, err := scripts.NewVector(inputVals)
-	if err != nil {
-		return nil, err
-	}
-	outVec, err := scripts.NewVector(outputVals)
-	if err != nil {
-		return nil, err
-	}
-
-	job, err := scripts.NewJob(jobID, userID, *inVec, "", startedAt)
-	if err != nil {
-		return nil, err
-	}
-	errMsg := scripts.ErrorMessage(errorMessage)
-	result, err := scripts.NewResult(*job, scripts.StatusCode(statusCode), *outVec, &errMsg)
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
-}
-
-const GetResultsForUserQuery = `
 	SELECT
-		j.job_id,
 		j.user_id,
 		j.started_at,
+		j.closed_at,
 		j.status_code,
 		j.error_message,
 		j.script_id,
@@ -144,99 +55,74 @@ const GetResultsForUserQuery = `
 	LEFT JOIN job_params jp ON j.job_id = jp.job_id
 	LEFT JOIN parameters p ON p.parameter_id = jp.parameter_id
 	LEFT JOIN fields f ON f.field_id = p.field_id
-	WHERE j.user_id = $1
-	ORDER BY j.started_at DESC;
+	WHERE j.job_id = $1;
 `
 
-type resultAccumulator struct {
-	userID       scripts.UserID
-	startedAt    time.Time
-	statusCode   int
-	errorMessage string
-	scriptID     int64
-
-	inputVals  []scripts.Value
-	outputVals []scripts.Value
-}
-
-func (r *JobRepo) GetResultsForUser(ctx context.Context, userID scripts.UserID) ([]*scripts.Result, error) {
-	rows, err := r.DB.Query(ctx, GetResultsForUserQuery, userID)
+func (r *JobRepo) GetResult(ctx context.Context, jobID scripts.JobID) (scripts.Result, error) {
+	rows, err := r.DB.Query(ctx, GetResultQuery, jobID)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка выполнения запроса: %w", err)
+		return scripts.Result{}, err
 	}
 	defer rows.Close()
 
-	jobMap := make(map[scripts.JobID]*resultAccumulator)
+	var (
+		userID       scripts.UserID
+		startedAt    time.Time
+		closed_at    time.Time
+		statusCode   int
+		errorMessage string
+		scriptID     int64
+
+		inputVals, outputVals []scripts.Value
+	)
 
 	for rows.Next() {
 		var (
-			rawID      int
-			jobID      scripts.JobID
-			uid        scripts.UserID
-			startedAt  time.Time
-			statusCode int
-			errorMsg   string
-			scriptID   int64
-			valStr     *string
-			paramType  *string
-			fieldType  string
+			valStr    *string
+			paramType *string
+			fieldType string
 		)
 
-		if err := rows.Scan(&rawID, &uid, &startedAt, &statusCode, &errorMsg, &scriptID, &valStr, &paramType, &fieldType); err != nil {
-			return nil, err
-		}
-		jobID = scripts.JobID(rawID)
-
-		acc, ok := jobMap[jobID]
-		if !ok {
-			acc = &resultAccumulator{
-				userID:       uid,
-				startedAt:    startedAt,
-				statusCode:   statusCode,
-				errorMessage: errorMsg,
-				scriptID:     scriptID,
-			}
-			jobMap[jobID] = acc
+		if err := rows.Scan(&userID, &startedAt, &closed_at, &statusCode, &errorMessage, &scriptID, &valStr, &paramType, &fieldType); err != nil {
+			return scripts.Result{}, err
 		}
 
 		if valStr != nil && paramType != nil {
 			val, err := scripts.NewValue(fieldType, *valStr)
 			if err != nil {
-				return nil, err
+				return scripts.Result{}, err
 			}
-
 			switch *paramType {
 			case "in":
-				acc.inputVals = append(acc.inputVals, val)
+				inputVals = append(inputVals, val)
 			case "out":
-				acc.outputVals = append(acc.outputVals, val)
+				outputVals = append(outputVals, val)
 			}
 		}
 	}
 
-	var results []*scripts.Result
-	for jobID, acc := range jobMap {
-		inVec, err := scripts.NewVector(acc.inputVals)
-		if err != nil {
-			return nil, err
-		}
-		outVec, err := scripts.NewVector(acc.outputVals)
-		if err != nil {
-			return nil, err
-		}
-		job, err := scripts.NewJob(jobID, acc.userID, *inVec, "", acc.startedAt)
-		if err != nil {
-			return nil, err
-		}
-		errMsg := scripts.ErrorMessage(acc.errorMessage)
-		res, err := scripts.NewResult(*job, scripts.StatusCode(acc.statusCode), *outVec, &errMsg)
-		if err != nil {
-			return nil, err
-		}
-		results = append(results, res)
+	inVec, err := scripts.NewVector(inputVals)
+	if err != nil {
+		return scripts.Result{}, err
+	}
+	outVec, err := scripts.NewVector(outputVals)
+	if err != nil {
+		return scripts.Result{}, err
 	}
 
-	return results, nil
+	job, err := scripts.NewJob(jobID, userID, *inVec, "", startedAt)
+	if err != nil {
+		return scripts.Result{}, err
+	}
+
+	errMsg := scripts.ErrorMessage(errorMessage)
+
+	result, err := scripts.NewResult(*job, scripts.StatusCode(statusCode), *outVec, &errMsg, closed_at)
+	if err != nil {
+		return scripts.Result{}, err
+	}
+
+	return *result, nil
 }
 
 const PostJobQuery = `
@@ -265,13 +151,46 @@ const CloseJobQuery = `
 	WHERE job_id = $3;
 `
 
+const insertOutParamQuery = `
+		INSERT INTO parameters (value) VALUES ($1) RETURNING parameter_id;
+	`
+
+const insertJobParamQuery = `
+		INSERT INTO job_params (job_id, parameter_id, param)
+		VALUES ($1, $2, 'out');
+	`
+
 func (r *JobRepo) CloseJob(ctx context.Context, jobID scripts.JobID, res *scripts.Result) error {
-	_, err := r.DB.Exec(ctx, CloseJobQuery,
+	tx, err := r.DB.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	_, err = tx.Exec(ctx, CloseJobQuery,
 		res.Code(),
 		*res.ErrorMessage(),
 		jobID,
 	)
-	return err
+
+	if err != nil {
+		return err
+	}
+
+	for _, val := range res.Out().Get() {
+		var paramID int64
+		err := tx.QueryRow(ctx, insertOutParamQuery, val).Scan(&paramID)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.Exec(ctx, insertJobParamQuery, jobID, paramID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit(ctx)
 }
 
 const JobsByScriptIDQuery = `
@@ -353,4 +272,170 @@ func (r *JobRepo) JobsByScriptID(ctx context.Context, scriptID scripts.ScriptID)
 	}
 
 	return jobs, nil
+}
+
+const SearchJobsQuery = `
+SELECT 
+    j.job_id,
+    j.started_at,
+    j.closed_at,
+    j.status_code,
+    j.error_message,
+    s.script_id,
+    s.name,
+    s.description,
+    s.path,
+    s.visibility,
+    s.owner_id,
+    s.created_at
+FROM jobs j
+JOIN scripts s ON s.script_id = j.script_id
+WHERE j.user_id = $1
+  AND s.name ILIKE '%' || $2 || '%'
+ORDER BY j.started_at DESC;
+`
+
+const GetResultsForUserQuery = `
+	SELECT
+		j.job_id,
+		j.user_id,
+		j.started_at,
+		j.status_code,
+		j.error_message,
+		j.script_id,
+		p.value,
+		jp.param,
+		f.field_type
+	FROM jobs j
+	LEFT JOIN job_params jp ON j.job_id = jp.job_id
+	LEFT JOIN parameters p ON p.parameter_id = jp.parameter_id
+	LEFT JOIN fields f ON f.field_id = p.field_id
+	WHERE j.user_id = $1
+	ORDER BY j.started_at DESC;
+`
+
+type resultAccumulator struct {
+	userID       scripts.UserID
+	startedAt    time.Time
+	closedAt     time.Time
+	statusCode   int
+	errorMessage *string
+	scriptID     int64
+
+	inputVals  []scripts.Value
+	outputVals []scripts.Value
+}
+
+func (r *JobRepo) GetResultsForUser(ctx context.Context, userID scripts.UserID) ([]scripts.Result, error) {
+	return r.getResultsBase(ctx, GetResultsForUserQuery, userID)
+}
+
+func (r *JobRepo) SearchJobs(ctx context.Context, userID scripts.UserID, substr string) ([]scripts.Result, error) {
+	return r.getResultsBase(ctx, SearchJobsQuery, userID, substr)
+}
+func (r *JobRepo) getResultsBase(ctx context.Context, query string, args ...any) ([]scripts.Result, error) {
+	rows, err := r.DB.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	jobMap := make(map[scripts.JobID]*resultAccumulator)
+
+	for rows.Next() {
+		var (
+			rawID       int
+			userID      scripts.UserID
+			startedAt   time.Time
+			closedAt    time.Time
+			statusCode  int
+			errorMsg    string
+			scriptID    int64
+			scriptName  string
+			scriptDesc  string
+			scriptPath  string
+			scriptVis   string
+			scriptOwner int
+			scriptDate  *time.Time
+
+			valStr    *string
+			paramType *string
+			fieldType string
+		)
+
+		switch query {
+		case SearchJobsQuery:
+			err = rows.Scan(
+				&rawID, &startedAt, &closedAt, &statusCode, &errorMsg,
+				&scriptID, &scriptName, &scriptDesc, &scriptPath,
+				&scriptVis, &scriptOwner, &scriptDate,
+			)
+		case GetResultsForUserQuery:
+			err = rows.Scan(
+				&rawID, &userID, &startedAt, &statusCode, &errorMsg,
+				&scriptID, &valStr, &paramType, &fieldType,
+			)
+		default:
+			return nil, fmt.Errorf("unknown query")
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		jobID := scripts.JobID(rawID)
+
+		acc, ok := jobMap[jobID]
+		if !ok {
+			acc = &resultAccumulator{
+				userID:       userID,
+				startedAt:    startedAt,
+				closedAt:     closedAt,
+				statusCode:   statusCode,
+				errorMessage: &errorMsg,
+				scriptID:     scriptID,
+			}
+			jobMap[jobID] = acc
+		}
+
+		if valStr != nil && paramType != nil {
+			val, err := scripts.NewValue(fieldType, *valStr)
+			if err != nil {
+				return nil, err
+			}
+			switch *paramType {
+			case "in":
+				acc.inputVals = append(acc.inputVals, val)
+			case "out":
+				acc.outputVals = append(acc.outputVals, val)
+			}
+		}
+	}
+
+	var results []scripts.Result
+	for jobID, acc := range jobMap {
+		inVec, err := scripts.NewVector(acc.inputVals)
+		if err != nil {
+			return nil, err
+		}
+		outVec, err := scripts.NewVector(acc.outputVals)
+		if err != nil {
+			return nil, err
+		}
+
+		job, err := scripts.NewJob(jobID, acc.userID, *inVec, "", acc.startedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		errMsg := scripts.ErrorMessage(*acc.errorMessage)
+
+		res, err := scripts.NewResult(*job, scripts.StatusCode(acc.statusCode), *outVec, &errMsg, acc.closedAt)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, *res)
+	}
+
+	return results, nil
 }
