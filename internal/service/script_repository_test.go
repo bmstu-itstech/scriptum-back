@@ -93,7 +93,6 @@ func TestDeleteScript(t *testing.T) {
 	ctx := context.Background()
 	mock, err := pgxmock.NewConn()
 	require.NoError(t, err)
-	defer mock.Close(ctx)
 
 	repo := &ScriptRepo{DB: mock}
 	scriptID := scripts.ScriptID(5)
@@ -110,7 +109,6 @@ func TestCreateScript(t *testing.T) {
 	ctx := context.Background()
 	mock, err := pgxmock.NewConn()
 	require.NoError(t, err)
-	defer mock.Close(ctx)
 
 	repo := &ScriptRepo{DB: mock}
 
