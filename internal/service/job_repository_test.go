@@ -16,10 +16,6 @@ func TestGetResult(t *testing.T) {
 	ctx := context.Background()
 	mock, err := pgxmock.NewConn()
 	require.NoError(t, err)
-	defer func() {
-		err := mock.Close(ctx)
-		require.NoError(t, err)
-	}()
 
 	repo := &JobRepo{DB: mock}
 
@@ -59,10 +55,6 @@ func TestGetResultsForUser(t *testing.T) {
 	ctx := context.Background()
 	mock, err := pgxmock.NewConn()
 	require.NoError(t, err)
-	defer func() {
-		err := mock.Close(ctx)
-		require.NoError(t, err)
-	}()
 
 	repo := &JobRepo{DB: mock}
 
@@ -116,10 +108,6 @@ func TestPostJob(t *testing.T) {
 	ctx := context.Background()
 	mock, err := pgxmock.NewConn()
 	require.NoError(t, err)
-	defer func() {
-		err := mock.Close(ctx)
-		require.NoError(t, err)
-	}()
 
 	repo := &JobRepo{DB: mock}
 
@@ -151,10 +139,6 @@ func TestCloseJob(t *testing.T) {
 	ctx := context.Background()
 	mock, err := pgxmock.NewConn()
 	require.NoError(t, err)
-	defer func() {
-		err := mock.Close(ctx)
-		require.NoError(t, err)
-	}()
 
 	repo := &JobRepo{DB: mock}
 

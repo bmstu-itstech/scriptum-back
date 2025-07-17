@@ -634,10 +634,12 @@ func (r *ScriptRepo) UpdateScript(ctx context.Context, script scripts.Script) er
 	defer func() {
 		if err != nil {
 			if rbErr := tx.Rollback(ctx); rbErr != nil {
+				fmt.Printf("Placeholder")
 				// Логирование
 			}
 		} else {
 			if cmErr := tx.Commit(ctx); cmErr != nil {
+				fmt.Printf("Placeholder")
 				// Логирование
 			}
 		}
