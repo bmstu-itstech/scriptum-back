@@ -15,7 +15,6 @@ func TestGetScript(t *testing.T) {
 	ctx := context.Background()
 	mock, err := pgxmock.NewConn()
 	require.NoError(t, err)
-	defer mock.Close(ctx)
 
 	repo := &ScriptRepo{DB: mock}
 	scriptID := scripts.ScriptID(1)
@@ -47,7 +46,6 @@ func TestGetScripts(t *testing.T) {
 	ctx := context.Background()
 	mock, err := pgxmock.NewConn()
 	require.NoError(t, err)
-	defer mock.Close(ctx)
 
 	repo := &ScriptRepo{DB: mock}
 
@@ -72,7 +70,6 @@ func TestGetUserScripts(t *testing.T) {
 	ctx := context.Background()
 	mock, err := pgxmock.NewConn()
 	require.NoError(t, err)
-	defer mock.Close(ctx)
 
 	repo := &ScriptRepo{DB: mock}
 	userID := scripts.UserID(10)

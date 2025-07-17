@@ -313,10 +313,12 @@ func (r *ScriptRepo) StoreScript(ctx context.Context, script scripts.Script) (sc
 	defer func() {
 		if err != nil {
 			if rbErr := tx.Rollback(ctx); rbErr != nil {
+				fmt.Printf("Placeholder")
 				// Логирование
 			}
 		} else {
 			if cmErr := tx.Commit(ctx); cmErr != nil {
+				fmt.Printf("Placeholder")
 				// Логирование
 			}
 		}
