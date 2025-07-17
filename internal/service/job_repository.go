@@ -165,7 +165,11 @@ func (r *JobRepo) CloseJob(ctx context.Context, jobID scripts.JobID, res *script
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil && err != pgx.ErrTxClosed {
+			fmt.Printf("tx rollback error: %v", err)
+		}
+	}()
 
 	_, err = tx.Exec(ctx, CloseJobQuery,
 		res.Code(),
