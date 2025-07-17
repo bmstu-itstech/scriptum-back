@@ -68,7 +68,7 @@ func (s *ScriptRunUC) RunScript(ctx context.Context, input ScriptRunInput) (Resu
 		return ResultDTO{}, err
 	}
 
-	_, err = s.jobS.Store(ctx, *job)
+	_, err = s.jobS.StoreJob(ctx, *job)
 	if err != nil {
 		return ResultDTO{}, err
 	}
