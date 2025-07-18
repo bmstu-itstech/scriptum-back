@@ -7,19 +7,11 @@ import (
 	"time"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
-	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 )
 
-type ScriptDBConn interface {
-	Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)
-	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
-	Exec(ctx context.Context, sql string, args ...interface{}) (pgconn.CommandTag, error)
-	BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error)
-}
-
 type ScriptRepo struct {
-	DB ScriptDBConn
+	DB SQLDBConn
 }
 
 func NewScriptRepo(ctx context.Context) (*ScriptRepo, error) {
@@ -299,18 +291,18 @@ const GetPublicScriptsQuery = `
 `
 
 func (r *ScriptRepo) GetScripts(ctx context.Context) ([]scripts.Script, error) {
-	return r.getScriptsGeneric(ctx, GetScriptsQuery)
+	return r.scriptsGeneric(ctx, GetScriptsQuery)
 }
 
-func (r *ScriptRepo) GetUserScripts(ctx context.Context, userID scripts.UserID) ([]scripts.Script, error) {
-	return r.getScriptsGeneric(ctx, GetUserScriptsQuery, userID)
+func (r *ScriptRepo) UserScripts(ctx context.Context, userID scripts.UserID) ([]scripts.Script, error) {
+	return r.scriptsGeneric(ctx, GetUserScriptsQuery, userID)
 }
 
-func (r *ScriptRepo) GetPublicScripts(ctx context.Context) ([]scripts.Script, error) {
-	return r.getScriptsGeneric(ctx, GetPublicScriptsQuery)
+func (r *ScriptRepo) PublicScripts(ctx context.Context) ([]scripts.Script, error) {
+	return r.scriptsGeneric(ctx, GetPublicScriptsQuery)
 }
 
-func (r *ScriptRepo) getScriptsGeneric(ctx context.Context, query string, args ...any) ([]scripts.Script, error) {
+func (r *ScriptRepo) scriptsGeneric(ctx context.Context, query string, args ...any) ([]scripts.Script, error) {
 	rows, err := r.DB.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err

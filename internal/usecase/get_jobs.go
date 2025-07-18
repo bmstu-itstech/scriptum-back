@@ -7,46 +7,52 @@ import (
 )
 
 type GetJobsUC struct {
-	jobS    scripts.JobRepository
-	userS   scripts.UserRepository
-	scriptS scripts.ScriptRepository
+	jobR    scripts.JobRepository
+	resR    scripts.ResultRepository
+	userR   scripts.UserRepository
+	scriptR scripts.ScriptRepository
 }
 
 func NewGetJobsUC(
-	jobS scripts.JobRepository,
-	userS scripts.UserRepository,
-	scriptS scripts.ScriptRepository,
+	jobR scripts.JobRepository,
+	resR scripts.ResultRepository,
+	userR scripts.UserRepository,
+	scriptR scripts.ScriptRepository,
 ) (*GetJobsUC, error) {
-	if jobS == nil {
+	if jobR == nil {
 		return nil, scripts.ErrInvalidJobService
 	}
-	if userS == nil {
+	if resR == nil {
+		return nil, scripts.ErrInvalidResService
+	}
+	if userR == nil {
 		return nil, scripts.ErrInvalidUserService
 	}
-	if scriptS == nil {
+	if scriptR == nil {
 		return nil, scripts.ErrInvalidScriptService
 	}
 	return &GetJobsUC{
-		jobS:    jobS,
-		userS:   userS,
-		scriptS: scriptS,
+		jobR:    jobR,
+		userR:   userR,
+		scriptR: scriptR,
+		resR:    resR,
 	}, nil
 }
 
 func (u *GetJobsUC) GetJobs(ctx context.Context, userID uint32) ([]ResultDTO, error) {
-	// user, err := u.userS.User(ctx, scripts.UserID(userID))
+	// user, err := u.userR.User(ctx, scripts.UserID(userID))
 	// if err != nil {
 	// 	return nil, err
 	// }
 
 	// adm := user.IsAdmin()
-	// allScripts, err := u.scriptS.GetPublicScripts(ctx)
+	// allScripts, err := u.scriptR.GetPublicScripts(ctx)
 	// if err != nil {
 	// 	return nil, err
 	// }
 
 	// if !adm {
-	// 	userScripts, err := u.scriptS.GetUserScripts(ctx, scripts.UserID(userID))
+	// 	userScripts, err := u.scriptR.GetUserScripts(ctx, scripts.UserID(userID))
 	// 	if err != nil {
 	// 		return nil, err
 	// 	}
@@ -56,14 +62,14 @@ func (u *GetJobsUC) GetJobs(ctx context.Context, userID uint32) ([]ResultDTO, er
 	// jobs := make([]scripts.Job, 0, len(allScripts))
 
 	// for _, s := range allScripts {
-	// 	thisScriptJobs, err := u.jobS.JobsByScriptID(ctx, s.ID())
+	// 	thisScriptJobs, err := u.jobR.JobsByScriptID(ctx, s.ID())
 	// 	if err != nil {
 	// 		return nil, err
 	// 	}
 	// 	jobs = append(jobs, thisScriptJobs...)
 	// }
 
-	results, err := u.jobS.GetResultsForUser(ctx, userID)
+	results, err := u.resR.UserResults(ctx, userID)
 	if err != nil {
 		return nil, err
 	}

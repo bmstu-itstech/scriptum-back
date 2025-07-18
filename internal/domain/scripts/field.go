@@ -31,11 +31,20 @@ func NewField(fieldType Type, name, desc, unit string) (*Field, error) {
 	if name == "" {
 		return nil, ErrFieldNameEmpty
 	}
+	if len(name) > 100 {
+		return nil, ErrFieldNameLen
+	}
 	if desc == "" {
 		return nil, ErrFieldDescEmpty
 	}
+	if len(desc) > 500 {
+		return nil, ErrFieldDescLen
+	}
 	if unit == "" {
 		return nil, ErrFieldUnitEmpty
+	}
+	if len(desc) > 20 {
+		return nil, ErrFieldUnitLen
 	}
 
 	return &Field{

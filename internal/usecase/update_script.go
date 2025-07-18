@@ -7,22 +7,22 @@ import (
 )
 
 type ScriptUpdateUC struct {
-	scriptS scripts.ScriptRepository
-	userS   scripts.UserRepository
+	scriptR scripts.ScriptRepository
+	userR   scripts.UserRepository
 }
 
-func NewScriptUpdateUC(scriptS scripts.ScriptRepository, userS scripts.UserRepository) (*ScriptUpdateUC, error) {
-	if scriptS == nil {
+func NewScriptUpdateUC(scriptR scripts.ScriptRepository, userR scripts.UserRepository) (*ScriptUpdateUC, error) {
+	if scriptR == nil {
 		return nil, scripts.ErrInvalidScriptService
 	}
-	if userS == nil {
+	if userR == nil {
 		return nil, scripts.ErrInvalidUserService
 	}
-	return &ScriptUpdateUC{scriptS: scriptS, userS: userS}, nil
+	return &ScriptUpdateUC{scriptR: scriptR, userR: userR}, nil
 }
 
 func (u *ScriptUpdateUC) Update(ctx context.Context, actorID uint32, input ScriptDTO) error {
-	user, err := u.userS.User(ctx, scripts.UserID(actorID))
+	user, err := u.userR.User(ctx, scripts.UserID(actorID))
 	if err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func (u *ScriptUpdateUC) Update(ctx context.Context, actorID uint32, input Scrip
 	}
 
 	if adm := user.IsAdmin(); adm && script.Visibility() == scripts.VisibilityGlobal || !adm && input.Owner == actorID {
-		err = u.scriptS.UpdateScript(ctx, script)
+		err = u.scriptR.UpdateScript(ctx, script)
 	} else {
 		err = scripts.ErrNoAccessToUpdate
 	}

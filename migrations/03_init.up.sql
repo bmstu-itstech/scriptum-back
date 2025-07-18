@@ -1,23 +1,14 @@
-DO $ $ BEGIN CREATE TYPE VISIBILITY AS ENUM ('public', 'private');
+DO $$ BEGIN
+    CREATE TYPE VISIBILITY AS ENUM ('public', 'private');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-EXCEPTION
-WHEN duplicate_object THEN NULL;
+DO $$ BEGIN
+    CREATE TYPE FIELD_TYPE AS ENUM ('integer', 'real', 'complex');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-END $ $;
-
-DO $ $ BEGIN CREATE TYPE FIELD_TYPE AS ENUM ('integer', 'real', 'complex');
-
-EXCEPTION
-WHEN duplicate_object THEN NULL;
-
-END $ $;
-
-DO $ $ BEGIN CREATE TYPE PARAM_TYPE AS ENUM ('in', 'out');
-
-EXCEPTION
-WHEN duplicate_object THEN NULL;
-
-END $ $;
+DO $$ BEGIN
+    CREATE TYPE PARAM_TYPE AS ENUM ('in', 'out');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 CREATE TABLE fields (
     field_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -31,9 +22,9 @@ CREATE TABLE fields (
 
 CREATE TABLE scripts (
     script_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name TEXT NOT NULL CHECK (LENGTH(name) <= 100),
-    description TEXT CHECK (LENGTH(description) <= 255),
-    А path TEXT NOT NULL CHECK (LENGTH(path) <= 200),
+    name TEXT NOT NULL CHECK (LENGTH(name) <= 100),        
+    description TEXT CHECK (LENGTH(description) <= 500),   А
+    path TEXT NOT NULL CHECK (LENGTH(path) <= 200),
     visibility VISIBILITY NOT NULL,
     owner_id BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -60,7 +51,7 @@ CREATE TABLE jobs (
     started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     closed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     status_code INT,
-    error_message TEXT CHECK (LENGTH(error_message) <= 255),
+    error_message TEXT,
     script_id BIGINT NOT NULL,
     CONSTRAINT fk_jobs_script FOREIGN KEY (script_id) REFERENCES scripts(script_id) ON DELETE CASCADE ON UPDATE CASCADE
 );

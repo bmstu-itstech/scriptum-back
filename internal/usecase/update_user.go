@@ -7,18 +7,18 @@ import (
 )
 
 type UserUpdateUC struct {
-	userS scripts.UserRepository
+	userR scripts.UserRepository
 }
 
-func NewUserUpdateUC(userS scripts.UserRepository) (*UserUpdateUC, error) {
-	if userS == nil {
+func NewUserUpdateUC(userR scripts.UserRepository) (*UserUpdateUC, error) {
+	if userR == nil {
 		return nil, scripts.ErrInvalidUserService
 	}
-	return &UserUpdateUC{userS: userS}, nil
+	return &UserUpdateUC{userR: userR}, nil
 }
 
 func (u *UserUpdateUC) UpdateUser(ctx context.Context, actorID uint32, dto UserDTO) error {
-	maybeAdmin, err := u.userS.User(ctx, scripts.UserID(actorID))
+	maybeAdmin, err := u.userR.User(ctx, scripts.UserID(actorID))
 	if err != nil {
 		return err
 	}
@@ -29,6 +29,6 @@ func (u *UserUpdateUC) UpdateUser(ctx context.Context, actorID uint32, dto UserD
 	if err != nil {
 		return err
 	}
-	err = u.userS.UpdateUser(ctx, user)
+	err = u.userR.UpdateUser(ctx, user)
 	return err
 }

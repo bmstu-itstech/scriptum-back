@@ -7,18 +7,18 @@ import (
 )
 
 type UserCreateUC struct {
-	userS scripts.UserRepository
+	userR scripts.UserRepository
 }
 
-func NewUserCreateUC(userS scripts.UserRepository) (*UserCreateUC, error) {
-	if userS == nil {
+func NewUserCreateUC(userR scripts.UserRepository) (*UserCreateUC, error) {
+	if userR == nil {
 		return nil, scripts.ErrInvalidUserService
 	}
-	return &UserCreateUC{userS: userS}, nil
+	return &UserCreateUC{userR: userR}, nil
 }
 
 func (u *UserCreateUC) CreateUser(ctx context.Context, actorID uint32, newUser UserDTO) (uint32, error) {
-	maybeAdmin, err := u.userS.User(ctx, scripts.UserID(actorID))
+	maybeAdmin, err := u.userR.User(ctx, scripts.UserID(actorID))
 	if err != nil {
 		return 0, err
 	}
@@ -30,10 +30,10 @@ func (u *UserCreateUC) CreateUser(ctx context.Context, actorID uint32, newUser U
 	if err != nil {
 		return 0, err
 	}
-	userID, err := u.userS.StoreUser(ctx, user)
+	userID, err := u.userR.StoreUser(ctx, user)
 	if err != nil {
 		return 0, err
 	}
-	
+
 	return uint32(userID), nil
 }

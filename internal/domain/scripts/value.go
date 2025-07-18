@@ -70,7 +70,7 @@ func (i *Integer) String() string {
 	return strconv.Itoa(int(i.data))
 }
 
-func NewIntegerString(data string) (*Integer, error) {
+func NewIntegerFromString(data string) (*Integer, error) {
 	i, err := strconv.ParseInt(data, 10, 64)
 	if err != nil {
 		return nil, ErrIntegerConversion
@@ -78,7 +78,7 @@ func NewIntegerString(data string) (*Integer, error) {
 	return NewInteger(i)
 }
 
-func NewRealString(data string) (*Real, error) {
+func NewRealFromString(data string) (*Real, error) {
 	f, err := strconv.ParseFloat(data, 64)
 	if err != nil {
 		return nil, ErrRealConversion
@@ -86,7 +86,7 @@ func NewRealString(data string) (*Real, error) {
 	return NewReal(f)
 }
 
-func NewComplexString(data string) (*Complex, error) {
+func NewComplexFromString(data string) (*Complex, error) {
 	c, err := strconv.ParseComplex(data, 64)
 	if err != nil {
 		return nil, ErrComplexConversion
@@ -101,20 +101,22 @@ func NewValue(fieldType string, data string) (Value, error) {
 
 	switch fieldType {
 	case "integer":
-		val, err = NewIntegerString(data)
+		val, err = NewIntegerFromString(data)
 		if err != nil {
 			return nil, err
 		}
 	case "real":
-		val, err = NewRealString(data)
+		val, err = NewRealFromString(data)
 		if err != nil {
 			return nil, err
 		}
 	case "complex":
-		val, err = NewComplexString(data)
+		val, err = NewComplexFromString(data)
 		if err != nil {
 			return nil, err
 		}
+	default:
+		return nil, ErrInvalidType
 	}
 	return val, nil
 }

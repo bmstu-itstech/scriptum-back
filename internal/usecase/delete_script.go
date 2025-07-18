@@ -7,42 +7,42 @@ import (
 )
 
 type ScriptDeleteUC struct {
-	scriptS   scripts.ScriptRepository
-	userS     scripts.UserRepository
-	uploaderS scripts.Uploader
+	scriptR scripts.ScriptRepository
+	userR   scripts.UserRepository
+	manager scripts.Manager
 }
 
-func NewScriptDeleteUC(scriptS scripts.ScriptRepository, userS scripts.UserRepository, uploaderS scripts.Uploader) (*ScriptDeleteUC, error) {
-	if scriptS == nil {
+func NewScriptDeleteUC(scriptR scripts.ScriptRepository, userR scripts.UserRepository, manager scripts.Manager) (*ScriptDeleteUC, error) {
+	if scriptR == nil {
 		return nil, scripts.ErrInvalidScriptService
 	}
-	if userS == nil {
+	if userR == nil {
 		return nil, scripts.ErrInvalidUserService
 	}
-	if uploaderS == nil {
-		return nil, scripts.ErrInvalidUploaderService
+	if manager == nil {
+		return nil, scripts.ErrInvalidManagerService
 	}
 
-	return &ScriptDeleteUC{scriptS: scriptS, userS: userS, uploaderS: uploaderS}, nil
+	return &ScriptDeleteUC{scriptR: scriptR, userR: userR, manager: manager}, nil
 }
 
 func (u *ScriptDeleteUC) DeleteScript(ctx context.Context, actorID uint32, scriptID uint32) error {
 	var err error
-	user, err := u.userS.User(ctx, scripts.UserID(actorID))
+	user, err := u.userR.User(ctx, scripts.UserID(actorID))
 	if err != nil {
 		return err
 	}
-	script, err := u.scriptS.Script(ctx, scripts.ScriptID(scriptID))
+	script, err := u.scriptR.Script(ctx, scripts.ScriptID(scriptID))
 	if err != nil {
 		return err
 	}
 
 	if adm := user.IsAdmin(); adm && script.Visibility() == scripts.VisibilityGlobal || !adm && script.Owner() == actorID {
-		err = u.scriptS.DeleteScript(ctx, scripts.ScriptID(scriptID))
+		err = u.scriptR.DeleteScript(ctx, scripts.ScriptID(scriptID))
 		if err != nil {
 			return err
 		}
-		err = u.uploaderS.Delete(ctx, script.Path())
+		err = u.manager.Delete(ctx, script.Path())
 	} else {
 		err = scripts.ErrNoAccessToDelete
 	}

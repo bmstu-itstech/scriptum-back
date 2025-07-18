@@ -75,7 +75,7 @@ func TestGetUserScripts(t *testing.T) {
 				int64(11), "y", "coordinate y", "m", "real", "out"),
 		)
 
-	scriptsList, err := repo.GetUserScripts(ctx, userID)
+	scriptsList, err := repo.UserScripts(ctx, userID)
 	require.NoError(t, err)
 	require.Len(t, scriptsList, 1)
 
@@ -108,7 +108,7 @@ func TestGetPublicScripts_MultipleFields(t *testing.T) {
 				int64(12), "z", "result z", "m", "real", "out"),
 		)
 
-	scriptsList, err := repo.GetPublicScripts(ctx)
+	scriptsList, err := repo.PublicScripts(ctx)
 	require.NoError(t, err)
 	require.Len(t, scriptsList, 1)
 

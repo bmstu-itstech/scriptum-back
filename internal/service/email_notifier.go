@@ -26,8 +26,11 @@ func NewEmailNotifier() (*EmailNotifier, error) {
 	}, nil
 }
 
+const templatePath = "../../resources/template/email_template.html"
+const dataFormat = "2006-01-02 15:04:05"
+
 func (e *EmailNotifier) Notify(_ context.Context, r scripts.Result, email scripts.Email) error {
-	tmplBytes, err := os.ReadFile("internal/service/template/email_template.html")
+	tmplBytes, err := os.ReadFile(templatePath)
 	if err != nil {
 		return err
 	}
@@ -52,7 +55,7 @@ func (e *EmailNotifier) Notify(_ context.Context, r scripts.Result, email script
 		ErrorMessage string
 	}{
 		Command:      r.Job().Command(),
-		StartedAt:    r.Job().StartedAt().Format("2006-01-02 15:04:05"),
+		StartedAt:    r.Job().StartedAt().Format(dataFormat),
 		Code:         int(r.Code()),
 		OutputValues: values,
 		ErrorMessage: errorMsg,

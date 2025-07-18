@@ -97,12 +97,24 @@ func NewScript(scriptID ScriptID, inFields []Field, outFields []Field, path Path
 		return nil, ErrPathEmpty
 	}
 
+	if len(path) > 200 {
+		return nil, ErrPathLen
+	}
+
 	if name == "" {
 		return nil, ErrNameEmpty
 	}
 
+	if len(name) > 100 {
+		return nil, ErrNameLen
+	}
+
 	if description == "" {
 		return nil, ErrDescriptionEmpty
+	}
+
+	if len(description) > 500 {
+		return nil, ErrDescriptionLen
 	}
 
 	return &Script{

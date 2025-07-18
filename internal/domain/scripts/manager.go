@@ -2,7 +2,7 @@ package scripts
 
 import "context"
 
-type Uploader interface {
+type Manager interface {
 	Upload(context.Context, File) (Path, error)
 	Delete(context.Context, Path) error
 }

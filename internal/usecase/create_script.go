@@ -7,29 +7,29 @@ import (
 )
 
 type ScriptCreateUC struct {
-	scriptS   scripts.ScriptRepository
-	userS     scripts.UserRepository
-	uploaderS scripts.Uploader
+	scriptR scripts.ScriptRepository
+	userR   scripts.UserRepository
+	manager scripts.Manager
 }
 
 func NewScriptCreateUC(
-	scriptS scripts.ScriptRepository,
-	userS scripts.UserRepository,
-	uploaderS scripts.Uploader,
+	scriptR scripts.ScriptRepository,
+	userR scripts.UserRepository,
+	manager scripts.Manager,
 ) (*ScriptCreateUC, error) {
-	if scriptS == nil {
+	if scriptR == nil {
 		return nil, scripts.ErrInvalidScriptService
 	}
-	if userS == nil {
+	if userR == nil {
 		return nil, scripts.ErrInvalidUserService
 	}
-	if uploaderS == nil {
-		return nil, scripts.ErrInvalidUploaderService
+	if manager == nil {
+		return nil, scripts.ErrInvalidManagerService
 	}
 	return &ScriptCreateUC{
-		scriptS:   scriptS,
-		userS:     userS,
-		uploaderS: uploaderS,
+		scriptR: scriptR,
+		userR:   userR,
+		manager: manager,
 	}, nil
 }
 
@@ -40,7 +40,7 @@ type ScriptCreateInput struct {
 }
 
 func (u *ScriptCreateUC) CreateScript(ctx context.Context, userID uint32, scriptName string, scriptDescription string, input ScriptCreateInput) (uint32, error) {
-	user, err := u.userS.User(ctx, scripts.UserID(userID))
+	user, err := u.userR.User(ctx, scripts.UserID(userID))
 	if err != nil {
 		return 0, err
 	}
@@ -58,7 +58,7 @@ func (u *ScriptCreateUC) CreateScript(ctx context.Context, userID uint32, script
 		return 0, err
 	}
 
-	path, err := u.uploaderS.Upload(ctx, file)
+	path, err := u.manager.Upload(ctx, file)
 	if err != nil {
 		return 0, err
 	}
@@ -79,7 +79,7 @@ func (u *ScriptCreateUC) CreateScript(ctx context.Context, userID uint32, script
 		return 0, err
 	}
 
-	scriptId, err := u.scriptS.StoreScript(ctx, script)
+	scriptId, err := u.scriptR.StoreScript(ctx, script)
 	if err != nil {
 		// логируем ошибку
 		return 0, err

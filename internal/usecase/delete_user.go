@@ -7,18 +7,18 @@ import (
 )
 
 type UserDeleteUC struct {
-	userS scripts.UserRepository
+	userR scripts.UserRepository
 }
 
-func NewUserDeleteUC(userS scripts.UserRepository) (*UserDeleteUC, error) {
-	if userS == nil {
+func NewUserDeleteUC(userR scripts.UserRepository) (*UserDeleteUC, error) {
+	if userR == nil {
 		return nil, scripts.ErrInvalidUserService
 	}
-	return &UserDeleteUC{userS: userS}, nil
+	return &UserDeleteUC{userR: userR}, nil
 }
 
 func (u *UserDeleteUC) DeleteUser(ctx context.Context, actorID, userID uint32) error {
-	maybeAdmin, err := u.userS.User(ctx, scripts.UserID(actorID))
+	maybeAdmin, err := u.userR.User(ctx, scripts.UserID(actorID))
 	if err != nil {
 		return err
 	}
@@ -26,5 +26,5 @@ func (u *UserDeleteUC) DeleteUser(ctx context.Context, actorID, userID uint32) e
 		return scripts.ErrNotAdmin
 	}
 
-	return u.userS.DeleteUser(ctx, scripts.UserID(userID))
+	return u.userR.DeleteUser(ctx, scripts.UserID(userID))
 }

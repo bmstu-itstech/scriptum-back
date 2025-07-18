@@ -7,47 +7,53 @@ import (
 )
 
 type SearchJobsUC struct {
-	jobS    scripts.JobRepository
-	userS   scripts.UserRepository
-	scriptS scripts.ScriptRepository
+	jobR    scripts.JobRepository
+	resR    scripts.ResultRepository
+	userR   scripts.UserRepository
+	scriptR scripts.ScriptRepository
 }
 
 func NewSearchJobsUC(
-	jobS scripts.JobRepository,
-	userS scripts.UserRepository,
-	scriptS scripts.ScriptRepository,
+	jobR scripts.JobRepository,
+	resR scripts.ResultRepository,
+	userR scripts.UserRepository,
+	scriptR scripts.ScriptRepository,
 ) (*SearchJobsUC, error) {
-	if jobS == nil {
+	if jobR == nil {
 		return nil, scripts.ErrInvalidJobService
 	}
-	if userS == nil {
+	if resR == nil {
+		return nil, scripts.ErrInvalidResService
+	}
+	if userR == nil {
 		return nil, scripts.ErrInvalidUserService
 	}
-	if scriptS == nil {
+	if scriptR == nil {
 		return nil, scripts.ErrInvalidScriptService
 	}
 	return &SearchJobsUC{
-		jobS:    jobS,
-		userS:   userS,
-		scriptS: scriptS,
+		jobR:    jobR,
+		userR:   userR,
+		scriptR: scriptR,
+		resR:    resR,
 	}, nil
 }
 
 func (u *SearchJobsUC) SearchJobs(ctx context.Context, userID uint32, substr string) ([]ResultDTO, error) {
-	// user, err := u.userS.User(ctx, scripts.UserID(userID))
+	// user, err := u.userR.User(ctx, scripts.UserID(userID))
 	// if err != nil {
 	// 	return nil, err
 	// }
 
 	// adm := user.IsAdmin()
 
-	// allScripts, err := u.scriptS.SearchPublicScripts(ctx, substr)
+	// allScripts, err := u.scriptR.SearchPublicScripts(ctx, substr)
 	// if err != nil {
 	// 	return nil, err
 	// }
 
 	// if !adm {
-	// 	userScripts, err := u.scriptS.SearchUserScripts(ctx, scripts.UserID(userID), substr)
+	// 	userScripts, err := u.scriptR.SearchUserScripts(ctx, scripts.UserID(userID), substr)
 	// 	if err != nil {
 	// 		return nil, err
 	// 	}
@@ -56,7 +62,7 @@ func (u *SearchJobsUC) SearchJobs(ctx context.Context, userID uint32, substr str
 
 	// jobs := make([]scripts.Job, 0, len(allScripts)) // не факт, что разумно выбрано капасити
 	// for _, script := range allScripts {
-	// 	thisScriptJobs, err := u.jobS.JobsByScriptID(ctx, script.ID())
+	// 	thisScriptJobs, err := u.jobR.JobsByScriptID(ctx, script.ID())
 	// 	if err != nil {
 	// 		return nil, err
 	// 	}
@@ -68,7 +74,7 @@ func (u *SearchJobsUC) SearchJobs(ctx context.Context, userID uint32, substr str
 	// 	dto = append(dto, JobToDTO(job))
 	// }
 
-	results, err := u.jobS.SearchJobs(ctx, userID, substr)
+	results, err := u.resR.SearchResult(ctx, userID, substr)
 	if err != nil {
 		return nil, err
 	}

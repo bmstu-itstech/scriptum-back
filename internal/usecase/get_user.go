@@ -7,18 +7,18 @@ import (
 )
 
 type GetUserUC struct {
-	userS scripts.UserRepository
+	userR scripts.UserRepository
 }
 
-func NewGetUserUC(userS scripts.UserRepository) (*GetUserUC, error) {
-	if userS == nil {
+func NewGetUserUC(userR scripts.UserRepository) (*GetUserUC, error) {
+	if userR == nil {
 		return nil, scripts.ErrInvalidUserService
 	}
-	return &GetUserUC{userS: userS}, nil
+	return &GetUserUC{userR: userR}, nil
 }
 
 func (u *GetUserUC) GetUser(ctx context.Context, userID uint32) (UserDTO, error) {
-	user, err := u.userS.User(ctx, scripts.UserID(userID))
+	user, err := u.userR.User(ctx, scripts.UserID(userID))
 	if err != nil {
 		return UserDTO{}, err
 	}

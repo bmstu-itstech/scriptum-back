@@ -7,41 +7,41 @@ import (
 )
 
 type ScriptRunUC struct {
-	scriptS   scripts.ScriptRepository
-	jobS      scripts.JobRepository
-	launcherS scripts.Launcher
-	notifierS scripts.Notifier
-	userS     scripts.UserRepository
+	scriptR  scripts.ScriptRepository
+	jobR     scripts.JobRepository
+	launcher scripts.Launcher
+	notifier scripts.Notifier
+	userR    scripts.UserRepository
 }
 
 func NewScriptRunUC(
-	scriptS scripts.ScriptRepository,
-	jobS scripts.JobRepository,
-	launcherS scripts.Launcher,
-	notifierS scripts.Notifier,
-	userS scripts.UserRepository,
+	scriptR scripts.ScriptRepository,
+	jobR scripts.JobRepository,
+	launcher scripts.Launcher,
+	notifier scripts.Notifier,
+	userR scripts.UserRepository,
 ) (*ScriptRunUC, error) {
-	if scriptS == nil {
+	if scriptR == nil {
 		return nil, scripts.ErrInvalidScriptService
 	}
-	if jobS == nil {
+	if jobR == nil {
 		return nil, scripts.ErrInvalidJobService
 	}
-	if launcherS == nil {
+	if launcher == nil {
 		return nil, scripts.ErrInvalidLauncherService
 	}
-	if notifierS == nil {
+	if notifier == nil {
 		return nil, scripts.ErrInvalidNotifierService
 	}
-	if userS == nil {
+	if userR == nil {
 		return nil, scripts.ErrInvalidUserService
 	}
 	return &ScriptRunUC{
-		scriptS:   scriptS,
-		jobS:      jobS,
-		launcherS: launcherS,
-		notifierS: notifierS,
-		userS:     userS,
+		scriptR:  scriptR,
+		jobR:     jobR,
+		launcher: launcher,
+		notifier: notifier,
+		userR:    userR,
 	}, nil
 }
 
@@ -58,7 +58,7 @@ func (s *ScriptRunUC) RunScript(ctx context.Context, input ScriptRunInput) (Resu
 		return ResultDTO{}, err
 	}
 
-	script, err := s.scriptS.Script(ctx, scriptId)
+	script, err := s.scriptR.Script(ctx, scriptId)
 	if err != nil {
 		return ResultDTO{}, err
 	}
@@ -68,17 +68,17 @@ func (s *ScriptRunUC) RunScript(ctx context.Context, input ScriptRunInput) (Resu
 		return ResultDTO{}, err
 	}
 
-	jobID, err := s.jobS.PostJob(ctx, *job, scriptId)
+	jobID, err := s.jobR.PostJob(ctx, *job, scriptId)
 	if err != nil {
 		return ResultDTO{}, err
 	}
 
-	result, err := s.launcherS.Launch(ctx, *job, script.OutFields())
+	result, err := s.launcher.Launch(ctx, *job, script.OutFields())
 	if err != nil {
 		return ResultDTO{}, err
 	}
 
-	err = s.jobS.CloseJob(ctx, jobID, &result)
+	err = s.jobR.CloseJob(ctx, jobID, &result)
 	if err != nil {
 		return ResultDTO{}, err
 	}
@@ -87,11 +87,11 @@ func (s *ScriptRunUC) RunScript(ctx context.Context, input ScriptRunInput) (Resu
 
 	if input.needToNotify {
 		resJob := result.Job()
-		user, err := s.userS.User(ctx, resJob.UserID())
+		user, err := s.userR.User(ctx, resJob.UserID())
 		if err != nil {
 			return ResultDTO{}, err
 		}
-		err = s.notifierS.Notify(ctx, result, user.Email())
+		err = s.notifier.Notify(ctx, result, user.Email())
 		if err != nil {
 			return ResultDTO{}, err
 		}

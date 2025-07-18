@@ -7,35 +7,35 @@ import (
 )
 
 type GetScriptsUC struct {
-	scriptS scripts.ScriptRepository
-	userS   scripts.UserRepository
+	scriptR scripts.ScriptRepository
+	userR   scripts.UserRepository
 }
 
-func NewGetScriptsUС(scriptS scripts.ScriptRepository, userS scripts.UserRepository) (*GetScriptsUC, error) {
-	if scriptS == nil {
+func NewGetScriptsUС(scriptR scripts.ScriptRepository, userR scripts.UserRepository) (*GetScriptsUC, error) {
+	if scriptR == nil {
 		return nil, scripts.ErrInvalidScriptService
 	}
 
-	if userS == nil {
+	if userR == nil {
 		return nil, scripts.ErrInvalidUserService
 	}
 
-	return &GetScriptsUC{scriptS: scriptS, userS: userS}, nil
+	return &GetScriptsUC{scriptR: scriptR, userR: userR}, nil
 }
 
 func (u *GetScriptsUC) Scripts(ctx context.Context, userID uint32) ([]ScriptDTO, error) {
-	user, err := u.userS.User(ctx, scripts.UserID(userID))
+	user, err := u.userR.User(ctx, scripts.UserID(userID))
 	if err != nil {
 		return nil, err
 	}
 
-	allScripts, err := u.scriptS.GetPublicScripts(ctx)
+	allScripts, err := u.scriptR.PublicScripts(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	if !user.IsAdmin() {
-		userScripts, err := u.scriptS.GetUserScripts(ctx, scripts.UserID(userID))
+		userScripts, err := u.scriptR.UserScripts(ctx, scripts.UserID(userID))
 		if err != nil {
 			return nil, err
 		}
