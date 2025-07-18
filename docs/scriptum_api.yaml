@@ -19,15 +19,6 @@ paths:
       - scripts
       summary: Get scripts
       description: Get public scripts and maybe user scripts if user is not admin.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                user_id:
-                  type: integer
-                  format: int64
       responses:
         '200':
           description: successful operation
@@ -43,7 +34,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
         '401':
           description: unauthorized
           content:
@@ -167,6 +157,54 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+      - scripts
+      summary: Delete script
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          $ref: '#/components/schemas/ScriptId'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden (delete script but for another user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: script not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /scripts/{id}/start:
     post:
       tags:
       - scripts
@@ -229,73 +267,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-    delete:
-      tags:
-      - scripts
-      summary: Delete script
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          $ref: '#/components/schemas/ScriptId'
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '400':
-          description: invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: forbidden (delete script but for another user)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: script not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: internal error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
   /scripts/search:
-    post:
+    get:
       tags:
       - scripts
       summary: Search scripts
       description: Search scripts by user id and substring of script name
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                user_id:
-                  $ref: '#/components/schemas/UserId'
-                script_name:
-                  type: string
-                  example: "Подсчёт"
-              required:
-              - user_id
-              - script_name
+      parameters:
+      - in: query
+        name: script_name
+        description: substring of script name
+        schema:
+          type: string
+          example: "Подсчёт"
+        required: true
       responses:
         '200':
           description: successful operation
@@ -342,16 +327,6 @@ paths:
       - users
       summary: Get all users
       description: Get all users for admin
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                user_id:
-                  $ref: '#/components/schemas/UserId'
-              required:
-              - user_id
       responses:
         '200':
           description: successful operation
@@ -511,7 +486,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '403':
-          description: forbidden (get but for another user)
+          description: forbidden (not admin / get but for another user)
           content:
             application/json:
               schema:
@@ -576,17 +551,7 @@ paths:
       tags:
       - jobs
       summary: Get user jobs
-      description: Get public for admin and also private for user jobs
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                user_id:
-                  $ref: '#/components/schemas/UserId'
-              required:
-              - user_id
+      description: Get user jobs
       responses:
         '200':
           description: successful operation
@@ -615,22 +580,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
   /jobs/search:
-    post:
+    get:
       tags:
       - jobs
       summary: Search jobs
       description: Search for jobs by user id and script name
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                user_id:
-                  $ref: '#/components/schemas/UserId'
-                script_name:
-                  type: string
-                  example: "Подсчёт"
+      parameters:
+      - in: query
+        name: script_name
+        description: substring of script name
+        schema:
+          type: string
+          example: "Подсчёт"
+        required: true
       responses:
         '200':
           description: successful operation
@@ -833,3 +795,11 @@ components:
       properties:
         message:
           type: string
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+- BearerAuth: []
