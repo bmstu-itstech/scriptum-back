@@ -58,7 +58,7 @@ func NewField(fieldType Type, name, desc, unit string) (*Field, error) {
 func ParseOutputValues(output string, fields []Field) ([]Value, error) {
 	lines := strings.Split(strings.TrimSpace(output), "\n")
 	if len(lines) != len(fields) {
-		return nil, ErrFieldCnt
+		return nil, ErrFieldCount
 	}
 
 	values := make([]Value, 0, len(fields))

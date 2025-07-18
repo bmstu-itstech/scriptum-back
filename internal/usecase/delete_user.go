@@ -12,7 +12,7 @@ type UserDeleteUC struct {
 
 func NewUserDeleteUC(userR scripts.UserRepository) (*UserDeleteUC, error) {
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserService
+		return nil, scripts.ErrInvalidUserRepository
 	}
 	return &UserDeleteUC{userR: userR}, nil
 }

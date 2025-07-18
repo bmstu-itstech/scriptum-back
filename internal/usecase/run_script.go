@@ -22,10 +22,10 @@ func NewScriptRunUC(
 	userR scripts.UserRepository,
 ) (*ScriptRunUC, error) {
 	if scriptR == nil {
-		return nil, scripts.ErrInvalidScriptService
+		return nil, scripts.ErrInvalidScriptRepository
 	}
 	if jobR == nil {
-		return nil, scripts.ErrInvalidJobService
+		return nil, scripts.ErrInvalidJobRepository
 	}
 	if launcher == nil {
 		return nil, scripts.ErrInvalidLauncherService
@@ -34,7 +34,7 @@ func NewScriptRunUC(
 		return nil, scripts.ErrInvalidNotifierService
 	}
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserService
+		return nil, scripts.ErrInvalidUserRepository
 	}
 	return &ScriptRunUC{
 		scriptR:  scriptR,

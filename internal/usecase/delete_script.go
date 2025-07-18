@@ -14,10 +14,10 @@ type ScriptDeleteUC struct {
 
 func NewScriptDeleteUC(scriptR scripts.ScriptRepository, userR scripts.UserRepository, manager scripts.Manager) (*ScriptDeleteUC, error) {
 	if scriptR == nil {
-		return nil, scripts.ErrInvalidScriptService
+		return nil, scripts.ErrInvalidScriptRepository
 	}
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserService
+		return nil, scripts.ErrInvalidUserRepository
 	}
 	if manager == nil {
 		return nil, scripts.ErrInvalidManagerService
