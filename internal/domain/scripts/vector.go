@@ -10,7 +10,7 @@ func (v *Vector) Values() []Value {
 
 func NewVector(values []Value) (*Vector, error) {
 	if len(values) == 0 {
-		return nil, ErrEmptyVector
+		return nil, ErrVectorEmpty
 	}
 	return &Vector{values: values}, nil
 }
@@ -21,4 +21,12 @@ func (v *Vector) Add(value Value) {
 
 func (v *Vector) Len() int {
 	return len(v.values)
+}
+
+func (v *Vector) Get() []string {
+	values := []string{}
+	for _, v := range v.Values() {
+		values = append(values, v.String())
+	}
+	return values
 }

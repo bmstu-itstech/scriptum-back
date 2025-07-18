@@ -3,5 +3,5 @@ package scripts
 import "context"
 
 type Notifier interface {
-	Notify(context.Context, Result) error
+	Notify(context.Context, Result, Email) error
 }

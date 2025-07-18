@@ -10,7 +10,7 @@ var (
 	ComplexType = Type{"complex"}
 )
 
-func (t *Type) String() string {
+func (t Type) String() string {
 	return t.s
 }
 
