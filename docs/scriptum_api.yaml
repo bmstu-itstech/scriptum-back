@@ -1,0 +1,805 @@
+openapi: 3.0.4
+
+info:
+  title: Scriptum - OpenAPI 3.0
+  version: 1.0.0
+
+tags:
+- name: scripts
+  description: Scripts
+- name: users
+  description: Users (and admin actions)
+- name: jobs
+  description: Jobs (~= pipelines)
+
+paths:
+  /scripts:
+    get:
+      tags:
+      - scripts
+      summary: Get scripts
+      description: Get public scripts and maybe user scripts if user is not admin.
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Script'
+        '400':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+      - scripts
+      summary: Create new script
+      description: Create new script
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                script:
+                  $ref: '#/components/schemas/Script'
+                file:
+                  $ref: '#/components/schemas/File'
+      responses:
+        '201':
+          description: created new script
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden (create script but for another user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /scripts/{id}:
+    put:
+      tags:
+      - scripts
+      summary: Update script
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          $ref: '#/components/schemas/ScriptId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Script'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden (update script but for another user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: script not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+      - scripts
+      summary: Delete script
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          $ref: '#/components/schemas/ScriptId'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden (delete script but for another user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: script not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /scripts/{id}/start:
+    post:
+      tags:
+      - scripts
+      summary: Run script
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          $ref: '#/components/schemas/ScriptId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                in_params:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Field'
+                notify_by_email:
+                  type: boolean
+                  default: false
+              required:
+              - in_params
+      responses:
+        '202':
+          description: request accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden (run script but for another user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: script not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /scripts/search:
+    get:
+      tags:
+      - scripts
+      summary: Search scripts
+      description: Search scripts by user id and substring of script name
+      parameters:
+      - in: query
+        name: script_name
+        description: substring of script name
+        schema:
+          type: string
+          example: "Подсчёт"
+        required: true
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Script'
+        '400':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden (search scripts but for another user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users:
+    get:
+      tags:
+      - users
+      summary: Get all users
+      description: Get all users for admin
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '400':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden (no admin)'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+      - users
+      summary: Create user
+      description: Create a new user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden (no admin)'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /users/{id}:
+    put:
+      tags:
+      - users
+      summary: Update user
+      description: Update a user
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          $ref: '#/components/schemas/UserId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden (no admin)'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags:
+      - users
+      summary: Get user
+      description: Get a user by id
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          $ref: '#/components/schemas/UserId'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden (not admin / get but for another user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+      - users
+      summary: Delete user
+      description: Delete a user by id
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          $ref: '#/components/schemas/UserId'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden (no admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /jobs:
+    get:
+      tags:
+      - jobs
+      summary: Get user jobs
+      description: Get user jobs
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Job'
+        '400':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /jobs/search:
+    get:
+      tags:
+      - jobs
+      summary: Search jobs
+      description: Search for jobs by user id and script name
+      parameters:
+      - in: query
+        name: script_name
+        description: substring of script name
+        schema:
+          type: string
+          example: "Подсчёт"
+        required: true
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Job'
+        '400':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /jobs/{id}/result:
+    get:
+      tags:
+      - jobs
+      summary: Get job result
+      description: Get the result of a job
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          $ref: '#/components/schemas/JobId'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+        '400':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden (get but for another user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    UserId:
+      type: integer
+      format: int64
+      example: 123
+    ScriptId:
+      type: integer
+      format: int64
+      example: 345
+    JobId:
+      type: integer
+      format: int64
+      example: 567
+    Field:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "real"
+        name:
+          type: string
+          example: "Длина полёта пули"
+        description:
+          type: string
+          example: "Этот скрипт подсчитывает длину полёта пули в ветренную погоду"
+        unit:
+          type: string
+          example: "метры"
+    FilePath:
+      type: string
+      example: "/user1/script7/main.py"
+    Visibility:
+      type: string
+      enum: [ global, private ]
+      default: private
+    Script:
+      type: object
+      properties:
+        script_id:
+          $ref: '#/components/schemas/ScriptId'
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/Field'
+        path:
+          $ref: "#/components/schemas/FilePath"
+        owner:
+          $ref: '#/components/schemas/UserId'
+        visibility:
+          $ref: '#/components/schemas/Visibility'
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - fields
+      - owner
+    Value:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "complex"
+        data:
+          type: string
+          example: "-1.6+24.04j"
+    Job:
+      type: object
+      properties:
+        job_id:
+          $ref: '#/components/schemas/JobId'
+        user_id:
+          $ref: '#/components/schemas/UserId'
+        in:
+          type: array
+          items:
+            $ref: '#/components/schemas/Value'
+        command:
+          type: string
+          example: "python3 /user1/script7/main.py 1.2 -1+2j -5"
+        started_at:
+          type: string
+          format: date-time
+    Result:
+      type: object
+      properties:
+        job:
+          $ref: '#/components/schemas/Job'
+        code:
+          type: integer
+        out:
+          type: array
+          items:
+            $ref: '#/components/schemas/Value'
+        error_message:
+          type: string
+          example: "bruh"
+    User:
+      type: object
+      properties:
+        user_id:
+          $ref: '#/components/schemas/UserId'
+        full_name:
+          type: string
+          example: "Пушкин Александр Сергеевич"
+        email:
+          type: string
+          format: email
+        is_admin:
+          type: boolean
+      required:
+      - full_name
+      - email
+      - is_admin
+    File:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "main"
+        file_type:
+          type: string
+          example: ".py"
+        content:
+          type: string
+          format: binary
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+- BearerAuth: []
