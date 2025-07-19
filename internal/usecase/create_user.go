@@ -12,7 +12,7 @@ type UserCreateUC struct {
 
 func NewUserCreateUC(userR scripts.UserRepository) (*UserCreateUC, error) {
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserService
+		return nil, scripts.ErrInvalidUserRepository
 	}
 	return &UserCreateUC{userR: userR}, nil
 }

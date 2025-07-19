@@ -13,21 +13,21 @@ type ScriptSearchUC struct {
 
 func NewScriptSearchUC(scriptR scripts.ScriptRepository, userR scripts.UserRepository) (*ScriptSearchUC, error) {
 	if scriptR == nil {
-		return nil, scripts.ErrInvalidScriptService
+		return nil, scripts.ErrInvalidScriptRepository
 	}
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserService
+		return nil, scripts.ErrInvalidUserRepository
 	}
 	return &ScriptSearchUC{scriptR: scriptR, userR: userR}, nil
 }
 
 func (u *ScriptSearchUC) Search(ctx context.Context, userID uint32, substr string) ([]ScriptDTO, error) {
-	allScripts, err := u.scriptR.SearchPublicScripts(ctx, substr)
+	user, err := u.userR.User(ctx, scripts.UserID(userID))
 	if err != nil {
 		return nil, err
 	}
 
-	user, err := u.userR.User(ctx, scripts.UserID(userID))
+	allScripts, err := u.scriptR.SearchPublicScripts(ctx, substr)
 	if err != nil {
 		return nil, err
 	}

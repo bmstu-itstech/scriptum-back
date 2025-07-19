@@ -18,10 +18,10 @@ func NewScriptCreateUC(
 	manager scripts.Manager,
 ) (*ScriptCreateUC, error) {
 	if scriptR == nil {
-		return nil, scripts.ErrInvalidScriptService
+		return nil, scripts.ErrInvalidScriptRepository
 	}
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserService
+		return nil, scripts.ErrInvalidUserRepository
 	}
 	if manager == nil {
 		return nil, scripts.ErrInvalidManagerService
