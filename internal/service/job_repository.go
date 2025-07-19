@@ -2,18 +2,23 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
+	"github.com/ThreeDotsLabs/watermill"
+	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 	"github.com/jackc/pgx/v4"
 )
 
 type JobRepo struct {
-	DB SQLDBConn
+	DB         SQLDBConn
+	subscriber message.Subscriber
+	logger     watermill.LoggerAdapter
 }
 
-func NewJobRepo(ctx context.Context) (*JobRepo, error) {
+func NewJobRepo(ctx context.Context, subscriber message.Subscriber, logger watermill.LoggerAdapter) (*JobRepo, error) {
 	host := "localhost"
 	port := 5432
 	user := "app_user"
@@ -27,9 +32,56 @@ func NewJobRepo(ctx context.Context) (*JobRepo, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &JobRepo{
-		DB: conn,
+		DB:         conn,
+		subscriber: subscriber,
+		logger:     logger,
 	}, nil
+}
+
+func (j *JobRepo) Listen(ctx context.Context) {
+	messages, err := j.subscriber.Subscribe(ctx, "script-finished")
+	if err != nil {
+		j.logger.Error("Subscribe error", err, nil)
+		return
+	}
+
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				j.logger.Error("panic recovered in close job", nil, watermill.LogFields{"recover": r})
+			}
+		}()
+
+		for {
+			select {
+			case <-ctx.Done():
+				j.logger.Info("CloseJob stopped due to context cancel", nil)
+				return
+			case msg, ok := <-messages:
+				if !ok {
+					j.logger.Info("CloseJob channel closed", nil)
+					return
+				}
+
+				var event ScriptFinishedEvent
+				if err := json.Unmarshal(msg.Payload, &event); err != nil {
+					j.logger.Error("Unmarshal error", err, nil)
+					msg.Nack()
+					continue
+				}
+
+				if err := j.CloseJob(ctx, event.result.Job().JobID(), &event.result); err != nil {
+					j.logger.Error("CloseJob error", err, nil)
+					msg.Nack()
+					continue
+				}
+
+				msg.Ack()
+			}
+		}
+	}()
 }
 
 const PostJobQuery = `

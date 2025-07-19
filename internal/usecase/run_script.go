@@ -67,34 +67,38 @@ func (s *ScriptRunUC) RunScript(ctx context.Context, input ScriptRunInput) (Resu
 	if err != nil {
 		return ResultDTO{}, err
 	}
-
-	jobID, err := s.jobR.PostJob(ctx, *job, scriptId)
+	user, err := s.userR.User(ctx, script.Owner())
 	if err != nil {
 		return ResultDTO{}, err
 	}
 
-	result, err := s.launcher.Launch(ctx, *job, script.OutFields())
+	_, err = s.jobR.PostJob(ctx, *job, scriptId)
 	if err != nil {
 		return ResultDTO{}, err
 	}
 
-	err = s.jobR.CloseJob(ctx, jobID, &result)
+	result, err := s.launcher.Launch(ctx, *job, script.OutFields(), user.Email())
 	if err != nil {
 		return ResultDTO{}, err
 	}
+
+	// err = s.jobR.CloseJob(ctx, jobID, &result)
+	// if err != nil {
+	// 	return ResultDTO{}, err
+	// }
 
 	ucResult := ResultToDTO(result)
 
-	if input.needToNotify {
-		resJob := result.Job()
-		user, err := s.userR.User(ctx, resJob.UserID())
-		if err != nil {
-			return ResultDTO{}, err
-		}
-		err = s.notifier.Notify(ctx, result, user.Email())
-		if err != nil {
-			return ResultDTO{}, err
-		}
-	}
+	// if input.needToNotify {
+	// 	resJob := result.Job()
+	// 	user, err := s.userR.User(ctx, resJob.UserID())
+	// 	if err != nil {
+	// 		return ResultDTO{}, err
+	// 	}
+	// 	err = s.notifier.Notify(ctx, result, user.Email())
+	// 	if err != nil {
+	// 		return ResultDTO{}, err
+	// 	}
+	// }
 	return ucResult, nil
 }

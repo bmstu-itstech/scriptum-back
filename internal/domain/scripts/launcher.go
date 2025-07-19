@@ -3,5 +3,5 @@ package scripts
 import "context"
 
 type Launcher interface {
-	Launch(context.Context, Job, []Field) (Result, error)
+	Launch(context.Context, Job, []Field, Email) (Result, error)
 }
