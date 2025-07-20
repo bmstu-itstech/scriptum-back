@@ -1,11 +1,8 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
-	"os/exec"
-	"time"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
@@ -13,20 +10,8 @@ import (
 	"github.com/google/uuid"
 )
 
-const maxConcurrent = 10
-
-type PythonLauncher struct {
-	interpreter string
-	flags       []string
-	publisher   message.Publisher
-	sem         chan struct{}
-}
-
-type launchResult struct {
-	Stdout   string
-	Stderr   string
-	ExitCode int
-	Err      error
+type Launcher struct {
+	publisher message.Publisher
 }
 
 type ScriptFinishedEvent struct {
@@ -34,86 +19,25 @@ type ScriptFinishedEvent struct {
 	userEmail scripts.Email
 }
 
-func NewPythonLauncher(interpreter string, publisher message.Publisher, flags ...string) (*PythonLauncher, error) {
-	if interpreter == "" {
-		interpreter = "python3"
-	}
-	return &PythonLauncher{
-		interpreter: interpreter,
-		flags:       flags,
-		publisher:   publisher,
-		sem:         make(chan struct{}, maxConcurrent),
+func NewLauncher(interpreter string, publisher message.Publisher, flags ...string) (*Launcher, error) {
+	return &Launcher{
+		publisher: publisher,
 	}, nil
 }
 
-func (p *PythonLauncher) Launch(ctx context.Context, job scripts.Job, scriptFields []scripts.Field, userEmail scripts.Email) (scripts.Result, error) {
-	args := []string{job.Command()}
-	values := job.In()
-	args = append(args, values.Get()...)
+func (p *Launcher) Launch(ctx context.Context, job scripts.Job, scriptFields []scripts.Field, userEmail scripts.Email, needToNotify bool) error {
+	// создать сообшение, результат не пришел
 
-	outCh := make(chan launchResult, 1)
+	// пишем в очередь сообщений
 
-	p.sem <- struct{}{}
+	request := scripts.NewLaunchRequest(job, scriptFields, userEmail, needToNotify)
 
-	go func() {
-		defer func() { <-p.sem }()
-		var stdout, stderr bytes.Buffer
-		var exitCode int
-
-		cmd := exec.CommandContext(ctx, p.interpreter, args...)
-		cmd.Stdout = &stdout
-		cmd.Stderr = &stderr
-
-		err := cmd.Run()
-
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			exitCode = exitErr.ExitCode()
-		} else if err == nil {
-			exitCode = 0
-		} else {
-			exitCode = -1
-		}
-
-		outCh <- launchResult{
-			Stdout:   stdout.String(),
-			Stderr:   stderr.String(),
-			ExitCode: exitCode,
-			Err:      err,
-		}
-	}()
-
-	launchRes := <-outCh
-	if launchRes.Err != nil {
-		return scripts.Result{}, scripts.ErrScriptLaunch
-	}
-
-	outVals, err := scripts.ParseOutputValues(launchRes.Stdout, scriptFields)
-	if err != nil {
-		return scripts.Result{}, err
-	}
-
-	outVec, err := scripts.NewVector(outVals)
-	if err != nil {
-		return scripts.Result{}, err
-	}
-	errMes := scripts.ErrorMessage(launchRes.Stderr)
-
-	result, err := scripts.NewResult(job, scripts.StatusCode(launchRes.ExitCode), *outVec, &errMes, time.Now())
-	if err != nil {
-		return scripts.Result{}, err
-	}
-
-	event := ScriptFinishedEvent{
-		result:    *result,
-		userEmail: userEmail,
-	}
-
-	payload, err := json.Marshal(event)
+	payload, err := json.Marshal(request)
 	if err == nil {
 		msg := message.NewMessage(uuid.NewString(), payload)
 		_ = p.publisher.Publish("script-finished", msg)
 
 	}
 
-	return *result, nil
+	return nil
 }

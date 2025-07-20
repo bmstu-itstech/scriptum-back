@@ -51,43 +51,44 @@ type ScriptRunInput struct {
 	needToNotify bool
 }
 
-func (s *ScriptRunUC) RunScript(ctx context.Context, input ScriptRunInput) (ResultDTO, error) {
+func (s *ScriptRunUC) RunScript(ctx context.Context, input ScriptRunInput) error {
 	scriptId := scripts.ScriptID(input.ScriptID)
 	params, err := DTOToVector(input.InParams)
 	if err != nil {
-		return ResultDTO{}, err
+		return err
 	}
 
 	script, err := s.scriptR.Script(ctx, scriptId)
 	if err != nil {
-		return ResultDTO{}, err
+		return err
 	}
 
 	job, err := script.Assemble(params)
 	if err != nil {
-		return ResultDTO{}, err
+		return err
 	}
 	user, err := s.userR.User(ctx, script.Owner())
 	if err != nil {
-		return ResultDTO{}, err
+		return err
 	}
 
 	_, err = s.jobR.PostJob(ctx, *job, scriptId)
 	if err != nil {
-		return ResultDTO{}, err
+		return err
 	}
 
-	result, err := s.launcher.Launch(ctx, *job, script.OutFields(), user.Email())
-	if err != nil {
-		return ResultDTO{}, err
-	}
+	// надо запустить скрипт, опубликовать сообщение
+
+	err = s.launcher.Launch(ctx, *job, script.OutFields(), user.Email(), input.needToNotify)
+
+	// закончилось, 202
+
+	return err
 
 	// err = s.jobR.CloseJob(ctx, jobID, &result)
 	// if err != nil {
 	// 	return ResultDTO{}, err
 	// }
-
-	ucResult := ResultToDTO(result)
 
 	// if input.needToNotify {
 	// 	resJob := result.Job()
@@ -100,5 +101,5 @@ func (s *ScriptRunUC) RunScript(ctx context.Context, input ScriptRunInput) (Resu
 	// 		return ResultDTO{}, err
 	// 	}
 	// }
-	return ucResult, nil
+
 }
