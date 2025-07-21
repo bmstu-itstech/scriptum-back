@@ -208,7 +208,7 @@ func DTOToJob(dto JobDTO) (scripts.Job, error) {
 		return scripts.Job{}, err
 	}
 
-	job, err := scripts.NewJob(
+	job, err := scripts.NewEmptyJob(
 		scripts.JobID(dto.JobID),
 		scripts.UserID(dto.UserID),
 		in,

@@ -102,7 +102,7 @@ func (r *ResRepo) GetResult(ctx context.Context, jobID scripts.JobID) (scripts.R
 		return scripts.Result{}, err
 	}
 
-	job, err := scripts.NewJob(jobID, userID, *inVec, "", startedAt)
+	job, err := scripts.NewJob(jobID, userID, *inVec, "", startedAt, nil, "", false)
 	if err != nil {
 		return scripts.Result{}, err
 	}
@@ -264,7 +264,7 @@ func (r *ResRepo) getResultsBase(ctx context.Context, query string, args ...any)
 			return nil, err
 		}
 
-		job, err := scripts.NewJob(jobID, acc.userID, *inVec, "", acc.startedAt)
+		job, err := scripts.NewEmptyJob(jobID, acc.userID, *inVec, "", acc.startedAt)
 		if err != nil {
 			return nil, err
 		}

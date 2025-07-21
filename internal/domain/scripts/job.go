@@ -5,11 +5,14 @@ import "time"
 type JobID = uint32
 
 type Job struct {
-	jobID     JobID
-	userID    UserID
-	in        Vector
-	command   string
-	startedAt time.Time
+	jobID        JobID
+	userID       UserID
+	in           Vector
+	command      string
+	startedAt    time.Time
+	scriptFields []Field
+	userEmail    Email
+	needToNotify bool
 }
 
 func (j *Job) JobID() JobID {
@@ -32,15 +35,61 @@ func (j *Job) StartedAt() time.Time {
 	return j.startedAt
 }
 
-func NewJob(jobID JobID, userID UserID, in Vector, command string, startedAt time.Time) (*Job, error) {
+func (j *Job) ScriptFields() []Field {
+	return j.scriptFields
+}
+
+func (j *Job) UserEmail() Email {
+	return j.userEmail
+}
+
+func (j *Job) NeedToNotify() bool {
+	return j.needToNotify
+}
+
+func NewJob(
+	jobID JobID,
+	userID UserID,
+	in Vector,
+	command string,
+	startedAt time.Time,
+	scriptFields []Field,
+	userEmail Email,
+	needToNotify bool,
+) (*Job, error) {
 	if in.Len() == 0 {
 		return nil, ErrVectorEmpty
 	}
 	return &Job{
-		jobID:     jobID,
-		userID:    userID,
-		in:        in,
-		command:   command,
-		startedAt: startedAt,
+		jobID:        jobID,
+		userID:       userID,
+		in:           in,
+		command:      command,
+		startedAt:    startedAt,
+		scriptFields: scriptFields,
+		userEmail:    userEmail,
+		needToNotify: needToNotify,
+	}, nil
+}
+
+func NewEmptyJob(
+	jobID JobID,
+	userID UserID,
+	in Vector,
+	command string,
+	startedAt time.Time,
+) (*Job, error) {
+	if in.Len() == 0 {
+		return nil, ErrVectorEmpty
+	}
+	return &Job{
+		jobID:        jobID,
+		userID:       userID,
+		in:           in,
+		command:      command,
+		startedAt:    startedAt,
+		scriptFields: nil,
+		userEmail:    "",
+		needToNotify: false,
 	}, nil
 }

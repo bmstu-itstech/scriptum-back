@@ -14,23 +14,6 @@ const (
 	VisibilityPrivate Visibility = "private"
 )
 
-// type PythonScript struct {
-// 	interpreter Path
-// }
-
-// func (p *PythonScript) Interpreter() Path {
-// 	return p.interpreter
-// }
-
-// func NewPythonScript(interpreter Path) (*PythonScript, error) {
-// 	if interpreter == "" {
-// 		return nil, ErrInvalidInterpreter
-// 	}
-// 	return &PythonScript{
-// 		interpreter: interpreter,
-// 	}, nil
-// }
-
 type Script struct {
 	id          ScriptID
 	name        string
@@ -144,6 +127,6 @@ func NewScriptRead(scriptID ScriptID, inFields []Field, outFields []Field, path 
 	}, nil
 }
 
-func (s *Script) Assemble(input Vector) (*Job, error) {
-	return NewJob(0, s.Owner(), input, s.Path(), time.Now())
+func (s *Script) Assemble(input Vector, email Email, needToNotify bool) (*Job, error) {
+	return NewJob(0, s.Owner(), input, s.Path(), time.Now(), s.InFields(), email, needToNotify)
 }

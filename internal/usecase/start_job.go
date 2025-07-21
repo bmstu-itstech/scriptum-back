@@ -6,19 +6,19 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
 
-type ScriptRunUC struct {
+type JobStartUC struct {
 	scriptR    scripts.ScriptRepository
 	jobR       scripts.JobRepository
 	dispatcher scripts.Dispatcher
 	userR      scripts.UserRepository
 }
 
-func NewScriptRunUC(
+func NewJobStartUCUC(
 	scriptR scripts.ScriptRepository,
 	jobR scripts.JobRepository,
 	dispatcher scripts.Dispatcher,
 	userR scripts.UserRepository,
-) (*ScriptRunUC, error) {
+) (*JobStartUC, error) {
 	if scriptR == nil {
 		return nil, scripts.ErrInvalidScriptRepository
 	}
@@ -31,7 +31,7 @@ func NewScriptRunUC(
 	if userR == nil {
 		return nil, scripts.ErrInvalidUserRepository
 	}
-	return &ScriptRunUC{
+	return &JobStartUC{
 		scriptR: scriptR,
 		jobR:    jobR,
 		userR:   userR,
@@ -44,7 +44,7 @@ type ScriptRunInput struct {
 	needToNotify bool
 }
 
-func (s *ScriptRunUC) RunScript(ctx context.Context, input ScriptRunInput) error {
+func (s *JobStartUC) StartJob(ctx context.Context, input ScriptRunInput) error {
 	scriptId := scripts.ScriptID(input.ScriptID)
 	params, err := DTOToVector(input.InParams)
 	if err != nil {
@@ -56,11 +56,12 @@ func (s *ScriptRunUC) RunScript(ctx context.Context, input ScriptRunInput) error
 		return err
 	}
 
-	job, err := script.Assemble(params)
+	user, err := s.userR.User(ctx, script.Owner())
 	if err != nil {
 		return err
 	}
-	user, err := s.userR.User(ctx, script.Owner())
+
+	job, err := script.Assemble(params, user.Email(), input.needToNotify)
 	if err != nil {
 		return err
 	}
@@ -70,8 +71,7 @@ func (s *ScriptRunUC) RunScript(ctx context.Context, input ScriptRunInput) error
 		return err
 	}
 
-	request := scripts.NewLaunchRequest(*job, script.OutFields(), user.Email(), input.needToNotify)
-	err = s.dispatcher.Launch(ctx, request)
+	err = s.dispatcher.Launch(ctx, *job)
 
 	return err
 

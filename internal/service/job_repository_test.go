@@ -26,7 +26,7 @@ func TestPostJob(t *testing.T) {
 	startedAt := time.Now()
 	scriptID := scripts.ScriptID(5)
 
-	job, err := scripts.NewJob(jobID, userID, *inVec, command, startedAt)
+	job, err := scripts.NewEmptyJob(jobID, userID, *inVec, command, startedAt)
 	require.NoError(t, err)
 
 	expectedID := scripts.JobID(123)
@@ -56,7 +56,7 @@ func TestCloseJob(t *testing.T) {
 	realVal, _ := scripts.NewReal(3.14)
 	outVec, _ := scripts.NewVector([]scripts.Value{realVal})
 
-	job, err := scripts.NewJob(jobID, userID, *inVec, "cmd", startedAt)
+	job, err := scripts.NewEmptyJob(jobID, userID, *inVec, "cmd", startedAt)
 	require.NoError(t, err)
 
 	errorMsg := scripts.ErrorMessage("some error")

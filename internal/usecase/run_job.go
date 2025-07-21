@@ -6,17 +6,17 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
 
-type JobLaunchUC struct {
+type JobRunUC struct {
 	jobR     scripts.JobRepository
 	launcher scripts.Launcher
 	notifier scripts.Notifier
 }
 
-func NewJobLaunchUC(
+func NewJobRunUC(
 	jobR scripts.JobRepository,
 	launcher scripts.Launcher,
 	notifier scripts.Notifier,
-) (*JobLaunchUC, error) {
+) (*JobRunUC, error) {
 
 	if jobR == nil {
 		return nil, scripts.ErrInvalidJobRepository
@@ -28,17 +28,15 @@ func NewJobLaunchUC(
 		return nil, scripts.ErrInvalidNotifierService
 	}
 
-	return &JobLaunchUC{
+	return &JobRunUC{
 		jobR:     jobR,
 		launcher: launcher,
 		notifier: notifier,
 	}, nil
 }
 
-func (l *JobLaunchUC) ProcessLaunchRequest(ctx context.Context, input scripts.LaunchRequest) error {
-	job := input.Job()
-
-	result, err := l.launcher.Launch(ctx, job, input.ScriptFields())
+func (l *JobRunUC) ProcessLaunchRequest(ctx context.Context, job scripts.Job) error {
+	result, err := l.launcher.Launch(ctx, job)
 	if err != nil {
 		return err
 	}
@@ -48,8 +46,8 @@ func (l *JobLaunchUC) ProcessLaunchRequest(ctx context.Context, input scripts.La
 		return err
 	}
 
-	if input.NeedToNotify() {
-		err = l.notifier.Notify(ctx, result, input.UserEmail())
+	if job.NeedToNotify() {
+		err = l.notifier.Notify(ctx, result, job.UserEmail())
 		if err != nil {
 			return err
 		}

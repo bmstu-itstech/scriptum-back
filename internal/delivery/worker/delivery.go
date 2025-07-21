@@ -2,34 +2,55 @@ package delivery
 
 import (
 	"context"
+	"encoding/json"
+	"time"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
-	worker "github.com/bmstu-itstech/scriptum-back/internal/usecase/worker"
+	worker "github.com/bmstu-itstech/scriptum-back/internal/usecase"
 )
 
+const maxConcurrent = 10
+
 type LaunchHandler struct {
-	usecase    *worker.JobLaunchUC
+	usecase    *worker.JobRunUC
 	subscriber message.Subscriber
 	watLogger  watermill.LoggerAdapter
+	sem        chan struct{}
+}
+
+func UnmarshalJob(data []byte) (scripts.Job, error) {
+	type alias struct {
+		JobID        scripts.JobID   `json:"job_id"`
+		UserID       scripts.UserID  `json:"user_id"`
+		In           scripts.Vector  `json:"in"`
+		Command      string          `json:"command"`
+		StartedAt    time.Time       `json:"started_at"`
+		ScriptFields []scripts.Field `json:"script_fields"`
+		UserEmail    scripts.Email   `json:"user_email"`
+		NeedToNotify bool            `json:"need_to_notify"`
+	}
+
+	var a alias
+	if err := json.Unmarshal(data, &a); err != nil {
+		return scripts.Job{}, err
+	}
+
+	script, err := scripts.NewJob(a.JobID, a.UserID, a.In, a.Command, a.StartedAt, a.ScriptFields, a.UserEmail, a.NeedToNotify)
+	return *script, err
 }
 
 func NewLaunchHandler(
-	jobR scripts.JobRepository,
-	launcher scripts.Launcher,
-	notifier scripts.Notifier,
+	jobRunUC worker.JobRunUC,
 	subscriber message.Subscriber,
 	watLogger watermill.LoggerAdapter,
 ) (*LaunchHandler, error) {
-	usecase, err := worker.NewJobLaunchUC(jobR, launcher, notifier)
-	if err != nil {
-		return nil, err
-	}
 	return &LaunchHandler{
-		usecase:    usecase,
+		usecase:    &jobRunUC,
 		subscriber: subscriber,
 		watLogger:  watLogger,
+		sem:        make(chan struct{}, maxConcurrent),
 	}, nil
 }
 
@@ -40,40 +61,45 @@ func (l *LaunchHandler) Listen(ctx context.Context) {
 		return
 	}
 
+	l.sem <- struct{}{}
+
 	go func() {
 		defer func() {
+			<-l.sem
 			if r := recover(); r != nil {
-				l.watLogger.Error("panic recovered in email notifier", nil, watermill.LogFields{"recover": r})
+				l.watLogger.Error("panic recovered in launch handler", nil, watermill.LogFields{"recover": r})
 			}
 		}()
 
 		for {
 			select {
 			case <-ctx.Done():
-				l.watLogger.Info("EmailNotifier stopped due to context cancel", nil)
+				l.watLogger.Info("LaunchHandler stopped due to context cancel", nil)
 				return
+
 			case msg, ok := <-messages:
 				if !ok {
-					l.watLogger.Info("EmailNotifier channel closed", nil)
+					l.watLogger.Info("LaunchHandler channel closed", nil)
 					return
 				}
-				var req scripts.LaunchRequest
 
-				if err := req.UnmarshalJSON(msg.Payload); err != nil {
-					l.watLogger.Error("Decode error", err, nil)
-					msg.Nack()
-					continue
-				}
+				go func(msg *message.Message) {
+					req, err := UnmarshalJob(msg.Payload)
+					if err != nil {
+						l.watLogger.Error("Decode error", err, nil)
+						msg.Nack()
+						return
+					}
 
-				ctx := context.Background()
+					reqCtx := context.Background()
+					if err := l.usecase.ProcessLaunchRequest(reqCtx, req); err != nil {
+						l.watLogger.Error("Process error", err, nil)
+						msg.Nack()
+						return
+					}
 
-				if err := l.usecase.ProcessLaunchRequest(ctx, req); err != nil {
-					l.watLogger.Error("Process error", err, nil)
-					msg.Nack()
-					continue
-				}
-
-				msg.Ack()
+					msg.Ack()
+				}(msg)
 			}
 		}
 	}()
