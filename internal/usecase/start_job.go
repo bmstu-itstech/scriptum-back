@@ -32,9 +32,10 @@ func NewJobStartUCUC(
 		return nil, scripts.ErrInvalidUserRepository
 	}
 	return &JobStartUC{
-		scriptR: scriptR,
-		jobR:    jobR,
-		userR:   userR,
+		scriptR:    scriptR,
+		jobR:       jobR,
+		dispatcher: dispatcher,
+		userR:      userR,
 	}, nil
 }
 
