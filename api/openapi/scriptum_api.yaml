@@ -278,7 +278,7 @@ paths:
                 in_params:
                   type: array
                   items:
-                    $ref: '#/components/schemas/Value'
+                    $ref: '#/components/schemas/Field'
                 notify_by_email:
                   type: boolean
                   default: false
@@ -738,15 +738,6 @@ components:
       type: integer
       format: int64
       example: 567
-    Value:
-      type: object
-      properties:
-        type:
-          type: string
-          example: "complex"
-        data:
-          type: string
-          example: "-1.6+24.04j"
     Field:
       type: object
       properties:
@@ -777,6 +768,9 @@ components:
         script_name:
           type: string
           example: "Подсчет скорости полета пули в ветренную погоду"
+        script_desc:
+          type: string
+          example: "Данный скрипт подсчитывает скорость полета пули в ветренную погоду"
         in_fields:
           type: array
           items:
@@ -797,6 +791,15 @@ components:
       required:
       - fields
       - owner
+    Value:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "complex"
+        data:
+          type: string
+          example: "-1.6+24.04j"
     Job:
       type: object
       properties:
