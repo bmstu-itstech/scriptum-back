@@ -73,7 +73,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                type: object
+                properties:
+                  sub_id:
+                    type: integer
+                    format: int64
+                  message:
+                    type: string
         '400':
           description: invalid request
           content:
@@ -120,16 +126,40 @@ paths:
       responses:
         '200':
           description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Script'
         '400':
           description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
-          description: forbidden (script doesn't bellong to user)
+          description: forbidden (script doesn't belong to user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: script not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
     put:
       tags:
@@ -375,7 +405,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '403':
-          description: forbidden (no admin)'
+          description: forbidden (no admin)
           content:
             application/json:
               schema:
@@ -408,7 +438,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                type: object
+                properties:
+                  user_id:
+                    $ref: '#/components/schemas/UserId'
+                  message:
+                    type: string
+                    example: User created successfully
         '400':
           description: invalid request
           content:
@@ -577,7 +613,7 @@ paths:
       tags:
       - jobs
       summary: Get user jobs
-      description: Get user jobs
+      description: Get user jobs' results
       responses:
         '200':
           description: successful operation
@@ -586,7 +622,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Job'
+                  $ref: '#/components/schemas/Result'
         '400':
           description: invalid request
           content:
@@ -627,7 +663,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Job'
+                  $ref: '#/components/schemas/Result'
         '400':
           description: invalid request
           content:

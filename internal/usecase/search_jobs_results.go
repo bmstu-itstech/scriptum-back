@@ -45,7 +45,7 @@ func (u *SearchJobResultsUC) SearchJobResults(ctx context.Context, userID uint32
 		return nil, err
 	}
 
-	dto := make([]ResultDTO, 0, len(results)) // не факт, что разумно выбрано капасити
+	dto := make([]ResultDTO, 0, len(results))
 	for _, res := range results {
 		dto = append(dto, ResultToDTO(res))
 	}

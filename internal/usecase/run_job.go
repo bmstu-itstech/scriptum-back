@@ -35,7 +35,12 @@ func NewJobRunUC(
 	}, nil
 }
 
-func (l *JobRunUC) ProcessLaunchRequest(ctx context.Context, job scripts.Job) error {
+func (l *JobRunUC) ProcessLaunchRequest(ctx context.Context, jobDTO JobDTO) error {
+	job, err := DTOToJob(jobDTO)
+	if err != nil {
+		return err
+	}
+
 	result, err := l.launcher.Launch(ctx, job)
 	if err != nil {
 		return err
