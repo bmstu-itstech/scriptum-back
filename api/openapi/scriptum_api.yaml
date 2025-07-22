@@ -278,7 +278,7 @@ paths:
                 in_params:
                   type: array
                   items:
-                    $ref: '#/components/schemas/Field'
+                    $ref: '#/components/schemas/Value'
                 notify_by_email:
                   type: boolean
                   default: false

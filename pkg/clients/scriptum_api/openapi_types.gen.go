@@ -118,7 +118,7 @@ type GetScriptsSearchParams struct {
 
 // PostScriptsIdStartJSONBody defines parameters for PostScriptsIdStart.
 type PostScriptsIdStartJSONBody struct {
-	InParams      []Field `json:"in_params"`
+	InParams      []Value `json:"in_params"`
 	NotifyByEmail *bool   `json:"notify_by_email,omitempty"`
 }
 
