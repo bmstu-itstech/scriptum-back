@@ -767,7 +767,14 @@ components:
       properties:
         script_id:
           $ref: '#/components/schemas/ScriptId'
-        fields:
+        script_name:
+          type: string
+          example: "Подсчет скорости полета пули в ветренную погоду"
+        in_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/Field'
+        out_fields:
           type: array
           items:
             $ref: '#/components/schemas/Field'
