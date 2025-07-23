@@ -20,16 +20,16 @@ func NewSearchJobResultsUC(
 	scriptR scripts.ScriptRepository,
 ) (*SearchJobResultsUC, error) {
 	if jobR == nil {
-		return nil, scripts.ErrInvalidJobRepository
+		panic(scripts.ErrInvalidJobRepository)
 	}
 	if resR == nil {
-		return nil, scripts.ErrInvalidResultRepository
+		panic(scripts.ErrInvalidResultRepository)
 	}
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserRepository
+		panic(scripts.ErrInvalidUserRepository)
 	}
 	if scriptR == nil {
-		return nil, scripts.ErrInvalidScriptRepository
+		panic(scripts.ErrInvalidScriptRepository)
 	}
 	return &SearchJobResultsUC{
 		jobR:    jobR,

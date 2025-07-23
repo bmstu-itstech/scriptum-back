@@ -18,13 +18,13 @@ func NewScriptCreateUC(
 	manager scripts.Manager,
 ) (*ScriptCreateUC, error) {
 	if scriptR == nil {
-		return nil, scripts.ErrInvalidScriptRepository
+		panic(scripts.ErrInvalidScriptRepository)
 	}
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserRepository
+		panic(scripts.ErrInvalidUserRepository)
 	}
 	if manager == nil {
-		return nil, scripts.ErrInvalidManagerService
+		panic(scripts.ErrInvalidManagerService)
 	}
 	return &ScriptCreateUC{
 		scriptR: scriptR,
@@ -34,13 +34,16 @@ func NewScriptCreateUC(
 }
 
 type ScriptCreateInput struct {
-	File      FileDTO
-	InFields  []FieldDTO
-	OutFields []FieldDTO
+	UserID            uint32
+	ScriptName        string
+	ScriptDescription string
+	File              FileDTO
+	InFields          []FieldDTO
+	OutFields         []FieldDTO
 }
 
-func (u *ScriptCreateUC) CreateScript(ctx context.Context, userID uint32, scriptName string, scriptDescription string, input ScriptCreateInput) (uint32, error) {
-	user, err := u.userR.User(ctx, scripts.UserID(userID))
+func (u *ScriptCreateUC) CreateScript(ctx context.Context, input ScriptCreateInput) (uint32, error) {
+	user, err := u.userR.User(ctx, scripts.UserID(input.UserID))
 	if err != nil {
 		return 0, err
 	}
@@ -66,10 +69,10 @@ func (u *ScriptCreateUC) CreateScript(ctx context.Context, userID uint32, script
 	dto := ScriptDTO{
 		InFields:    input.InFields,
 		OutFields:   input.OutFields,
-		Name:        scriptName,
-		Description: scriptDescription,
+		Name:        input.ScriptName,
+		Description: input.ScriptDescription,
 		Path:        path,
-		Owner:       userID,
+		Owner:       input.UserID,
 		Visibility:  string(vis),
 	}
 

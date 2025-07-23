@@ -13,11 +13,11 @@ type GetScriptsUC struct {
 
 func NewGetScriptsUС(scriptR scripts.ScriptRepository, userR scripts.UserRepository) (*GetScriptsUC, error) {
 	if scriptR == nil {
-		return nil, scripts.ErrInvalidScriptRepository
+		panic(scripts.ErrInvalidScriptRepository)
 	}
 
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserRepository
+		panic(scripts.ErrInvalidUserRepository)
 	}
 
 	return &GetScriptsUC{scriptR: scriptR, userR: userR}, nil

@@ -13,10 +13,10 @@ type ScriptUpdateUC struct {
 
 func NewScriptUpdateUC(scriptR scripts.ScriptRepository, userR scripts.UserRepository) (*ScriptUpdateUC, error) {
 	if scriptR == nil {
-		return nil, scripts.ErrInvalidScriptRepository
+		panic(scripts.ErrInvalidScriptRepository)
 	}
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserRepository
+		panic(scripts.ErrInvalidUserRepository)
 	}
 	return &ScriptUpdateUC{scriptR: scriptR, userR: userR}, nil
 }

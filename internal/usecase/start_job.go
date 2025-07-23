@@ -20,16 +20,16 @@ func NewJobStartUCUC(
 	userR scripts.UserRepository,
 ) (*JobStartUC, error) {
 	if scriptR == nil {
-		return nil, scripts.ErrInvalidScriptRepository
+		panic(scripts.ErrInvalidScriptRepository)
 	}
 	if jobR == nil {
-		return nil, scripts.ErrInvalidJobRepository
+		panic(scripts.ErrInvalidJobRepository)
 	}
 	if dispatcher == nil {
-		return nil, scripts.ErrInvalidLauncherService
+		panic(scripts.ErrInvalidLauncherService)
 	}
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserRepository
+		panic(scripts.ErrInvalidUserRepository)
 	}
 	return &JobStartUC{
 		scriptR:    scriptR,

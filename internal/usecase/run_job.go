@@ -17,15 +17,14 @@ func NewJobRunUC(
 	launcher scripts.Launcher,
 	notifier scripts.Notifier,
 ) (*JobRunUC, error) {
-
 	if jobR == nil {
-		return nil, scripts.ErrInvalidJobRepository
+		panic(scripts.ErrInvalidJobRepository)
 	}
 	if launcher == nil {
-		return nil, scripts.ErrInvalidLauncherService
+		panic(scripts.ErrInvalidLauncherService)
 	}
 	if notifier == nil {
-		return nil, scripts.ErrInvalidNotifierService
+		panic(scripts.ErrInvalidNotifierService)
 	}
 
 	return &JobRunUC{

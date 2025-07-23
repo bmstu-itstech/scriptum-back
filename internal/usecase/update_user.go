@@ -12,7 +12,7 @@ type UserUpdateUC struct {
 
 func NewUserUpdateUC(userR scripts.UserRepository) (*UserUpdateUC, error) {
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserRepository
+		panic(scripts.ErrInvalidUserRepository)
 	}
 	return &UserUpdateUC{userR: userR}, nil
 }

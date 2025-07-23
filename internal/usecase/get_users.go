@@ -12,7 +12,7 @@ type GetUsersUC struct {
 
 func NewGetUsersUC(userR scripts.UserRepository) (*GetUsersUC, error) {
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserRepository
+		panic(scripts.ErrInvalidUserRepository)
 	}
 
 	return &GetUsersUC{userR: userR}, nil

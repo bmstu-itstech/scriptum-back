@@ -13,10 +13,10 @@ type ScriptSearchUC struct {
 
 func NewScriptSearchUC(scriptR scripts.ScriptRepository, userR scripts.UserRepository) (*ScriptSearchUC, error) {
 	if scriptR == nil {
-		return nil, scripts.ErrInvalidScriptRepository
+		panic(scripts.ErrInvalidScriptRepository)
 	}
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserRepository
+		panic(scripts.ErrInvalidUserRepository)
 	}
 	return &ScriptSearchUC{scriptR: scriptR, userR: userR}, nil
 }

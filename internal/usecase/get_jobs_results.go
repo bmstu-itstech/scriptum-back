@@ -10,11 +10,9 @@ type GetJobResultsUC struct {
 	resultR scripts.ResultRepository
 }
 
-func NewGetJobsUC(
-	resultR scripts.ResultRepository,
-) (*GetJobResultsUC, error) {
+func NewGetJobsUC(resultR scripts.ResultRepository) (*GetJobResultsUC, error) {
 	if resultR == nil {
-		return nil, scripts.ErrInvalidResultRepository
+		panic(scripts.ErrInvalidResultRepository)
 	}
 	return &GetJobResultsUC{resultR: resultR}, nil
 }
