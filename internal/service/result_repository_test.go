@@ -40,7 +40,7 @@ func TestGetResult(t *testing.T) {
 			AddRow(userID, startedAt, startedAt, statusCode, errorMessage, scriptID, &valStr, &paramType, fieldType),
 		)
 
-	res, err := repo.GetResult(ctx, jobID)
+	res, err := repo.JobResult(ctx, jobID, userID)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	require.Equal(t, userID, res.Job().UserID())

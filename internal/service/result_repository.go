@@ -50,7 +50,7 @@ const GetResultQuery = `
 	WHERE j.job_id = $1;
 `
 
-func (r *ResRepo) JobResult(ctx context.Context, jobID scripts.JobID) (scripts.Result, error) {
+func (r *ResRepo) JobResult(ctx context.Context, jobID scripts.JobID, userId scripts.UserID) (scripts.Result, error) {
 	rows, err := r.DB.Query(ctx, GetResultQuery, jobID)
 	if err != nil {
 		return scripts.Result{}, err
@@ -77,6 +77,9 @@ func (r *ResRepo) JobResult(ctx context.Context, jobID scripts.JobID) (scripts.R
 
 		if err := rows.Scan(&userID, &startedAt, &closed_at, &statusCode, &errorMessage, &scriptID, &valStr, &paramType, &fieldType); err != nil {
 			return scripts.Result{}, err
+		}
+		if userId != userID {
+			return scripts.Result{}, scripts.ErrNoAccessToGet
 		}
 
 		if valStr != nil && paramType != nil {

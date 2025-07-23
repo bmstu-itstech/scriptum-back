@@ -27,6 +27,7 @@ func main() {
 	if err != nil {
 		return
 	}
+	
 	emailNotifier, err := service.NewEmailNotifier()
 	if err != nil {
 		return
