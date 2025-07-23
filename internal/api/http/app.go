@@ -551,14 +551,6 @@ func renderCSVUsers(w http.ResponseWriter, users []app.UserDTO) error {
 	csvWriter.Flush()
 	return csvWriter.Error()
 }
-
-func derefString(s *string) string {
-	if s != nil {
-		return *s
-	}
-	return ""
-}
-
 func convertFields(fields *[]Field) []app.FieldDTO {
 	if fields == nil {
 		return nil
@@ -566,10 +558,10 @@ func convertFields(fields *[]Field) []app.FieldDTO {
 	result := make([]app.FieldDTO, 0, len(*fields))
 	for _, f := range *fields {
 		result = append(result, app.FieldDTO{
-			Type:        derefString(f.Type),
-			Name:        derefString(f.Name),
-			Description: derefString(f.Description),
-			Unit:        derefString(f.Unit),
+			Type:        *f.Type,
+			Name:        *f.Name,
+			Description: *f.Description,
+			Unit:        *f.Unit,
 		})
 	}
 	return result
@@ -596,8 +588,8 @@ func postScriptsJSONBodyToDTO(body PostScriptsJSONBody) (app.ScriptCreateDTO, er
 		}
 
 		dto.File = app.FileDTO{
-			Name:     derefString(body.File.Name),
-			FileType: derefString(body.File.FileType),
+			Name:     *body.File.Name,
+			FileType: *body.File.FileType,
 			Content:  string(bytes),
 		}
 	}
