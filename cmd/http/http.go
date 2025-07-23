@@ -86,7 +86,7 @@ func main() {
 		},
 		Queries: app.Queries{
 			GetResults:          app.NewGetJobsUC(resRepo, l),
-			GetScriptByID:       app.NewGetScript(scriptRepo, l),
+			GetScriptByID:       app.NewGetScript(scriptRepo, userRepo, l),
 			GetScripts:          app.NewGetScriptsUС(scriptRepo, userRepo, l),
 			GetUser:             app.NewGetUserUC(userRepo, l),
 			GetUsers:            app.NewGetUsersUC(userRepo, l),

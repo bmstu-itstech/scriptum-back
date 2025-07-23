@@ -124,18 +124,28 @@ func (s *Server) GetScripts(w http.ResponseWriter, r *http.Request) {
 		httpError(w, r, err, http.StatusInternalServerError)
 		return
 	}
-
+	render.Status(r, http.StatusOK)
 }
 
 func (s *Server) GetScriptsId(w http.ResponseWriter, r *http.Request, id int) {
-	_, err := jwtauth.UserUUIDFromContext(r.Context())
+	gotUserId, err := jwtauth.UserUUIDFromContext(r.Context())
 	if err != nil {
 		httpError(w, r, err, http.StatusUnauthorized)
 		return
 	}
 
-	script, err := s.app.Queries.GetScriptByID.Script(r.Context(), id)
+	userID, err := strconv.ParseUint(gotUserId, 10, 32)
 	if err != nil {
+		httpError(w, r, err, http.StatusBadRequest)
+		return
+	}
+
+	script, err := s.app.Queries.GetScriptByID.Script(r.Context(), int(userID), id)
+	if err != nil {
+		if errors.Is(err, fmt.Errorf("cannot get someone else's script")) {
+			httpError(w, r, err, http.StatusForbidden)
+			return
+		}
 		httpError(w, r, err, http.StatusInternalServerError)
 		return
 	}
@@ -145,7 +155,7 @@ func (s *Server) GetScriptsId(w http.ResponseWriter, r *http.Request, id int) {
 		httpError(w, r, err, http.StatusInternalServerError)
 		return
 	}
-
+	render.Status(r, http.StatusOK)
 }
 
 func (s *Server) GetScriptsSearch(w http.ResponseWriter, r *http.Request, params GetScriptsSearchParams) {
