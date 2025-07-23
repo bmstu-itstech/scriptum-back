@@ -2,21 +2,27 @@ package app
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
 
 type GetJobResultsUC struct {
 	resultR scripts.ResultRepository
+	logger  *slog.Logger
 }
 
 func NewGetJobsUC(
 	resultR scripts.ResultRepository,
-) (*GetJobResultsUC, error) {
+	logger *slog.Logger,
+) GetJobResultsUC {
 	if resultR == nil {
-		return nil, scripts.ErrInvalidResultRepository
+		panic(scripts.ErrInvalidResultRepository)
 	}
-	return &GetJobResultsUC{resultR: resultR}, nil
+	if logger == nil {
+		panic(scripts.ErrInvalidLogger)
+	}
+	return GetJobResultsUC{resultR: resultR, logger: logger}
 }
 
 func (u *GetJobResultsUC) JobResults(ctx context.Context, userID uint32) ([]ResultDTO, error) {

@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
@@ -9,16 +10,20 @@ import (
 type ScriptUpdateUC struct {
 	scriptR scripts.ScriptRepository
 	userR   scripts.UserRepository
+	logger  *slog.Logger
 }
 
-func NewScriptUpdateUC(scriptR scripts.ScriptRepository, userR scripts.UserRepository) (*ScriptUpdateUC, error) {
+func NewScriptUpdateUC(scriptR scripts.ScriptRepository, userR scripts.UserRepository, logger *slog.Logger) ScriptUpdateUC {
 	if scriptR == nil {
-		return nil, scripts.ErrInvalidScriptRepository
+		panic(scripts.ErrInvalidScriptRepository)
 	}
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserRepository
+		panic(scripts.ErrInvalidUserRepository)
 	}
-	return &ScriptUpdateUC{scriptR: scriptR, userR: userR}, nil
+	if logger == nil {
+		panic(scripts.ErrInvalidLogger)
+	}
+	return ScriptUpdateUC{scriptR: scriptR, userR: userR, logger: logger}
 }
 
 func (u *ScriptUpdateUC) Update(ctx context.Context, actorID uint32, input ScriptDTO) error {

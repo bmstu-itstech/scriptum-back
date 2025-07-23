@@ -1,80 +1,101 @@
 package main
 
-// import (
-// 	"context"
-// 	"net/http"
+import (
+	"context"
+	"net/http"
 
-// 	"github.com/go-chi/chi/v5"
+	"github.com/ThreeDotsLabs/watermill"
+	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
+	"github.com/go-chi/chi/v5"
 
-// 	httpapi "github.com/bmstu-itstech/scriptum-back/internal/api/http"
-// 	"github.com/bmstu-itstech/scriptum-back/internal/app"
-// 	"github.com/bmstu-itstech/scriptum-back/internal/service"
-// 	"github.com/bmstu-itstech/scriptum-back/pkg/logs"
-// 	"github.com/bmstu-itstech/scriptum-back/pkg/server"
-// )
+	httpapi "github.com/bmstu-itstech/scriptum-back/internal/api/http"
+	worker "github.com/bmstu-itstech/scriptum-back/internal/api/worker"
+	"github.com/bmstu-itstech/scriptum-back/internal/app"
+	"github.com/bmstu-itstech/scriptum-back/internal/service"
+	"github.com/bmstu-itstech/scriptum-back/pkg/logs"
+	"github.com/bmstu-itstech/scriptum-back/pkg/server"
+)
 
-// func main() {
-// 	l := logs.DefaultLogger()
-// 	context := context.Background()
+func main() {
+	l := logs.DefaultLogger()
+	context := context.Background()
 
-// 	emailNotifier, err := service.NewEmailNotifier()
-// 	jobRepo, err := service.NewJobRepo(context)
-// 	pythonLauncher, err := service.PythonLauncher("")
+	logger := watermill.NewStdLogger(false, false)
+	pubsub := gochannel.NewGoChannel(gochannel.Config{}, logger)
 
-// 	botRepository := service.NewPgBotsRepository(db)
-// 	participantRepository := service.NewPgParticipantsRepository(db)
-// 	botMessageSender := service.NewTelegramMessageSender()
+	dispatcher, err := service.NewLauncher(pubsub)
+	if err != nil {
+		return
+	}
+	emailNotifier, err := service.NewEmailNotifier()
+	if err != nil {
+		return
+	}
 
-// 	process := ProcessHandlerAdapter{app.NewProcessHandler(botRepository, participantRepository, botMessageSender, l, mc)}
-// 	entry := EntryHandlerAdapter{app.NewEntryHandler(botRepository, participantRepository, botMessageSender, l, mc)}
+	jobRepo, err := service.NewJobRepo(context)
+	if err != nil {
+		return
+	}
 
-// 	telegramService := service.NewTelegramService(l, process, entry)
+	resRepo, err := service.NewResRepo(context)
+	if err != nil {
+		return
+	}
 
-// 	a := app.Application{
-// 		Commands: app.Commands{
-// 			CreateBot:     app.NewCreateBotHandler(botRepository, l, mc),
-// 			DeleteBot:     app.NewDeleteBotHandler(botRepository, telegramService, l, mc),
-// 			StartBot:      app.NewStartBotHandler(botRepository, telegramService, l, mc),
-// 			StopBot:       app.NewStopBotHandler(botRepository, telegramService, l, mc),
-// 			UpdateStatus:  app.NewUpdateStatusHandler(botRepository, l, mc),
-// 			Entry:         app.NewEntryHandler(botRepository, participantRepository, botMessageSender, l, mc),
-// 			Process:       app.NewProcessHandler(botRepository, participantRepository, botMessageSender, l, mc),
-// 			CreateMailing: app.NewCreateMailingHandler(botRepository, l, mc),
-// 			StartMailing:  app.NewStartMailingHandler(botRepository, participantRepository, botMessageSender, l, mc),
-// 		},
-// 		Queries: app.Queries{
-// 			AllAnswers:  app.NewGetAnswersTableHandler(botRepository, participantRepository, l, mc),
-// 			GetBot:      app.NewGetBotHandler(botRepository, l, mc),
-// 			GetBots:     app.NewGetBotsHandler(botRepository, l, mc),
-// 			StartedBots: app.NewGetStartedBotsHandler(botRepository, l, mc),
-// 		},
-// 	}
+	pythonLauncher, err := service.NewPythonLauncher("", pubsub)
+	if err != nil {
+		return
+	}
 
-// 	server.RunHTTPServer(func(router chi.Router) http.Handler {
-// 		return httpapi.HandlerFromMux(httpapi.NewHTTPServer(&a), router)
-// 	})
-// }
+	fileManager, err := service.NewFileManager()
+	if err != nil {
+		return
+	}
 
-// type ProcessHandlerAdapter struct {
-// 	H app.ProcessHandler
-// }
+	scriptRepo, err := service.NewScriptRepo(context)
+	if err != nil {
+		return
+	}
 
-// func (a ProcessHandlerAdapter) Process(ctx context.Context, botId string, userId int64, msg bots.Message) error {
-// 	return a.H.Handle(ctx, app.Process{
-// 		BotUUID: botId,
-// 		UserID:  userId,
-// 		Text:    msg.Text,
-// 	})
-// }
+	userRepo, err := service.NewMockUserRepository()
+	if err != nil {
+		return
+	}
 
-// type EntryHandlerAdapter struct {
-// 	H app.EntryHandler
-// }
+	handler, err := worker.NewLaunchHandler(
+		app.NewJobRunUC(jobRepo, pythonLauncher, emailNotifier, l),
+		pubsub,
+		logger,
+	)
+	if err != nil {
+		return
+	}
 
-// func (a EntryHandlerAdapter) Entry(ctx context.Context, botId string, userId int64, key string) error {
-// 	return a.H.Handle(ctx, app.Entry{
-// 		BotUUID: botId,
-// 		UserID:  userId,
-// 		Key:     key,
-// 	})
-// }
+	handler.Listen(context)
+
+	a := app.Application{
+		Commands: app.Commands{
+			CreateScript: app.NewScriptCreateUC(scriptRepo, l, userRepo, fileManager),
+			CreateUser:   app.NewUserCreateUC(userRepo, l),
+			DeleteScript: app.NewScriptDeleteUC(scriptRepo, userRepo, l, fileManager),
+			DeleteUser:   app.NewUserDeleteUC(userRepo, l),
+			StartJob:     app.NewJobStartUC(scriptRepo, jobRepo, dispatcher, userRepo, l),
+			UpdateScript: app.NewScriptUpdateUC(scriptRepo, userRepo, l),
+			UpdateUser:   app.NewUserUpdateUC(userRepo, l),
+		},
+		Queries: app.Queries{
+			GetResults:          app.NewGetJobsUC(resRepo, l),
+			GetScriptByID:       app.NewGetScript(scriptRepo, l),
+			GetScripts:          app.NewGetScriptsUС(scriptRepo, userRepo, l),
+			GetUser:             app.NewGetUserUC(userRepo, l),
+			GetUsers:            app.NewGetUsersUC(userRepo, l),
+			SearchResultsSubstr: app.NewSearchResultsSubstrUC(jobRepo, resRepo, userRepo, scriptRepo, l),
+			SearchResultsID:     app.NewSearchResultIDUC(jobRepo, resRepo, userRepo, scriptRepo, l),
+			SearchScripts:       app.NewScriptSearchUC(scriptRepo, userRepo, l),
+		},
+	}
+
+	server.RunHTTPServer(func(router chi.Router) http.Handler {
+		return httpapi.HandlerFromMux(httpapi.NewHTTPServer(&a), router)
+	})
+}

@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
@@ -9,21 +10,25 @@ import (
 type ScriptDeleteUC struct {
 	scriptR scripts.ScriptRepository
 	userR   scripts.UserRepository
+	logger  *slog.Logger
 	manager scripts.Manager
 }
 
-func NewScriptDeleteUC(scriptR scripts.ScriptRepository, userR scripts.UserRepository, manager scripts.Manager) (*ScriptDeleteUC, error) {
+func NewScriptDeleteUC(scriptR scripts.ScriptRepository, userR scripts.UserRepository, logger *slog.Logger, manager scripts.Manager) ScriptDeleteUC {
 	if scriptR == nil {
-		return nil, scripts.ErrInvalidScriptRepository
+		panic(scripts.ErrInvalidScriptRepository)
 	}
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserRepository
+		panic(scripts.ErrInvalidUserRepository)
 	}
 	if manager == nil {
-		return nil, scripts.ErrInvalidManagerService
+		panic(scripts.ErrInvalidManagerService)
+	}
+	if logger == nil {
+		panic(scripts.ErrInvalidLogger)
 	}
 
-	return &ScriptDeleteUC{scriptR: scriptR, userR: userR, manager: manager}, nil
+	return ScriptDeleteUC{scriptR: scriptR, userR: userR, logger: logger, manager: manager}
 }
 
 func (u *ScriptDeleteUC) DeleteScript(ctx context.Context, actorID uint32, scriptID uint32) error {

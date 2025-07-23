@@ -2,19 +2,24 @@ package app
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
 
 type UserUpdateUC struct {
-	userR scripts.UserRepository
+	userR  scripts.UserRepository
+	logger *slog.Logger
 }
 
-func NewUserUpdateUC(userR scripts.UserRepository) (*UserUpdateUC, error) {
+func NewUserUpdateUC(userR scripts.UserRepository, logger *slog.Logger) UserUpdateUC {
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserRepository
+		panic(scripts.ErrInvalidUserRepository)
 	}
-	return &UserUpdateUC{userR: userR}, nil
+	if logger == nil {
+		panic(scripts.ErrInvalidLogger)
+	}
+	return UserUpdateUC{userR: userR, logger: logger}
 }
 
 func (u *UserUpdateUC) UpdateUser(ctx context.Context, actorID uint32, dto UserDTO) error {

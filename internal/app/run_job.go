@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
@@ -10,29 +11,35 @@ type JobRunUC struct {
 	jobR     scripts.JobRepository
 	launcher scripts.Launcher
 	notifier scripts.Notifier
+	logger   *slog.Logger
 }
 
 func NewJobRunUC(
 	jobR scripts.JobRepository,
 	launcher scripts.Launcher,
 	notifier scripts.Notifier,
-) (*JobRunUC, error) {
+	logger *slog.Logger,
+) JobRunUC {
 
 	if jobR == nil {
-		return nil, scripts.ErrInvalidJobRepository
+		panic(scripts.ErrInvalidJobRepository)
 	}
 	if launcher == nil {
-		return nil, scripts.ErrInvalidLauncherService
+		panic(scripts.ErrInvalidLauncherService)
 	}
 	if notifier == nil {
-		return nil, scripts.ErrInvalidNotifierService
+		panic(scripts.ErrInvalidNotifierService)
+	}
+	if logger == nil {
+		panic(scripts.ErrInvalidLogger)
 	}
 
-	return &JobRunUC{
+	return JobRunUC{
 		jobR:     jobR,
 		launcher: launcher,
 		notifier: notifier,
-	}, nil
+		logger:   logger,
+	}
 }
 
 func (l *JobRunUC) ProcessLaunchRequest(ctx context.Context, jobDTO JobDTO) error {

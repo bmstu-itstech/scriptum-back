@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
@@ -11,32 +12,38 @@ type JobStartUC struct {
 	jobR       scripts.JobRepository
 	dispatcher scripts.Dispatcher
 	userR      scripts.UserRepository
+	logger     *slog.Logger
 }
 
-func NewJobStartUCUC(
+func NewJobStartUC(
 	scriptR scripts.ScriptRepository,
 	jobR scripts.JobRepository,
 	dispatcher scripts.Dispatcher,
 	userR scripts.UserRepository,
-) (*JobStartUC, error) {
+	logger *slog.Logger,
+) JobStartUC {
 	if scriptR == nil {
-		return nil, scripts.ErrInvalidScriptRepository
+		panic(scripts.ErrInvalidScriptRepository)
 	}
 	if jobR == nil {
-		return nil, scripts.ErrInvalidJobRepository
+		panic(scripts.ErrInvalidJobRepository)
 	}
 	if dispatcher == nil {
-		return nil, scripts.ErrInvalidLauncherService
+		panic(scripts.ErrInvalidLauncherService)
 	}
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserRepository
+		panic(scripts.ErrInvalidUserRepository)
 	}
-	return &JobStartUC{
+	if logger == nil {
+		panic(scripts.ErrInvalidLogger)
+	}
+	return JobStartUC{
 		scriptR:    scriptR,
 		jobR:       jobR,
 		dispatcher: dispatcher,
 		userR:      userR,
-	}, nil
+		logger:     logger,
+	}
 }
 
 func (s *JobStartUC) StartJob(ctx context.Context, input ScriptRunDTO) error {

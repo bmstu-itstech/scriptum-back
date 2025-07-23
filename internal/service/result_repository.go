@@ -50,7 +50,7 @@ const GetResultQuery = `
 	WHERE j.job_id = $1;
 `
 
-func (r *ResRepo) GetResult(ctx context.Context, jobID scripts.JobID) (scripts.Result, error) {
+func (r *ResRepo) JobResult(ctx context.Context, jobID scripts.JobID) (scripts.Result, error) {
 	rows, err := r.DB.Query(ctx, GetResultQuery, jobID)
 	if err != nil {
 		return scripts.Result{}, err

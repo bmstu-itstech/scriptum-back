@@ -45,6 +45,7 @@ var (
 	ErrIntegerConversion  = errors.New("cannot convert to integer")
 
 	ErrInvalidScriptRepository = errors.New("scriptService is nil")
+	ErrInvalidLogger           = errors.New("logger is nil")
 	ErrInvalidUserRepository   = errors.New("userService is nil")
 	ErrInvalidResultRepository = errors.New("resService is nil")
 	ErrInvalidLauncherService  = errors.New("launcherService is nil")

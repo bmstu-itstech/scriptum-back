@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
@@ -11,6 +12,7 @@ type SearchResultsSubstrUC struct {
 	resR    scripts.ResultRepository
 	userR   scripts.UserRepository
 	scriptR scripts.ScriptRepository
+	logger  *slog.Logger
 }
 
 func NewSearchResultsSubstrUC(
@@ -18,25 +20,30 @@ func NewSearchResultsSubstrUC(
 	resR scripts.ResultRepository,
 	userR scripts.UserRepository,
 	scriptR scripts.ScriptRepository,
-) (*SearchResultsSubstrUC, error) {
+	logger *slog.Logger,
+) SearchResultsSubstrUC {
 	if jobR == nil {
-		return nil, scripts.ErrInvalidJobRepository
+		panic(scripts.ErrInvalidJobRepository)
 	}
 	if resR == nil {
-		return nil, scripts.ErrInvalidResultRepository
+		panic(scripts.ErrInvalidResultRepository)
 	}
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserRepository
+		panic(scripts.ErrInvalidUserRepository)
 	}
 	if scriptR == nil {
-		return nil, scripts.ErrInvalidScriptRepository
+		panic(scripts.ErrInvalidScriptRepository)
 	}
-	return &SearchResultsSubstrUC{
+	if logger == nil {
+		panic(scripts.ErrInvalidLogger)
+	}
+	return SearchResultsSubstrUC{
 		jobR:    jobR,
 		userR:   userR,
 		scriptR: scriptR,
 		resR:    resR,
-	}, nil
+		logger:  logger,
+	}
 }
 
 func (u *SearchResultsSubstrUC) SearchResultBySubstr(ctx context.Context, userID uint32, substr string) ([]ResultDTO, error) {

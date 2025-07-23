@@ -2,19 +2,24 @@ package app
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
 
 type GetScriptUC struct {
 	scriptR scripts.ScriptRepository
+	logger  *slog.Logger
 }
 
-func NewGetScript(scriptR scripts.ScriptRepository) (*GetScriptUC, error) {
+func NewGetScript(scriptR scripts.ScriptRepository, logger *slog.Logger) GetScriptUC {
 	if scriptR == nil {
-		return nil, scripts.ErrInvalidScriptRepository
+		panic(scripts.ErrInvalidScriptRepository)
 	}
-	return &GetScriptUC{scriptR: scriptR}, nil
+	if logger == nil {
+		panic(scripts.ErrInvalidLogger)
+	}
+	return GetScriptUC{scriptR: scriptR, logger: logger}
 }
 
 func (u *GetScriptUC) Script(ctx context.Context, scriptId int) (ScriptDTO, error) {

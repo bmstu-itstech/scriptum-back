@@ -15,7 +15,7 @@ type FileManager struct {
 	directory string
 }
 
-func NewFileUploader() (*FileManager, error) {
+func NewFileManager() (*FileManager, error) {
 	return &FileManager{
 		directory: "scripts",
 	}, nil

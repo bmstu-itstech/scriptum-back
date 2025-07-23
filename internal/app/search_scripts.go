@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
@@ -9,16 +10,20 @@ import (
 type ScriptSearchUC struct {
 	scriptR scripts.ScriptRepository
 	userR   scripts.UserRepository
+	logger  *slog.Logger
 }
 
-func NewScriptSearchUC(scriptR scripts.ScriptRepository, userR scripts.UserRepository) (*ScriptSearchUC, error) {
+func NewScriptSearchUC(scriptR scripts.ScriptRepository, userR scripts.UserRepository, logger *slog.Logger) ScriptSearchUC {
 	if scriptR == nil {
-		return nil, scripts.ErrInvalidScriptRepository
+		panic(scripts.ErrInvalidScriptRepository)
 	}
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserRepository
+		panic(scripts.ErrInvalidUserRepository)
 	}
-	return &ScriptSearchUC{scriptR: scriptR, userR: userR}, nil
+	if logger == nil {
+		panic(scripts.ErrInvalidLogger)
+	}
+	return ScriptSearchUC{scriptR: scriptR, userR: userR, logger: logger}
 }
 
 func (u *ScriptSearchUC) Search(ctx context.Context, userID uint32, substr string) ([]ScriptDTO, error) {

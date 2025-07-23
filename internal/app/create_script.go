@@ -2,35 +2,42 @@ package app
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
 
 type ScriptCreateUC struct {
 	scriptR scripts.ScriptRepository
+	logger  *slog.Logger
 	userR   scripts.UserRepository
 	manager scripts.Manager
 }
 
 func NewScriptCreateUC(
 	scriptR scripts.ScriptRepository,
+	logger *slog.Logger,
 	userR scripts.UserRepository,
 	manager scripts.Manager,
-) (*ScriptCreateUC, error) {
+) ScriptCreateUC {
 	if scriptR == nil {
-		return nil, scripts.ErrInvalidScriptRepository
+		panic(scripts.ErrInvalidScriptRepository)
 	}
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserRepository
+		panic(scripts.ErrInvalidUserRepository)
+	}
+	if logger == nil {
+		panic(scripts.ErrInvalidLogger)
 	}
 	if manager == nil {
-		return nil, scripts.ErrInvalidManagerService
+		panic(scripts.ErrInvalidManagerService)
 	}
-	return &ScriptCreateUC{
+	return ScriptCreateUC{
 		scriptR: scriptR,
 		userR:   userR,
+		logger:  logger,
 		manager: manager,
-	}, nil
+	}
 }
 
 func (u *ScriptCreateUC) CreateScript(ctx context.Context, userID uint32, input ScriptCreateDTO) (uint32, error) {

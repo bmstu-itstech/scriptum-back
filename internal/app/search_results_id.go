@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
@@ -11,32 +12,38 @@ type SearchResultIDUC struct {
 	resR    scripts.ResultRepository
 	userR   scripts.UserRepository
 	scriptR scripts.ScriptRepository
+	logger  *slog.Logger
 }
 
-func NewSearchResultIDUCUC(
+func NewSearchResultIDUC(
 	jobR scripts.JobRepository,
 	resR scripts.ResultRepository,
 	userR scripts.UserRepository,
 	scriptR scripts.ScriptRepository,
-) (*SearchResultIDUC, error) {
+	logger *slog.Logger,
+) SearchResultIDUC {
 	if jobR == nil {
-		return nil, scripts.ErrInvalidJobRepository
+		panic(scripts.ErrInvalidJobRepository)
 	}
 	if resR == nil {
-		return nil, scripts.ErrInvalidResultRepository
+		panic(scripts.ErrInvalidResultRepository)
 	}
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserRepository
+		panic(scripts.ErrInvalidUserRepository)
 	}
 	if scriptR == nil {
-		return nil, scripts.ErrInvalidScriptRepository
+		panic(scripts.ErrInvalidScriptRepository)
 	}
-	return &SearchResultIDUC{
+	if logger == nil {
+		panic(scripts.ErrInvalidLogger)
+	}
+	return SearchResultIDUC{
 		jobR:    jobR,
 		userR:   userR,
 		scriptR: scriptR,
 		resR:    resR,
-	}, nil
+		logger:  logger,
+	}
 }
 
 func (u *SearchResultIDUC) SearchResultByID(ctx context.Context, JobID scripts.JobID) (ResultDTO, error) {

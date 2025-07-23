@@ -2,19 +2,24 @@ package app
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
 
 type UserDeleteUC struct {
-	userR scripts.UserRepository
+	userR  scripts.UserRepository
+	logger *slog.Logger
 }
 
-func NewUserDeleteUC(userR scripts.UserRepository) (*UserDeleteUC, error) {
+func NewUserDeleteUC(userR scripts.UserRepository, logger *slog.Logger) UserDeleteUC {
 	if userR == nil {
-		return nil, scripts.ErrInvalidUserRepository
+		panic(scripts.ErrInvalidUserRepository)
 	}
-	return &UserDeleteUC{userR: userR}, nil
+	if logger == nil {
+		panic(scripts.ErrInvalidUserRepository)
+	}
+	return UserDeleteUC{userR: userR, logger: logger}
 }
 
 func (u *UserDeleteUC) DeleteUser(ctx context.Context, actorID, userID uint32) error {
