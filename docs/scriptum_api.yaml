@@ -115,14 +115,12 @@ paths:
       tags:
       - scripts
       summary: Get script by script id
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                script_id:
-                  type: integer
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          $ref: '#/components/schemas/ScriptId'
       responses:
         '200':
           description: successful operation
@@ -160,7 +158,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
     put:
       tags:
       - scripts
@@ -700,7 +697,18 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Result'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Result'
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+              example: "attachment; filename=job_result_export.json"
         '400':
           description: invalid request
           content:
@@ -725,7 +733,55 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
+  /jobs/{id}/result/download:
+    get:
+      tags:
+      - jobs
+      summary: Get job result
+      description: Get the result of a job
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          $ref: '#/components/schemas/JobId'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+              example: "attachment; filename=job_result_export.csv"
+        '400':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: forbidden (get but for another user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
     UserId:
