@@ -1,6 +1,7 @@
 package scripts
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -8,6 +9,10 @@ type Path = string
 type ScriptID = uint32
 
 type Visibility string
+
+const ScriptNameMaxLength = 100
+const ScriptPathMaxLength = 200
+const ScriptDescriptionMaxLength = 500
 
 const (
 	VisibilityGlobal  Visibility = "global"
@@ -71,33 +76,42 @@ func IsGlobal(v Visibility) bool {
 	}
 }
 
-func NewScript(scriptID ScriptID, inFields []Field, outFields []Field, path Path, owner UserID, visibility Visibility, name string, description string) (*Script, error) {
-	if (len(inFields) == 0) || (len(outFields) == 0) {
-		return nil, ErrFieldsEmpty
+func NewScript(
+	scriptID ScriptID,
+	inFields []Field,
+	outFields []Field,
+	path Path,
+	owner UserID,
+	visibility Visibility,
+	name string,
+	description string,
+) (*Script, error) {
+	if len(inFields) == 0 {
+		return nil, fmt.Errorf("inFields: expected non-empty slice, got length %d: %w", len(inFields), ErrScriptInvalid)
+	}
+	if len(outFields) == 0 {
+		return nil, fmt.Errorf("outFields: expected non-empty slice, got length %d: %w", len(outFields), ErrScriptInvalid)
 	}
 
 	if path == "" {
-		return nil, ErrPathEmpty
+		return nil, fmt.Errorf("path: expected non-empty string, got empty string: %w", ErrScriptInvalid)
 	}
-
-	if len(path) > 200 {
-		return nil, ErrPathLen
+	if len(path) > ScriptPathMaxLength {
+		return nil, fmt.Errorf("path: expected string with length ≤ %d, got length %d: %w", ScriptPathMaxLength, len(path), ErrScriptInvalid)
 	}
 
 	if name == "" {
-		return nil, ErrNameEmpty
+		return nil, fmt.Errorf("name: expected non-empty string, got empty string: %w", ErrScriptInvalid)
 	}
-
-	if len(name) > 100 {
-		return nil, ErrNameLen
+	if len(name) > ScriptNameMaxLength {
+		return nil, fmt.Errorf("name: expected string with length ≤ %d, got length %d: %w", ScriptNameMaxLength, len(name), ErrScriptInvalid)
 	}
 
 	if description == "" {
-		return nil, ErrDescriptionEmpty
+		return nil, fmt.Errorf("description: expected non-empty string, got empty string: %w", ErrScriptInvalid)
 	}
-
-	if len(description) > 500 {
-		return nil, ErrDescriptionLen
+	if len(description) > ScriptDescriptionMaxLength {
+		return nil, fmt.Errorf("description: expected string with length ≤ %d, got length %d: %w", ScriptDescriptionMaxLength, len(description), ErrScriptInvalid)
 	}
 
 	return &Script{

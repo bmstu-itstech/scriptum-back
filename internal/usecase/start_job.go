@@ -67,7 +67,7 @@ func (s *JobStartUC) StartJob(ctx context.Context, input ScriptRunInput) error {
 		return err
 	}
 
-	_, err = s.jobR.PostJob(ctx, *job, scriptId)
+	_, err = s.jobR.Post(ctx, *job, scriptId)
 	if err != nil {
 		return err
 	}

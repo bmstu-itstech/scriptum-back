@@ -38,7 +38,7 @@ func (u *ScriptDeleteUC) DeleteScript(ctx context.Context, actorID uint32, scrip
 	}
 
 	if adm := user.IsAdmin(); adm && script.Visibility() == scripts.VisibilityGlobal || !adm && script.Owner() == actorID {
-		err = u.scriptR.DeleteScript(ctx, scripts.ScriptID(scriptID))
+		err = u.scriptR.Delete(ctx, scripts.ScriptID(scriptID))
 		if err != nil {
 			return err
 		}

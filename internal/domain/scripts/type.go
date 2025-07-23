@@ -1,5 +1,7 @@
 package scripts
 
+import "fmt"
+
 type Type struct {
 	s string
 }
@@ -23,6 +25,6 @@ func NewType(s string) (*Type, error) {
 	case "complex":
 		return &ComplexType, nil
 	default:
-		return nil, ErrInvalidType
+		return nil, fmt.Errorf("type: expected one of [integer, real, complex], got %q: %w", s, ErrTypeInvalid)
 	}
 }

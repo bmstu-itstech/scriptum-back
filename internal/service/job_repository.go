@@ -12,24 +12,10 @@ type JobRepo struct {
 	DB SQLDBConn
 }
 
-func NewJobRepo(ctx context.Context) (*JobRepo, error) {
-	host := "localhost"
-	port := 5432
-	user := "app_user"
-	password := "your_secure_password"
-	dbname := "dev"
-
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
-		user, password, host, port, dbname)
-
-	conn, err := pgx.Connect(ctx, connStr)
-	if err != nil {
-		return nil, err
-	}
-
+func NewJobRepo(db SQLDBConn) *JobRepo {
 	return &JobRepo{
-		DB: conn,
-	}, nil
+		DB: db,
+	}
 }
 
 const PostJobQuery = `
@@ -38,7 +24,7 @@ const PostJobQuery = `
 		RETURNING job_id;
 	`
 
-func (r *JobRepo) PostJob(ctx context.Context, job scripts.Job, scriptID scripts.ScriptID) (scripts.JobID, error) {
+func (r *JobRepo) Post(ctx context.Context, job scripts.Job, scriptID scripts.ScriptID) (scripts.JobID, error) {
 	var rawID int
 	err := r.DB.QueryRow(ctx, PostJobQuery,
 		job.UserID(),
@@ -67,7 +53,7 @@ const insertJobParamQuery = `
 		VALUES ($1, $2, 'out');
 	`
 
-func (r *JobRepo) CloseJob(ctx context.Context, jobID scripts.JobID, res *scripts.Result) error {
+func (r *JobRepo) Update(ctx context.Context, jobID scripts.JobID, res *scripts.Result) error {
 	tx, err := r.DB.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err

@@ -5,38 +5,19 @@ import (
 )
 
 var (
-	ErrFieldNameEmpty = errors.New("field name cannot be empty")
-	ErrFieldNameLen   = errors.New("field name cannot exceed given length")
-
-	ErrFieldDescEmpty = errors.New("field description cannot be empty")
-	ErrFieldDescLen   = errors.New("field description cannot exceed given length")
-
-	ErrFieldUnitEmpty = errors.New("field unit cannot be empty")
-	ErrFieldUnitLen   = errors.New("field unit cannot exceed given length")
-
-	ErrFileNameEmpty    = errors.New("file name cannot be empty")
-	ErrFileTypeEmpty    = errors.New("file type cannot be empty")
-	ErrFileContentEmpty = errors.New("file content cannot be empty")
-	ErrVectorEmpty      = errors.New("vector cannot be empty")
-	ErrFieldsEmpty      = errors.New("fields cannot be empty")
-
-	ErrPathEmpty = errors.New("script path cannot be empty")
-	ErrPathLen   = errors.New("script path cannot exceed given length")
-
-	ErrFullNameEmpty = errors.New("full name cannot be empty")
-	ErrEmailEmpty    = errors.New("email cannot be empty")
-
-	ErrNameEmpty = errors.New("script name cannot be empty")
-	ErrNameLen   = errors.New("script name cannot exceed given length")
-
-	ErrDescriptionEmpty = errors.New("script description cannot be empty")
-	ErrDescriptionLen   = errors.New("script description cannot exceed given length")
+	ErrFieldInvalid  = errors.New("error while creating field variable")
+	ErrFileInvalid   = errors.New("error while creating file variable")
+	ErrJobInvalid    = errors.New("error while creating job variable")
+	ErrScriptInvalid = errors.New("error while creating script variable")
+	ErrTypeInvalid   = errors.New("error while creating type variable")
+	ErrValueInvalid  = errors.New("error while creating value variable")
+	ErrVectorInvalid = errors.New("error while creating vector variable")
+	ErrUserInvalid   = errors.New("error while creating user variable")
 
 	ErrInvalidJobID       = errors.New("invalid job id")
 	ErrInvalidUserID      = errors.New("invalid user id")
 	ErrInvalidCommand     = errors.New("invalid command")
 	ErrInvalidInterpreter = errors.New("invalid interpreter")
-	ErrInvalidType        = errors.New("invalid type")
 	ErrInvalidVisibility  = errors.New("invalid visibility")
 	ErrInvalidValueType   = errors.New("invalid value type")
 	ErrJobNotExists       = errors.New("job not exists")

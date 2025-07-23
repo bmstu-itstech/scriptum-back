@@ -79,7 +79,7 @@ func (u *ScriptCreateUC) CreateScript(ctx context.Context, userID uint32, script
 		return 0, err
 	}
 
-	scriptId, err := u.scriptR.StoreScript(ctx, script)
+	scriptId, err := u.scriptR.Store(ctx, script)
 	if err != nil {
 		// логируем ошибку
 		return 0, err

@@ -11,7 +11,7 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 CREATE TABLE fields (
-    field_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    field_id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL CHECK (LENGTH(name) <= 100),
     description TEXT NOT NULL CHECK (LENGTH(description) <= 500),
     unit TEXT NOT NULL CHECK (LENGTH(unit) <= 20),
@@ -21,9 +21,9 @@ CREATE TABLE fields (
 );
 
 CREATE TABLE scripts (
-    script_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    script_id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL CHECK (LENGTH(name) <= 100),        
-    description TEXT CHECK (LENGTH(description) <= 500),   А
+    description TEXT CHECK (LENGTH(description) <= 500),
     path TEXT NOT NULL CHECK (LENGTH(path) <= 200),
     visibility VISIBILITY NOT NULL,
     owner_id BIGINT NOT NULL,
@@ -39,14 +39,14 @@ CREATE TABLE script_fields (
 );
 
 CREATE TABLE parameters (
-    parameter_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    parameter_id BIGSERIAL PRIMARY KEY,
     field_id BIGINT NOT NULL,
     value TEXT NOT NULL CHECK (LENGTH(value) <= 100),
     CONSTRAINT fk_parameters_field FOREIGN KEY (field_id) REFERENCES fields(field_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE jobs (
-    job_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    job_id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
     started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     closed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

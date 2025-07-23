@@ -103,20 +103,22 @@ func NewValue(fieldType string, data string) (Value, error) {
 	case "integer":
 		val, err = NewIntegerFromString(data)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("fieldType: unexpected error while converting to 'integer': %v, value: %q: %w", err, data, ErrValueInvalid)
 		}
 	case "real":
 		val, err = NewRealFromString(data)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("fieldType: unexpected error while converting to 'real': %v, value: %q: %w", err, data, ErrValueInvalid)
+
 		}
 	case "complex":
 		val, err = NewComplexFromString(data)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("fieldType: unexpected error while converting to 'complex': %v, value: %q: %w", err, data, ErrValueInvalid)
+
 		}
 	default:
-		return nil, ErrInvalidType
+		return nil, fmt.Errorf("fieldType: expected one of ['integer', 'real', 'complex'], got %q: %w", fieldType, ErrValueInvalid)
 	}
 	return val, nil
 }

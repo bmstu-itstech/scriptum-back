@@ -138,7 +138,7 @@ func TestDeleteScript(t *testing.T) {
 		WithArgs(scriptID).
 		WillReturnResult(pgxmock.NewResult("DELETE", 1))
 
-	err = repo.DeleteScript(ctx, scriptID)
+	err = repo.Delete(ctx, scriptID)
 	require.NoError(t, err)
 }
 

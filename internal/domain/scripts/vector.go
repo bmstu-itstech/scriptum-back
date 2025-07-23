@@ -1,5 +1,7 @@
 package scripts
 
+import "fmt"
+
 type Vector struct {
 	values []Value
 }
@@ -10,7 +12,7 @@ func (v *Vector) Values() []Value {
 
 func NewVector(values []Value) (*Vector, error) {
 	if len(values) == 0 {
-		return nil, ErrVectorEmpty
+		return nil, fmt.Errorf("values: expected non-empty slice, got empty slice: %w", ErrVectorInvalid)
 	}
 	return &Vector{values: values}, nil
 }

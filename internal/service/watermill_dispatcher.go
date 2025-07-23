@@ -21,27 +21,27 @@ func NewLauncher(publisher message.Publisher) (*WatermillDispatcher, error) {
 	}, nil
 }
 
-func MarshalJob(job scripts.Job) ([]byte, error) {
-	type alias struct {
+func MarshalJob(curJob scripts.Job) ([]byte, error) {
+	type job struct {
 		JobID        scripts.JobID   `json:"job_id"`
 		UserID       scripts.UserID  `json:"user_id"`
 		In           scripts.Vector  `json:"in"`
 		Command      string          `json:"command"`
 		StartedAt    time.Time       `json:"started_at"`
-		ScriptFields []scripts.Field `json:"script_fields"`
+		OutFields    []scripts.Field `json:"out_fields"`
 		UserEmail    scripts.Email   `json:"user_email"`
 		NeedToNotify bool            `json:"need_to_notify"`
 	}
 
-	return json.Marshal(alias{
-		JobID:        job.JobID(),
-		UserID:       job.UserID(),
-		In:           job.In(),
-		Command:      job.Command(),
-		StartedAt:    job.StartedAt(),
-		ScriptFields: job.ScriptFields(),
-		UserEmail:    job.UserEmail(),
-		NeedToNotify: job.NeedToNotify(),
+	return json.Marshal(job{
+		JobID:        curJob.JobID(),
+		UserID:       curJob.UserID(),
+		In:           curJob.In(),
+		Command:      curJob.Command(),
+		StartedAt:    curJob.StartedAt(),
+		OutFields:    curJob.OutFields(),
+		UserEmail:    curJob.UserEmail(),
+		NeedToNotify: curJob.NeedToNotify(),
 	})
 }
 

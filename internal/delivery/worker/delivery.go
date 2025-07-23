@@ -8,13 +8,13 @@ import (
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
-	worker "github.com/bmstu-itstech/scriptum-back/internal/usecase"
+	"github.com/bmstu-itstech/scriptum-back/internal/usecase"
 )
 
 const maxConcurrent = 10
 
 type LaunchHandler struct {
-	usecase    *worker.JobRunUC
+	usecase    *usecase.JobRunUC
 	subscriber message.Subscriber
 	watLogger  watermill.LoggerAdapter
 	sem        chan struct{}
@@ -27,7 +27,7 @@ func UnmarshalJob(data []byte) (scripts.Job, error) {
 		In           scripts.Vector  `json:"in"`
 		Command      string          `json:"command"`
 		StartedAt    time.Time       `json:"started_at"`
-		ScriptFields []scripts.Field `json:"script_fields"`
+		OutFields    []scripts.Field `json:"OutFields"`
 		UserEmail    scripts.Email   `json:"user_email"`
 		NeedToNotify bool            `json:"need_to_notify"`
 	}
@@ -37,12 +37,12 @@ func UnmarshalJob(data []byte) (scripts.Job, error) {
 		return scripts.Job{}, err
 	}
 
-	script, err := scripts.NewJob(a.JobID, a.UserID, a.In, a.Command, a.StartedAt, a.ScriptFields, a.UserEmail, a.NeedToNotify)
+	script, err := scripts.NewJob(a.JobID, a.UserID, a.In, a.Command, a.StartedAt, a.OutFields, a.UserEmail, a.NeedToNotify)
 	return *script, err
 }
 
 func NewLaunchHandler(
-	jobRunUC worker.JobRunUC,
+	jobRunUC usecase.JobRunUC,
 	subscriber message.Subscriber,
 	watLogger watermill.LoggerAdapter,
 ) (*LaunchHandler, error) {
@@ -92,7 +92,8 @@ func (l *LaunchHandler) Listen(ctx context.Context) {
 					}
 
 					reqCtx := context.Background()
-					if err := l.usecase.ProcessLaunchRequest(reqCtx, req); err != nil {
+					job := usecase.JobToDTO(req)
+					if err := l.usecase.ProcessLaunchRequest(reqCtx, job); err != nil {
 						l.watLogger.Error("Process error", err, nil)
 						msg.Nack()
 						return

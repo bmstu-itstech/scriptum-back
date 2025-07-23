@@ -46,7 +46,7 @@ func (l *JobRunUC) ProcessLaunchRequest(ctx context.Context, jobDTO JobDTO) erro
 		return err
 	}
 
-	err = l.jobR.CloseJob(ctx, job.JobID(), &result)
+	err = l.jobR.Update(ctx, job.JobID(), &result)
 	if err != nil {
 		return err
 	}

@@ -11,17 +11,17 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
 
-type FileManager struct {
+type SystemManager struct {
 	directory string
 }
 
-func NewFileUploader() (*FileManager, error) {
-	return &FileManager{
+func NewFileUploader() (*SystemManager, error) {
+	return &SystemManager{
 		directory: "scripts",
 	}, nil
 }
 
-func (f *FileManager) Upload(_ context.Context, file scripts.File) (scripts.Path, error) {
+func (f *SystemManager) Upload(_ context.Context, file scripts.File) (scripts.Path, error) {
 	dir := filepath.Join(f.directory, file.FileType())
 
 	err := os.MkdirAll(dir, 0755)
@@ -40,6 +40,6 @@ func (f *FileManager) Upload(_ context.Context, file scripts.File) (scripts.Path
 	return path, err
 }
 
-func (f *FileManager) Delete(_ context.Context, path scripts.Path) error {
+func (f *SystemManager) Delete(_ context.Context, path scripts.Path) error {
 	return os.Remove(path)
 }

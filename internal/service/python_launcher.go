@@ -53,7 +53,7 @@ func (p *PythonLauncher) Launch(ctx context.Context, job scripts.Job) (scripts.R
 		return scripts.Result{}, scripts.ErrScriptLaunch
 	}
 
-	outVals, err := scripts.ParseOutputValues(stdout.String(), job.ScriptFields())
+	outVals, err := scripts.ParseOutputValues(stdout.String(), job.OutFields())
 	if err != nil {
 		return scripts.Result{}, err
 	}

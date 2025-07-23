@@ -1,6 +1,7 @@
 package scripts
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -10,6 +11,10 @@ type Field struct {
 	desc      string
 	unit      string
 }
+
+const FieldNameMaxLength = 100
+const FieldDescMaxLength = 500
+const FieldUnitMaxLength = 20
 
 func (f *Field) FieldType() Type {
 	return f.fieldType
@@ -29,22 +34,22 @@ func (f *Field) Unit() string {
 
 func NewField(fieldType Type, name, desc, unit string) (*Field, error) {
 	if name == "" {
-		return nil, ErrFieldNameEmpty
+		return nil, fmt.Errorf("name: expected not empty string, got empty string  %w", ErrFieldInvalid)
 	}
-	if len(name) > 100 {
-		return nil, ErrFieldNameLen
+	if len(name) > FieldNameMaxLength {
+		return nil, fmt.Errorf("name: expected string with len below %d, got string length %d %w", FieldNameMaxLength, len(name), ErrFieldInvalid)
 	}
 	if desc == "" {
-		return nil, ErrFieldDescEmpty
+		return nil, fmt.Errorf("desc: expected not empty string, got empty string  %w", ErrFieldInvalid)
 	}
-	if len(desc) > 500 {
-		return nil, ErrFieldDescLen
+	if len(desc) > FieldDescMaxLength {
+		return nil, fmt.Errorf("desc: expected string with len below %d, got string length %d %w", FieldDescMaxLength, len(desc), ErrFieldInvalid)
 	}
 	if unit == "" {
-		return nil, ErrFieldUnitEmpty
+		return nil, fmt.Errorf("unit: expected not empty string, got empty string  %w", ErrFieldInvalid)
 	}
-	if len(desc) > 20 {
-		return nil, ErrFieldUnitLen
+	if len(desc) > FieldUnitMaxLength {
+		return nil, fmt.Errorf("unit: expected string with len below %d, got string length %d %w", FieldUnitMaxLength, len(unit), ErrFieldInvalid)
 	}
 
 	return &Field{

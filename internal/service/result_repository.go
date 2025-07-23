@@ -2,34 +2,19 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
-	"github.com/jackc/pgx/v4"
 )
 
 type ResRepo struct {
 	DB SQLDBConn
 }
 
-func NewResRepo(ctx context.Context) (*ResRepo, error) {
-	host := "localhost"
-	port := 5432
-	user := "app_user"
-	password := "your_secure_password"
-	dbname := "dev"
-
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
-		user, password, host, port, dbname)
-
-	conn, err := pgx.Connect(ctx, connStr)
-	if err != nil {
-		return nil, err
-	}
+func NewResRepo(db SQLDBConn) *ResRepo {
 	return &ResRepo{
-		DB: conn,
-	}, nil
+		DB: db,
+	}
 }
 
 const GetResultQuery = `

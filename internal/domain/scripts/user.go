@@ -1,5 +1,7 @@
 package scripts
 
+import "fmt"
+
 type Name = string
 type UserID = uint32
 type Email = string
@@ -29,10 +31,10 @@ func (u *User) IsAdmin() bool {
 
 func NewUser(userID UserID, fullName Name, email Email, isAdmin bool) (*User, error) {
 	if fullName == "" {
-		return nil, ErrFullNameEmpty
+		return nil, fmt.Errorf("fullName: expected non-empty string, got empty string: %w", ErrUserInvalid)
 	}
 	if email == "" {
-		return nil, ErrEmailEmpty
+		return nil, fmt.Errorf("email: expected non-empty string, got empty string: %w", ErrUserInvalid)
 	}
 
 	return &User{

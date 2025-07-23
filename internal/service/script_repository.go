@@ -14,23 +14,10 @@ type ScriptRepo struct {
 	DB SQLDBConn
 }
 
-func NewScriptRepo(ctx context.Context) (*ScriptRepo, error) {
-	host := "localhost"
-	port := 5432
-	user := "app_user"
-	password := "your_secure_password"
-	dbname := "dev"
-
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
-		user, password, host, port, dbname)
-
-	conn, err := pgx.Connect(ctx, connStr)
-	if err != nil {
-		return nil, err
-	}
+func NewScriptRepo(db SQLDBConn) *ScriptRepo {
 	return &ScriptRepo{
-		DB: conn,
-	}, nil
+		DB: db,
+	}
 }
 
 const GetScriptQuery = `
@@ -157,7 +144,7 @@ const DeleteScriptFieldsQuery = `
 	WHERE script_id = $1;
 `
 
-func (r *ScriptRepo) UpdateScript(ctx context.Context, script scripts.Script) (err error) {
+func (r *ScriptRepo) Update(ctx context.Context, script scripts.Script) (err error) {
 	tx, err := r.DB.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
@@ -502,7 +489,7 @@ const DeleteScriptQuery = `
 		DELETE FROM scripts WHERE script_id = $1;
 	`
 
-func (r *ScriptRepo) DeleteScript(ctx context.Context, scriptID scripts.ScriptID) error {
+func (r *ScriptRepo) Delete(ctx context.Context, scriptID scripts.ScriptID) error {
 	_, err := r.DB.Exec(ctx, DeleteScriptQuery, scriptID)
 	return err
 }

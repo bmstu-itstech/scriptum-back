@@ -35,7 +35,7 @@ func TestPostJob(t *testing.T) {
 		WithArgs(job.UserID(), scriptID).
 		WillReturnRows(pgxmock.NewRows([]string{"job_id"}).AddRow(int(expectedID)))
 
-	id, err := repo.PostJob(ctx, *job, scriptID)
+	id, err := repo.Post(ctx, *job, scriptID)
 	require.NoError(t, err)
 	require.Equal(t, expectedID, id)
 }
@@ -81,7 +81,7 @@ func TestCloseJob(t *testing.T) {
 
 	mock.ExpectCommit()
 
-	err = repo.CloseJob(ctx, jobID, result)
+	err = repo.Update(ctx, jobID, result)
 	require.NoError(t, err)
 
 	require.NoError(t, mock.ExpectationsWereMet())

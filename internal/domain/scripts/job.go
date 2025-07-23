@@ -1,6 +1,9 @@
 package scripts
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type JobID = uint32
 
@@ -10,7 +13,7 @@ type Job struct {
 	in           Vector
 	command      string
 	startedAt    time.Time
-	scriptFields []Field
+	outFields    []Field
 	userEmail    Email
 	needToNotify bool
 }
@@ -35,8 +38,8 @@ func (j *Job) StartedAt() time.Time {
 	return j.startedAt
 }
 
-func (j *Job) ScriptFields() []Field {
-	return j.scriptFields
+func (j *Job) OutFields() []Field {
+	return j.outFields
 }
 
 func (j *Job) UserEmail() Email {
@@ -58,7 +61,7 @@ func NewJob(
 	needToNotify bool,
 ) (*Job, error) {
 	if in.Len() == 0 {
-		return nil, ErrVectorEmpty
+		return nil, fmt.Errorf("in: expected vector with at least one elemet, got empty vector  %w", ErrJobInvalid)
 	}
 	return &Job{
 		jobID:        jobID,
@@ -66,7 +69,7 @@ func NewJob(
 		in:           in,
 		command:      command,
 		startedAt:    startedAt,
-		scriptFields: scriptFields,
+		outFields:    scriptFields,
 		userEmail:    userEmail,
 		needToNotify: needToNotify,
 	}, nil
@@ -80,7 +83,7 @@ func NewEmptyJob(
 	startedAt time.Time,
 ) (*Job, error) {
 	if in.Len() == 0 {
-		return nil, ErrVectorEmpty
+		return nil, fmt.Errorf("in: expected vector with at least one elemet, got empty vector  %w", ErrJobInvalid)
 	}
 	return &Job{
 		jobID:        jobID,
@@ -88,7 +91,7 @@ func NewEmptyJob(
 		in:           in,
 		command:      command,
 		startedAt:    startedAt,
-		scriptFields: nil,
+		outFields:    nil,
 		userEmail:    "",
 		needToNotify: false,
 	}, nil

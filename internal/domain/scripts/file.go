@@ -2,6 +2,7 @@ package scripts
 
 import (
 	"context"
+	"fmt"
 	"mime/multipart"
 )
 
@@ -29,13 +30,13 @@ func (f *File) Content() []byte {
 
 func NewFile(name, fileType string, content []byte) (*File, error) {
 	if name == "" {
-		return nil, ErrFileNameEmpty
+		return nil, fmt.Errorf("name: expected not empty string, got empty string  %w", ErrFileInvalid)
 	}
 	if fileType == "" {
-		return nil, ErrFileTypeEmpty
+		return nil, fmt.Errorf("fileType: expected not empty string, got empty string  %w", ErrFileInvalid)
 	}
 	if len(content) == 0 {
-		return nil, ErrFileContentEmpty
+		return nil, fmt.Errorf("content: expected byte array with at least one elemet, got empty array  %w", ErrFileInvalid)
 	}
 
 	return &File{
