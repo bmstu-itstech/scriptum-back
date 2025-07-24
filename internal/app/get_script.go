@@ -13,19 +13,21 @@ type GetScriptUC struct {
 }
 
 func NewGetScript(scriptR scripts.ScriptRepository, logger *slog.Logger) GetScriptUC {
-	if scriptR == nil {
-		panic(scripts.ErrInvalidScriptRepository)
+	return GetScriptUC{
+		scriptR: scriptR,
+		logger:  logger,
 	}
-	if logger == nil {
-		panic(scripts.ErrInvalidLogger)
-	}
-	return GetScriptUC{scriptR: scriptR, logger: logger}
 }
 
-func (u *GetScriptUC) Script(ctx context.Context, scriptId int) (ScriptDTO, error) {
+func (u *GetScriptUC) Script(ctx context.Context, actorId int64, scriptId int32) (ScriptDTO, error) {
 	s, err := u.scriptR.Script(ctx, scripts.ScriptID(scriptId))
 	if err != nil {
 		return ScriptDTO{}, err
 	}
+
+	if !s.IsAvailableFor(scripts.UserID(actorId)) {
+		return ScriptDTO{}, scripts.ErrPermissionDenied
+	}
+
 	return ScriptToDTO(s), nil
 }

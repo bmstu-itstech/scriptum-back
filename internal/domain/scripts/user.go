@@ -1,22 +1,24 @@
 package scripts
 
-type Name = string
-type UserID = uint32
-type Email = string
+import "fmt"
+
+type Name string
+type UserID uint32
+type Email string
 
 type User struct {
-	userID   UserID
-	fullName Name
-	email    Email
-	isAdmin  bool
+	userID  UserID
+	name    Name
+	email   Email
+	isAdmin bool
 }
 
 func (u *User) UserID() UserID {
 	return u.userID
 }
 
-func (u *User) FullName() Name {
-	return u.fullName
+func (u *User) Name() Name {
+	return u.name
 }
 
 func (u *User) Email() Email {
@@ -29,16 +31,17 @@ func (u *User) IsAdmin() bool {
 
 func NewUser(userID UserID, fullName Name, email Email, isAdmin bool) (*User, error) {
 	if fullName == "" {
-		return nil, ErrFullNameEmpty
+		return nil, fmt.Errorf("%w: invalid User: expected not empty name", ErrInvalidInput)
 	}
+
 	if email == "" {
-		return nil, ErrEmailEmpty
+		return nil, fmt.Errorf("%w: invalid User: expected not empty email", ErrInvalidInput)
 	}
 
 	return &User{
-		userID:   userID,
-		fullName: fullName,
-		email:    email,
-		isAdmin:  isAdmin,
+		userID:  userID,
+		name:    fullName,
+		email:   email,
+		isAdmin: isAdmin,
 	}, nil
 }

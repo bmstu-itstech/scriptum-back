@@ -6,7 +6,7 @@ import (
 )
 
 type Value interface {
-	VariableType() Type
+	Type() ValueType
 	String() string
 }
 
@@ -22,7 +22,7 @@ func (c *Complex) Data() complex64 {
 	return c.data
 }
 
-func (c *Complex) VariableType() Type {
+func (c *Complex) Type() ValueType {
 	return ComplexType
 }
 
@@ -42,7 +42,7 @@ func (r *Real) Data() float64 {
 	return r.data
 }
 
-func (r *Real) VariableType() Type {
+func (r *Real) Type() ValueType {
 	return RealType
 }
 
@@ -62,7 +62,7 @@ func (i *Integer) Data() int64 {
 	return i.data
 }
 
-func (i *Integer) VariableType() Type {
+func (i *Integer) Type() ValueType {
 	return IntegerType
 }
 
@@ -73,7 +73,7 @@ func (i *Integer) String() string {
 func NewIntegerFromString(data string) (*Integer, error) {
 	i, err := strconv.ParseInt(data, 10, 64)
 	if err != nil {
-		return nil, ErrIntegerConversion
+		return nil, fmt.Errorf("%w: invalid Integer: expected valid integer, got %s", ErrInvalidInput, err)
 	}
 	return NewInteger(i)
 }
@@ -81,7 +81,7 @@ func NewIntegerFromString(data string) (*Integer, error) {
 func NewRealFromString(data string) (*Real, error) {
 	f, err := strconv.ParseFloat(data, 64)
 	if err != nil {
-		return nil, ErrRealConversion
+		return nil, fmt.Errorf("%w: invalid Real: expected valid real, got %s", ErrInvalidInput, err)
 	}
 	return NewReal(f)
 }
@@ -89,34 +89,26 @@ func NewRealFromString(data string) (*Real, error) {
 func NewComplexFromString(data string) (*Complex, error) {
 	c, err := strconv.ParseComplex(data, 64)
 	if err != nil {
-		return nil, ErrComplexConversion
+		return nil, fmt.Errorf("%w: invalid Complex: expected valid complex, got %s", ErrInvalidInput, err)
 	}
 
 	return NewComplex(complex64(c))
 }
 
-func NewValue(fieldType string, data string) (Value, error) {
-	var val Value
-	var err error
-
-	switch fieldType {
+func NewValue(typ string, data string) (Value, error) {
+	switch typ {
 	case "integer":
-		val, err = NewIntegerFromString(data)
-		if err != nil {
-			return nil, err
-		}
+		return NewIntegerFromString(data)
+
 	case "real":
-		val, err = NewRealFromString(data)
-		if err != nil {
-			return nil, err
-		}
+		return NewRealFromString(data)
+
 	case "complex":
-		val, err = NewComplexFromString(data)
-		if err != nil {
-			return nil, err
-		}
-	default:
-		return nil, ErrInvalidType
+		return NewComplexFromString(data)
 	}
-	return val, nil
+
+	return nil, fmt.Errorf(
+		"%w: invalid Value: expected type one of ['integer', 'real', 'complex'], got %s",
+		ErrInvalidInput, typ,
+	)
 }

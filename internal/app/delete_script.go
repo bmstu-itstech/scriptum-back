@@ -9,49 +9,44 @@ import (
 
 type ScriptDeleteUC struct {
 	scriptR scripts.ScriptRepository
-	userR   scripts.UserRepository
+	userP   scripts.UserProvider
+	manager scripts.FileManager
 	logger  *slog.Logger
-	manager scripts.Manager
 }
 
-func NewScriptDeleteUC(scriptR scripts.ScriptRepository, userR scripts.UserRepository, logger *slog.Logger, manager scripts.Manager) ScriptDeleteUC {
-	if scriptR == nil {
-		panic(scripts.ErrInvalidScriptRepository)
+func NewScriptDeleteUC(
+	scriptR scripts.ScriptRepository,
+	userR scripts.UserProvider,
+	logger *slog.Logger,
+	manager scripts.FileManager,
+) ScriptDeleteUC {
+	return ScriptDeleteUC{
+		scriptR: scriptR,
+		userP:   userR,
+		manager: manager,
+		logger:  logger,
 	}
-	if userR == nil {
-		panic(scripts.ErrInvalidUserRepository)
-	}
-	if manager == nil {
-		panic(scripts.ErrInvalidManagerService)
-	}
-	if logger == nil {
-		panic(scripts.ErrInvalidLogger)
-	}
-
-	return ScriptDeleteUC{scriptR: scriptR, userR: userR, logger: logger, manager: manager}
 }
 
 func (u *ScriptDeleteUC) DeleteScript(ctx context.Context, actorID uint32, scriptID uint32) error {
-	var err error
-	user, err := u.userR.User(ctx, scripts.UserID(actorID))
-	if err != nil {
-		return err
-	}
 	script, err := u.scriptR.Script(ctx, scripts.ScriptID(scriptID))
 	if err != nil {
 		return err
 	}
 
-	if adm := user.IsAdmin(); adm && script.Visibility() == scripts.VisibilityGlobal || !adm && script.Owner() == actorID {
-		err = u.scriptR.DeleteScript(ctx, scripts.ScriptID(scriptID))
-		if err != nil {
-			return err
-		}
-		err = u.manager.Delete(ctx, script.Path())
-	} else {
-		err = scripts.ErrNoAccessToDelete
+	if !script.IsAvailableFor(scripts.UserID(actorID)) {
+		return scripts.ErrPermissionDenied
 	}
 
-	// логи
+	err = u.scriptR.Delete(ctx, scripts.ScriptID(scriptID))
+	if err != nil {
+		return err
+	}
+
+	err = u.manager.Delete(ctx, script.URL())
+	if err != nil {
+		return err
+	}
+
 	return err
 }

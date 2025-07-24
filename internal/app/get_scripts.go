@@ -9,27 +9,20 @@ import (
 
 type GetScriptsUC struct {
 	scriptR scripts.ScriptRepository
-	userR   scripts.UserRepository
+	userP   scripts.UserProvider
 	logger  *slog.Logger
 }
 
-func NewGetScriptsUС(scriptR scripts.ScriptRepository, userR scripts.UserRepository, logger *slog.Logger) GetScriptsUC {
-	if scriptR == nil {
-		panic(scripts.ErrInvalidScriptRepository)
-	}
-
-	if userR == nil {
-		panic(scripts.ErrInvalidUserRepository)
-	}
-	if logger == nil {
-		panic(scripts.ErrInvalidLogger)
-	}
-
-	return GetScriptsUC{scriptR: scriptR, userR: userR, logger: logger}
+func NewGetScriptsUС(
+	scriptR scripts.ScriptRepository,
+	userP scripts.UserProvider,
+	logger *slog.Logger,
+) GetScriptsUC {
+	return GetScriptsUC{scriptR: scriptR, userP: userP, logger: logger}
 }
 
 func (u *GetScriptsUC) Scripts(ctx context.Context, userID uint32) ([]ScriptDTO, error) {
-	user, err := u.userR.User(ctx, scripts.UserID(userID))
+	user, err := u.userP.User(ctx, scripts.UserID(userID))
 	if err != nil {
 		return nil, err
 	}

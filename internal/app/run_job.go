@@ -9,60 +9,52 @@ import (
 
 type JobRunUC struct {
 	jobR     scripts.JobRepository
-	launcher scripts.Launcher
+	runner   scripts.Runner
 	notifier scripts.Notifier
+	userP    scripts.UserProvider
 	logger   *slog.Logger
 }
 
 func NewJobRunUC(
 	jobR scripts.JobRepository,
-	launcher scripts.Launcher,
+	launcher scripts.Runner,
 	notifier scripts.Notifier,
+	userP scripts.UserProvider,
 	logger *slog.Logger,
 ) JobRunUC {
-
-	if jobR == nil {
-		panic(scripts.ErrInvalidJobRepository)
-	}
-	if launcher == nil {
-		panic(scripts.ErrInvalidLauncherService)
-	}
-	if notifier == nil {
-		panic(scripts.ErrInvalidNotifierService)
-	}
-	if logger == nil {
-		panic(scripts.ErrInvalidLogger)
-	}
-
 	return JobRunUC{
 		jobR:     jobR,
-		launcher: launcher,
+		runner:   launcher,
 		notifier: notifier,
+		userP:    userP,
 		logger:   logger,
 	}
 }
 
-func (l *JobRunUC) ProcessLaunchRequest(ctx context.Context, jobDTO JobDTO) error {
+func (l *JobRunUC) Run(ctx context.Context, jobDTO JobDTO) error {
 	job, err := DTOToJob(jobDTO)
 	if err != nil {
 		return err
 	}
 
-	result, err := l.launcher.Launch(ctx, job)
+	res, err := l.runner.Run(ctx, job)
 	if err != nil {
 		return err
 	}
 
-	err = l.jobR.CloseJob(ctx, job.JobID(), &result)
+	err = job.Finish(res)
 	if err != nil {
 		return err
 	}
 
-	if job.NeedToNotify() {
-		err = l.notifier.Notify(ctx, result, job.UserEmail())
-		if err != nil {
-			return err
-		}
+	user, err := l.userP.User(ctx, job.OwnerID())
+	if err != nil {
+		return err
+	}
+
+	err = l.notifier.Notify(ctx, job, user.Email())
+	if err != nil {
+		return err
 	}
 
 	return nil

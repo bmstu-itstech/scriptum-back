@@ -9,81 +9,66 @@ import (
 
 type ScriptCreateUC struct {
 	scriptR scripts.ScriptRepository
+	userP   scripts.UserProvider
+	manager scripts.FileManager
 	logger  *slog.Logger
-	userR   scripts.UserRepository
-	manager scripts.Manager
 }
 
 func NewScriptCreateUC(
 	scriptR scripts.ScriptRepository,
+	userP scripts.UserProvider,
+	manager scripts.FileManager,
 	logger *slog.Logger,
-	userR scripts.UserRepository,
-	manager scripts.Manager,
 ) ScriptCreateUC {
-	if scriptR == nil {
-		panic(scripts.ErrInvalidScriptRepository)
-	}
-	if userR == nil {
-		panic(scripts.ErrInvalidUserRepository)
-	}
-	if logger == nil {
-		panic(scripts.ErrInvalidLogger)
-	}
-	if manager == nil {
-		panic(scripts.ErrInvalidManagerService)
-	}
 	return ScriptCreateUC{
 		scriptR: scriptR,
-		userR:   userR,
-		logger:  logger,
+		userP:   userP,
 		manager: manager,
+		logger:  logger,
 	}
 }
 
-func (u *ScriptCreateUC) CreateScript(ctx context.Context, userID uint32, input ScriptCreateDTO) (uint32, error) {
-	user, err := u.userR.User(ctx, scripts.UserID(userID))
+func (u *ScriptCreateUC) CreateScript(ctx context.Context, req ScriptCreateDTO) (int32, error) {
+	user, err := u.userP.User(ctx, scripts.UserID(req.OwnerID))
 	if err != nil {
 		return 0, err
 	}
 
 	var vis scripts.Visibility
 	if user.IsAdmin() {
-		vis = scripts.VisibilityGlobal
+		vis = scripts.VisibilityPublic
 	} else {
 		vis = scripts.VisibilityPrivate
 	}
 
-	file, err := DTOToFile(input.File)
-	if err != nil {
-		// логируем ошибку
-		return 0, err
-	}
-
-	path, err := u.manager.Upload(ctx, file)
+	input, err := DTOToFields(req.InFields)
 	if err != nil {
 		return 0, err
 	}
 
-	dto := ScriptDTO{
-		InFields:    input.InFields,
-		OutFields:   input.OutFields,
-		Name:        input.ScriptName,
-		Description: input.ScriptDescription,
-		Path:        path,
-		Owner:       userID,
-		Visibility:  string(vis),
-	}
-
-	script, err := DTOToScript(dto)
+	output, err := DTOToFields(req.OutFields)
 	if err != nil {
-		// логируем ошибку
 		return 0, err
 	}
 
-	scriptId, err := u.scriptR.StoreScript(ctx, script)
+	file, err := DTOToFile(req.File)
 	if err != nil {
-		// логируем ошибку
 		return 0, err
 	}
-	return uint32(scriptId), nil
+
+	url, err := u.manager.Save(ctx, file)
+	if err != nil {
+		return 0, err
+	}
+
+	proto, err := scripts.NewScriptPrototype(
+		scripts.UserID(req.OwnerID), req.ScriptName, req.ScriptDescription, vis, input, output, url,
+	)
+
+	script, err := u.scriptR.Create(ctx, proto)
+	if err != nil {
+		return 0, err
+	}
+
+	return int32(script.ID()), nil
 }
