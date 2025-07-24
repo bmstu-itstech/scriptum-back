@@ -1,54 +1,32 @@
 package scripts
 
-import "time"
+import "fmt"
 
 type StatusCode = int
-type ErrorMessage = string
 
 type Result struct {
-	job      Job
-	code     StatusCode
-	out      Vector
-	errorMes *ErrorMessage
-	closedAt time.Time
+	output []Value
+	code   StatusCode
+	errMsg *string
 }
 
-func (r *Result) Job() *Job {
-	return &r.job
-}
+func NewSuccessResult(output []Value) (*Result, error) {
+	if len(output) == 0 {
+		// Скрипт не может не иметь выходных значений, поэтому ошибка программиста.
+		return nil, fmt.Errorf("empty output")
+	}
 
-func (r *Result) Code() StatusCode {
-	return r.code
-}
-
-func (r *Result) Out() *Vector {
-	return &r.out
-}
-
-func (r *Result) ErrorMessage() *ErrorMessage {
-	return r.errorMes
-}
-
-func (r *Result) ClosedAt() time.Time {
-	return r.closedAt
-}
-
-func NewResult(job Job, code StatusCode, out Vector, errorMes *ErrorMessage, closedAt time.Time) (*Result, error) {
 	return &Result{
-		job:      job,
-		code:     code,
-		out:      out,
-		errorMes: errorMes,
-		closedAt: closedAt,
+		output: output[:], // Копирование
+		code:   0,
+		errMsg: nil,
 	}, nil
 }
 
-func NewResultOK(job Job, out Vector, closedAt time.Time) (*Result, error) {
+func NewFailureResult(code StatusCode, errMsg string) *Result {
 	return &Result{
-		job:      job,
-		code:     0,
-		out:      out,
-		errorMes: nil,
-		closedAt: closedAt,
-	}, nil
+		output: nil,
+		code:   code,
+		errMsg: &errMsg,
+	}
 }
