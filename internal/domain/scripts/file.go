@@ -1,47 +1,27 @@
 package scripts
 
-import (
-	"context"
-	"fmt"
-	"mime/multipart"
-)
+import "fmt"
 
 type File struct {
-	name     string
-	fileType string
-	content  []byte
-}
-
-type FileReader interface {
-	ReadFile(context.Context, multipart.File, *multipart.FileHeader) (*File, error)
+	name    string // len(name) > 0
+	content []byte
 }
 
 func (f *File) Name() string {
 	return f.name
 }
 
-func (f *File) FileType() string {
-	return f.fileType
-}
-
 func (f *File) Content() []byte {
 	return f.content
 }
 
-func NewFile(name, fileType string, content []byte) (*File, error) {
+func NewFile(name string, content []byte) (*File, error) {
 	if name == "" {
-		return nil, fmt.Errorf("name: expected not empty string, got empty string  %w", ErrFileInvalid)
-	}
-	if fileType == "" {
-		return nil, fmt.Errorf("fileType: expected not empty string, got empty string  %w", ErrFileInvalid)
-	}
-	if len(content) == 0 {
-		return nil, fmt.Errorf("content: expected byte array with at least one elemet, got empty array  %w", ErrFileInvalid)
+		return nil, fmt.Errorf("%w: expected not empty filename", ErrInvalidInput)
 	}
 
 	return &File{
-		name:     name,
-		fileType: fileType,
-		content:  content,
+		name:    name,
+		content: content,
 	}, nil
 }

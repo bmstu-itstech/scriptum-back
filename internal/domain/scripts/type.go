@@ -2,21 +2,25 @@ package scripts
 
 import "fmt"
 
-type Type struct {
+type ValueType struct {
 	s string
 }
 
 var (
-	IntegerType = Type{"integer"}
-	RealType    = Type{"real"}
-	ComplexType = Type{"complex"}
+	IntegerType = ValueType{"integer"}
+	RealType    = ValueType{"real"}
+	ComplexType = ValueType{"complex"}
 )
 
-func (t Type) String() string {
+func (t ValueType) IsZero() bool {
+	return t.s == ""
+}
+
+func (t ValueType) String() string {
 	return t.s
 }
 
-func NewType(s string) (*Type, error) {
+func NewValueType(s string) (*ValueType, error) {
 	switch s {
 	case "integer":
 		return &IntegerType, nil
@@ -25,6 +29,9 @@ func NewType(s string) (*Type, error) {
 	case "complex":
 		return &ComplexType, nil
 	default:
-		return nil, fmt.Errorf("type: expected one of [integer, real, complex], got %q: %w", s, ErrTypeInvalid)
+		return nil, fmt.Errorf(
+			"%w: invalid ValueType: expected one of ['integer', 'real', 'complex'], got '%s']",
+			ErrInvalidInput, s,
+		)
 	}
 }
