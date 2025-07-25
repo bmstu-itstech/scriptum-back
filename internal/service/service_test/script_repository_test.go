@@ -1,17 +1,33 @@
 package service_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/service"
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
 )
 
-func setUpMockScriptRepository() (*service.MockScriptRepo, error) {
-	return service.NewMockScriptRepository()
+func setUpScriptRepository() (*service.ScriptRepo, error) {
+	host := "localhost"
+	user := "app_user"
+	password := "your_secure_password"
+	dbname := "dev"
+
+	dsn := fmt.Sprintf("user=%s dbname=%s sslmode=disable password=%s host=%s port=5433",
+		user, dbname, password, host)
+	db, err := sqlx.Connect("pgx", dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	return service.NewScriptRepository(db), err
 }
-func TestMockScriptRepository(t *testing.T) {
-	r, err := setUpMockScriptRepository()
+
+func TestScriptRepository(t *testing.T) {
+	r, err := setUpScriptRepository()
 	require.NoError(t, err)
 
 	testScriptRepository_PublicScripts_NotFound(t, r)
