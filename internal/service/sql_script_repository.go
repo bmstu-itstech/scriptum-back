@@ -135,7 +135,7 @@ func (r *ScriptRepo) Script(ctx context.Context, id scripts.ScriptID) (scripts.S
 	err := r.db.GetContext(ctx, &scriptRaw, getQuery, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return scripts.Script{}, fmt.Errorf("%w Script: cannot extract script with id: %d", scripts.ErrScriptNotFound, id)
+			return scripts.Script{}, nil
 		}
 
 		return scripts.Script{}, err
@@ -184,17 +184,9 @@ func (r *ScriptRepo) Script(ctx context.Context, id scripts.ScriptID) (scripts.S
 const deleteQuery = `DELETE FROM scripts WHERE script_id = $1`
 
 func (r *ScriptRepo) Delete(ctx context.Context, id scripts.ScriptID) error {
-	result, err := r.db.ExecContext(ctx, deleteQuery, id)
+	_, err := r.db.ExecContext(ctx, deleteQuery, id)
 	if err != nil {
 		return err
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rowsAffected == 0 {
-		return fmt.Errorf("%w Delete: cannot delete script with id: %d", scripts.ErrScriptNotFound, id)
 	}
 
 	return nil
@@ -218,7 +210,7 @@ func (r *ScriptRepo) getScriptsByQuery(ctx context.Context, query string, args .
 		return nil, err
 	}
 	if len(scriptRows) == 0 {
-		return nil, fmt.Errorf("%w getScriptsByQuery: no scripts found", scripts.ErrScriptNotFound)
+		return nil, nil
 	}
 
 	return r.buildScriptsFromRows(ctx, scriptRows)
@@ -251,7 +243,7 @@ func (r *ScriptRepo) searchScriptsByUser(ctx context.Context, substr string, use
 		return nil, err
 	}
 	if len(scriptsRows) == 0 {
-		return nil, fmt.Errorf("%w SearchUserScripts: no scripts found for user %d with substr %q", scripts.ErrScriptNotFound, userID, substr)
+		return nil, nil
 	}
 
 	return r.buildScriptsFromRows(ctx, scriptsRows)
@@ -264,7 +256,7 @@ func (r *ScriptRepo) searchScriptsPublic(ctx context.Context, substr string) ([]
 		return nil, err
 	}
 	if len(scriptsRows) == 0 {
-		return nil, fmt.Errorf("%w SearchPublicScripts: no public scripts found with substr %q", scripts.ErrScriptNotFound, substr)
+		return nil, nil
 	}
 
 	return r.buildScriptsFromRows(ctx, scriptsRows)

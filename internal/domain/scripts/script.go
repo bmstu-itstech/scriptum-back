@@ -174,6 +174,10 @@ func (s *Script) CreatedAt() time.Time {
 	return s.createdAt
 }
 
+func (s *Script) IsZero() bool {
+	return s.id == 0
+}
+
 func RestoreScript(
 	id int64,
 	ownerID int64,

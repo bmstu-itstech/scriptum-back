@@ -2,10 +2,7 @@ package scripts
 
 import (
 	"context"
-	"errors"
 )
-
-var ErrScriptNotFound = errors.New("script not found")
 
 type ScriptRepository interface {
 	Create(ctx context.Context, script *ScriptPrototype) (*Script, error)

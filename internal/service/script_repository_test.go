@@ -2,7 +2,6 @@ package service_test
 
 import (
 	"context"
-	"strings"
 	"testing"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
@@ -10,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testScriptRepository_ScriptFound(t *testing.T, repo scripts.ScriptRepository) {
+func scriptRepository_ScriptFound(t *testing.T, repo scripts.ScriptRepository) {
 	proto := generateRandomScriptPrototype(t)
 	created, err := repo.Create(context.Background(), proto)
 	require.NoError(t, err)
@@ -22,12 +21,12 @@ func testScriptRepository_ScriptFound(t *testing.T, repo scripts.ScriptRepositor
 	require.Equal(t, created.OwnerID(), got.OwnerID())
 }
 
-func testScriptRepository_ScriptNotFound(t *testing.T, repo scripts.ScriptRepository) {
+func scriptRepository_ScriptNotFound(t *testing.T, repo scripts.ScriptRepository) {
 	_, err := repo.Script(context.Background(), 999999)
-	require.Error(t, err)
+	require.NoError(t, err)
 }
 
-func testScriptRepository_Delete(t *testing.T, repo scripts.ScriptRepository) {
+func scriptRepository_Delete(t *testing.T, repo scripts.ScriptRepository) {
 	proto := generateRandomScriptPrototype(t)
 	created, err := repo.Create(context.Background(), proto)
 	require.NoError(t, err)
@@ -35,11 +34,12 @@ func testScriptRepository_Delete(t *testing.T, repo scripts.ScriptRepository) {
 	err = repo.Delete(context.Background(), created.ID())
 	require.NoError(t, err)
 
-	_, err = repo.Script(context.Background(), created.ID())
-	require.Error(t, err)
+	script, err := repo.Script(context.Background(), created.ID())
+	require.True(t, script.IsZero())
+	require.NoError(t, err)
 }
 
-func testScriptRepository_Update(t *testing.T, repo scripts.ScriptRepository) {
+func scriptRepository_Update(t *testing.T, repo scripts.ScriptRepository) {
 	proto := generateRandomScriptPrototype(t)
 	created, err := repo.Create(context.Background(), proto)
 	require.NoError(t, err)
@@ -76,7 +76,7 @@ func testScriptRepository_Update(t *testing.T, repo scripts.ScriptRepository) {
 	require.Equal(t, created.Visibility(), got.Visibility())
 }
 
-func testScriptRepository_Create(t *testing.T, repo scripts.ScriptRepository) {
+func scriptRepository_Create(t *testing.T, repo scripts.ScriptRepository) {
 	script := generateRandomScriptPrototype(t)
 
 	created, err := repo.Create(context.Background(), script)
@@ -91,7 +91,7 @@ func testScriptRepository_Create(t *testing.T, repo scripts.ScriptRepository) {
 	require.Equal(t, script.Output(), created.Output())
 }
 
-func testScriptRepository_CreateMultiple(t *testing.T, repo scripts.ScriptRepository) {
+func scriptRepository_CreateMultiple(t *testing.T, repo scripts.ScriptRepository) {
 	count := 5
 	var prevID scripts.ScriptID = 0
 
@@ -114,7 +114,7 @@ func testScriptRepository_CreateMultiple(t *testing.T, repo scripts.ScriptReposi
 	}
 }
 
-func testScriptRepository_UserScripts_Found(t *testing.T, repo scripts.ScriptRepository) {
+func scriptRepository_UserScripts_Found(t *testing.T, repo scripts.ScriptRepository) {
 	ctx := context.Background()
 
 	ownerID := scripts.UserID(gofakeit.IntRange(1, 1000))
@@ -141,16 +141,16 @@ func testScriptRepository_UserScripts_Found(t *testing.T, repo scripts.ScriptRep
 	}
 }
 
-func testScriptRepository_UserScripts_NotFound(t *testing.T, repo scripts.ScriptRepository) {
+func scriptRepository_UserScripts_NotFound(t *testing.T, repo scripts.ScriptRepository) {
 	ctx := context.Background()
 	ownerID := scripts.UserID(999999)
 
 	scriptsFound, err := repo.UserScripts(ctx, ownerID)
-	require.Error(t, err)
+	require.NoError(t, err)
 	require.Nil(t, scriptsFound)
 }
 
-func testScriptRepository_PublicScripts_Found(t *testing.T, repo scripts.ScriptRepository) {
+func scriptRepository_PublicScripts_Found(t *testing.T, repo scripts.ScriptRepository) {
 	ctx := context.Background()
 
 	val, err := scripts.NewValueType("integer")
@@ -176,15 +176,15 @@ func testScriptRepository_PublicScripts_Found(t *testing.T, repo scripts.ScriptR
 	}
 }
 
-func testScriptRepository_PublicScripts_NotFound(t *testing.T, repo scripts.ScriptRepository) {
+func scriptRepository_PublicScripts_NotFound(t *testing.T, repo scripts.ScriptRepository) {
 	ctx := context.Background()
 
 	scriptsFound, err := repo.PublicScripts(ctx)
-	require.Error(t, err)
+	require.NoError(t, err)
 	require.Nil(t, scriptsFound)
 }
 
-func testScriptRepository_SearchPublicScripts_Found(t *testing.T, repo scripts.ScriptRepository) {
+func scriptRepository_SearchPublicScripts_Found(t *testing.T, repo scripts.ScriptRepository) {
 	ctx := context.Background()
 
 	ownerID := scripts.UserID(gofakeit.IntRange(1, 1000))
@@ -215,16 +215,15 @@ func testScriptRepository_SearchPublicScripts_Found(t *testing.T, repo scripts.S
 	}
 }
 
-func testScriptRepository_SearchPublicScripts_NotFound(t *testing.T, repo scripts.ScriptRepository) {
+func scriptRepository_SearchPublicScripts_NotFound(t *testing.T, repo scripts.ScriptRepository) {
 	ctx := context.Background()
 
 	scriptsFound, err := repo.SearchPublicScripts(ctx, "NoSuchSubstring")
-	require.Error(t, err)
+	require.NoError(t, err)
 	require.Nil(t, scriptsFound)
-	require.True(t, strings.Contains(err.Error(), "SearchPublicScripts"))
 }
 
-func testScriptRepository_SearchUserScripts_Found(t *testing.T, repo scripts.ScriptRepository) {
+func scriptRepository_SearchUserScripts_Found(t *testing.T, repo scripts.ScriptRepository) {
 	ctx := context.Background()
 
 	ownerID := scripts.UserID(gofakeit.IntRange(1, 1000))
@@ -255,14 +254,13 @@ func testScriptRepository_SearchUserScripts_Found(t *testing.T, repo scripts.Scr
 	}
 }
 
-func testScriptRepository_SearchUserScripts_NotFound(t *testing.T, repo scripts.ScriptRepository) {
+func scriptRepository_SearchUserScripts_NotFound(t *testing.T, repo scripts.ScriptRepository) {
 	ctx := context.Background()
 
 	ownerID := scripts.UserID(123456)
 	scriptsFound, err := repo.SearchUserScripts(ctx, ownerID, "NoSuchSubstring")
-	require.Error(t, err)
+	require.NoError(t, err)
 	require.Nil(t, scriptsFound)
-	require.True(t, strings.Contains(err.Error(), "SearchUserScripts"))
 }
 
 func generateRandomScriptPrototype(t *testing.T) *scripts.ScriptPrototype {
@@ -289,7 +287,7 @@ func generateRandomScriptPrototype(t *testing.T) *scripts.ScriptPrototype {
 	return proto
 }
 
-func testScriptRepository_MixedUserPublicScripts(t *testing.T, repo scripts.ScriptRepository) {
+func scriptRepository_MixedUserPublicScripts(t *testing.T, repo scripts.ScriptRepository) {
 	ctx := context.Background()
 
 	ownerID := scripts.UserID(gofakeit.IntRange(1, 1000))
@@ -325,7 +323,7 @@ func testScriptRepository_MixedUserPublicScripts(t *testing.T, repo scripts.Scri
 	require.True(t, found)
 }
 
-func testScriptRepository_MixedSearchUserAndPublic(t *testing.T, repo scripts.ScriptRepository) {
+func scriptRepository_MixedSearchUserAndPublic(t *testing.T, repo scripts.ScriptRepository) {
 	ctx := context.Background()
 
 	ownerID := scripts.UserID(gofakeit.IntRange(1, 1000))

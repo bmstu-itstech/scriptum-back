@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"sync"
 
@@ -42,7 +41,7 @@ func (r *MockScriptRepo) Update(ctx context.Context, script *scripts.Script) err
 	defer r.Unlock()
 
 	if _, ok := r.m[script.ID()]; !ok {
-		return fmt.Errorf("%w Update: cannot update script with id: %d", scripts.ErrScriptNotFound, script.ID())
+		return nil
 	}
 	r.m[script.ID()] = *script
 	return nil
@@ -54,7 +53,7 @@ func (r *MockScriptRepo) Delete(ctx context.Context, id scripts.ScriptID) error 
 	defer r.Unlock()
 
 	if _, ok := r.m[id]; !ok {
-		return fmt.Errorf("%w Delete: cannot delete script with id: %d", scripts.ErrScriptNotFound, id)
+		return nil
 	}
 	delete(r.m, id)
 	return nil
@@ -66,7 +65,7 @@ func (r *MockScriptRepo) Script(ctx context.Context, id scripts.ScriptID) (scrip
 
 	script, ok := r.m[id]
 	if !ok {
-		return scripts.Script{}, fmt.Errorf("%w Script: cannot extract script with id: %d", scripts.ErrScriptNotFound, id)
+		return scripts.Script{}, nil
 	}
 	return script, nil
 }
@@ -81,7 +80,7 @@ func (r *MockScriptRepo) UserScripts(ctx context.Context, userID scripts.UserID)
 		}
 	}
 	if len(scriptArray) == 0 {
-		return nil, fmt.Errorf("%w UserScripts: no scripts belonging to user with ID %d in repository", scripts.ErrScriptNotFound, userID)
+		return nil, nil
 	}
 	return scriptArray, nil
 }
@@ -96,7 +95,7 @@ func (r *MockScriptRepo) PublicScripts(ctx context.Context) ([]scripts.Script, e
 		}
 	}
 	if len(scriptArray) == 0 {
-		return nil, fmt.Errorf("%w PublicScripts : no public scripts in repository", scripts.ErrScriptNotFound)
+		return nil, nil
 	}
 	return scriptArray, nil
 }
@@ -111,7 +110,7 @@ func (r *MockScriptRepo) SearchPublicScripts(ctx context.Context, substr string)
 		}
 	}
 	if len(scriptArray) == 0 {
-		return nil, fmt.Errorf("%w SearchPublicScripts: no public scripts with substring '%s' in repository", scripts.ErrScriptNotFound, substr)
+		return nil, nil
 	}
 	return scriptArray, nil
 }
@@ -127,7 +126,7 @@ func (r *MockScriptRepo) SearchUserScripts(ctx context.Context, userID scripts.U
 		}
 	}
 	if len(scriptArray) == 0 {
-		return nil, fmt.Errorf("%w SearchUserScripts: no scripts with substring '%s' belonging to user with ID %d in repository", scripts.ErrScriptNotFound, substr, userID)
+		return nil, nil
 	}
 	return scriptArray, nil
 }
