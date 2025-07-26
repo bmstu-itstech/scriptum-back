@@ -7,10 +7,15 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/service"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
 )
 
 func setUpScriptRepository() (*service.ScriptRepo, error) {
+	err := godotenv.Load("../../.env")
+	if err != nil {
+		return nil, err
+	}
 	dsn := os.Getenv("DATABASE_URI")
 
 	db, err := sqlx.Connect("pgx", dsn)

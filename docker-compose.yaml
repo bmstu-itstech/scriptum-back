@@ -25,27 +25,10 @@ services:
     volumes:
       - ./migrations:/migrations
     env_file: .env
-    environment:
-      DATABASE_URI: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
-    command: [ "-path", "/migrations", "-database", "$DATABASE_URI", "up" ]
+    command: [ "-path", "/migrations", "-database", "$DATABASE_URI_DOCKER", "up" ]
     depends_on:
       db:
         condition: service_healthy
-
-  test:
-    image: golang:1.23.7-alpine
-    working_dir: /scriptum-back
-    volumes:
-      - ./:/scriptum-back
-    environment:
-      DATABASE_URI: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable"
-    networks:
-      - web-umd
-    depends_on:
-      - db
-      - migrate
-    command: sh -c "apk add --no-cache git && go test -v ./internal/service/"
-    restart: "no"
 
 networks:
   web-umd:
