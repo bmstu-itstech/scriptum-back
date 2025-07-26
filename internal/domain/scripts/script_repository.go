@@ -1,6 +1,8 @@
 package scripts
 
-import "context"
+import (
+	"context"
+)
 
 type ScriptRepository interface {
 	Create(ctx context.Context, script *ScriptPrototype) (*Script, error)
