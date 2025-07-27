@@ -34,3 +34,7 @@ test_services:
 	$(COMPOSE) down -v
 	rm -rf .pgdata
 
+reset_test_services:
+	$(COMPOSE) down -v
+	rm -rf .pgdata
+	
