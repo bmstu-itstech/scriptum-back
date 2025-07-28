@@ -21,7 +21,7 @@ func NewScriptRepository(db *sqlx.DB) *ScriptRepo {
 	}
 }
 
-const createQuery = `
+const createScriptQuery = `
 		INSERT INTO scripts (name, description, path, visibility, owner_id)
 		VALUES (:name, :description, :path, :visibility, :owner_id)
 		RETURNING script_id
@@ -97,7 +97,7 @@ func (r *ScriptRepo) Create(ctx context.Context, script *scripts.ScriptPrototype
 	}()
 	var scriptID int64
 
-	named, args, err := sqlx.Named(createQuery, convertScriptPrototipeToDB(script))
+	named, args, err := sqlx.Named(createScriptQuery, convertScriptPrototipeToDB(script))
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func (r *ScriptRepo) Create(ctx context.Context, script *scripts.ScriptPrototype
 	return scr, err
 }
 
-const getQuery = "SELECT * FROM scripts WHERE script_id=$1"
+const getScriptQuery = "SELECT * FROM scripts WHERE script_id=$1"
 
 const getFieldsQuery = `
 		SELECT f.*
@@ -132,7 +132,7 @@ const getFieldsQuery = `
 func (r *ScriptRepo) Script(ctx context.Context, id scripts.ScriptID) (scripts.Script, error) {
 	var scriptRaw scriptRow
 
-	err := r.db.GetContext(ctx, &scriptRaw, getQuery, id)
+	err := r.db.GetContext(ctx, &scriptRaw, getScriptQuery, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return scripts.Script{}, nil
@@ -181,10 +181,10 @@ func (r *ScriptRepo) Script(ctx context.Context, id scripts.ScriptID) (scripts.S
 	return *script, nil
 }
 
-const deleteQuery = `DELETE FROM scripts WHERE script_id = $1`
+const deleteScriptQuery = `DELETE FROM scripts WHERE script_id = $1`
 
 func (r *ScriptRepo) Delete(ctx context.Context, id scripts.ScriptID) error {
-	_, err := r.db.ExecContext(ctx, deleteQuery, id)
+	_, err := r.db.ExecContext(ctx, deleteScriptQuery, id)
 	if err != nil {
 		return err
 	}

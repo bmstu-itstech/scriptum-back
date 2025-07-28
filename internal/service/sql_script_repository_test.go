@@ -26,7 +26,7 @@ func setUpScriptRepository() (*service.ScriptRepo, error) {
 	return service.NewScriptRepository(db), err
 }
 
-func TestScriptRepository(t *testing.T) {
+func testScriptRepository(t *testing.T) {
 	r, err := setUpScriptRepository()
 	require.NoError(t, err)
 

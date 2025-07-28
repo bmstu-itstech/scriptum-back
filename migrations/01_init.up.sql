@@ -10,6 +10,11 @@ DO $$ BEGIN
     CREATE TYPE PARAM_TYPE AS ENUM ('in', 'out');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
+DO $$ BEGIN
+    CREATE TYPE JOB_STATE AS ENUM ('pending', 'running', 'finished');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+
 CREATE TABLE fields (
     field_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name TEXT NOT NULL CHECK (LENGTH(name) <= 100),
@@ -52,6 +57,7 @@ CREATE TABLE jobs (
     started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     closed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     status_code INT,
+    state JOB_STATE NOT NULL DEFAULT 'pending',
     error_message TEXT,
     script_id BIGINT NOT NULL,
     FOREIGN KEY (script_id) REFERENCES scripts(script_id) ON DELETE CASCADE ON UPDATE CASCADE

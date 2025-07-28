@@ -37,12 +37,33 @@ func NewJobStateFromString(s string) (JobState, error) {
 
 type JobPrototype struct {
 	ownerID   UserID
+	scriptID  ScriptID
 	input     []Value
 	createdAt time.Time
 }
 
+func NewJobPrototype(ownerID UserID, scriptID ScriptID, input []Value) (*JobPrototype, error) {
+	if ownerID <= 0 {
+		return nil, fmt.Errorf("%w: invalid ownerID", ErrInvalidInput)
+	}
+	if scriptID <= 0 {
+		return nil, fmt.Errorf("%w: invalid scriptID", ErrInvalidInput)
+	}
+
+	return &JobPrototype{
+		ownerID:   ownerID,
+		scriptID:  scriptID,
+		input:     input,
+		createdAt: time.Now(),
+	}, nil
+}
+
 func (p *JobPrototype) OwnerID() UserID {
 	return p.ownerID
+}
+
+func (p *JobPrototype) ScriptID() ScriptID {
+	return p.scriptID
 }
 
 func (p *JobPrototype) Input() []Value {
@@ -53,19 +74,14 @@ func (p *JobPrototype) CreatedAt() time.Time {
 	return p.createdAt
 }
 
-func (p *JobPrototype) Build(ownerID UserID, id JobID) (*Job, error) {
+func (p *JobPrototype) Build(id JobID) (*Job, error) {
 	if id <= 0 {
 		return nil, fmt.Errorf("%w: invalid JobID: expected positive id, got %d", ErrInvalidInput, id)
-	}
-
-	if ownerID == 0 {
-		return nil, fmt.Errorf("empty owner ID ")
 	}
 
 	return &Job{
 		JobPrototype: *p,
 		id:           id,
-		ownerID:      ownerID,
 		state:        JobPending,
 		result:       nil,
 		finishedAt:   nil,
@@ -75,7 +91,6 @@ func (p *JobPrototype) Build(ownerID UserID, id JobID) (*Job, error) {
 type Job struct {
 	JobPrototype
 	id         JobID
-	ownerID    UserID
 	state      JobState
 	result     *Result
 	finishedAt *time.Time
@@ -84,6 +99,7 @@ type Job struct {
 func RestoreJob(
 	id int64,
 	ownerID int64,
+	scriptID int64,
 	state string,
 	input []Value,
 	result *Result,
@@ -93,7 +109,6 @@ func RestoreJob(
 	if id == 0 {
 		return nil, fmt.Errorf("job.id is empty")
 	}
-
 	if state == "" {
 		return nil, fmt.Errorf("job.state is empty")
 	}
@@ -106,6 +121,7 @@ func RestoreJob(
 	return &Job{
 		JobPrototype: JobPrototype{
 			ownerID:   UserID(ownerID),
+			scriptID:  ScriptID(scriptID),
 			input:     input,
 			createdAt: createdAt,
 		},
@@ -131,13 +147,14 @@ func (j *Job) Run() error {
 var ErrJobIsNotRunning = errors.New("job is not running")
 
 func (j *Job) Finish(res Result) error {
-	if j.state == JobFinished {
+	if j.state != JobRunning {
 		return ErrJobIsNotRunning
 	}
 
 	j.result = &res
 	now := time.Now()
 	j.finishedAt = &now
+	j.state = JobFinished
 
 	return nil
 }
