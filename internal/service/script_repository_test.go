@@ -263,30 +263,6 @@ func scriptRepository_SearchUserScripts_NotFound(t *testing.T, repo scripts.Scri
 	require.Nil(t, scriptsFound)
 }
 
-func generateRandomScriptPrototype(t *testing.T) *scripts.ScriptPrototype {
-	t.Helper()
-
-	ownerID := scripts.UserID(gofakeit.IntRange(1, 1000))
-	name := gofakeit.LetterN(10)
-	desc := gofakeit.Sentence(5)
-	vis := scripts.VisibilityPublic
-	url := scripts.URL(gofakeit.LetterN(20))
-
-	val, err := scripts.NewValueType("integer")
-	require.NoError(t, err)
-
-	inputP, err := scripts.NewField(*val, gofakeit.LetterN(10), gofakeit.LetterN(10), gofakeit.LetterN(10))
-	require.NoError(t, err)
-
-	outputP, err := scripts.NewField(*val, gofakeit.LetterN(10), gofakeit.LetterN(10), gofakeit.LetterN(10))
-	require.NoError(t, err)
-
-	proto, err := scripts.NewScriptPrototype(ownerID, name, desc, vis, []scripts.Field{*inputP}, []scripts.Field{*outputP}, url)
-	require.NoError(t, err)
-
-	return proto
-}
-
 func scriptRepository_MixedUserPublicScripts(t *testing.T, repo scripts.ScriptRepository) {
 	ctx := context.Background()
 
@@ -362,4 +338,42 @@ func scriptRepository_MixedSearchUserAndPublic(t *testing.T, repo scripts.Script
 		require.Equal(t, ownerID, s.OwnerID())
 		require.Contains(t, s.Name(), "PrivateSearch")
 	}
+}
+
+func generateRandomScriptPrototype(t *testing.T) *scripts.ScriptPrototype {
+	t.Helper()
+
+	ownerID := scripts.UserID(gofakeit.IntRange(1, 1000))
+	name := gofakeit.LetterN(10)
+	desc := gofakeit.Sentence(5)
+	vis := scripts.VisibilityPublic
+	url := scripts.URL(gofakeit.LetterN(20))
+
+	val, err := scripts.NewValueType("integer")
+	require.NoError(t, err)
+
+	inputP1, err := scripts.NewField(*val, gofakeit.LetterN(10), gofakeit.LetterN(10), gofakeit.LetterN(10))
+	require.NoError(t, err)
+
+	inputP2, err := scripts.NewField(*val, gofakeit.LetterN(10), gofakeit.LetterN(10), gofakeit.LetterN(10))
+	require.NoError(t, err)
+
+	outputP1, err := scripts.NewField(*val, gofakeit.LetterN(10), gofakeit.LetterN(10), gofakeit.LetterN(10))
+	require.NoError(t, err)
+
+	outputP2, err := scripts.NewField(*val, gofakeit.LetterN(10), gofakeit.LetterN(10), gofakeit.LetterN(10))
+	require.NoError(t, err)
+
+	proto, err := scripts.NewScriptPrototype(
+		ownerID,
+		name,
+		desc,
+		vis,
+		[]scripts.Field{*inputP1, *inputP2},
+		[]scripts.Field{*outputP1, *outputP2},
+		url,
+	)
+	require.NoError(t, err)
+
+	return proto
 }

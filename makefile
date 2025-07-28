@@ -29,6 +29,8 @@ COMPOSE := docker compose --env-file=$(ENV_FILE)
 SERVICES := db migrate
 
 test_services: 
+	$(COMPOSE) down -v
+	rm -rf .pgdata
 	$(COMPOSE) up -d $(SERVICES)
 	go test -v ./internal/service/
 	$(COMPOSE) down -v

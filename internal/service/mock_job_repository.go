@@ -26,14 +26,14 @@ func (r *MockJobRepo) Create(ctx context.Context, job *scripts.JobPrototype) (*s
 
 	r.lastID++
 
-	newScript, err := job.Build(r.lastID)
+	newJob, err := job.Build(r.lastID)
 	if err != nil {
 		return nil, err
 	}
 
-	r.m[r.lastID] = *newScript
+	r.m[r.lastID] = *newJob
 
-	return newScript, nil
+	return newJob, nil
 }
 
 func (r *MockJobRepo) Update(ctx context.Context, job *scripts.Job) error {

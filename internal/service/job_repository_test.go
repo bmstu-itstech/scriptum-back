@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 	"github.com/brianvoe/gofakeit/v6"
@@ -64,14 +65,22 @@ func jobRepository_Update(t *testing.T, repo scripts.JobRepository) {
 
 	newState := "finished"
 
+	output := generateRandomValuePrototype(t)
+
+	res, err := scripts.NewSuccessResult(output)
+	require.NoError(t, err)
+
+	time := time.Now()
+
 	updatedJob, err := scripts.RestoreJob(
 		int64(created.ID()),
 		int64(created.OwnerID()),
+		int64(created.ScriptID()),
 		newState,
 		created.Input(),
-		nil,
+		res,
 		created.CreatedAt(),
-		nil,
+		&time,
 	)
 	require.NoError(t, err)
 
@@ -84,10 +93,14 @@ func jobRepository_Update(t *testing.T, repo scripts.JobRepository) {
 	state, err := scripts.NewJobStateFromString("finished")
 	require.NoError(t, err)
 
+	gotRes, err := got.Result()
+	require.NoError(t, err)
+
 	require.Equal(t, created.ID(), got.ID())
 	require.Equal(t, created.OwnerID(), got.OwnerID())
 	require.Equal(t, created.Input(), got.Input())
 	require.Equal(t, state, got.State())
+	require.Equal(t, res, gotRes)
 }
 
 func jobRepository_Delete(t *testing.T, repo scripts.JobRepository) {
@@ -105,8 +118,9 @@ func jobRepository_Delete(t *testing.T, repo scripts.JobRepository) {
 func jobRepository_UserJobs_Found(t *testing.T, repo scripts.JobRepository) {
 	ctx := context.Background()
 	ownerID := scripts.UserID(gofakeit.IntRange(1, 1000))
+	scriptID := scripts.ScriptID(gofakeit.IntRange(1, 3))
 
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 2; i++ {
 		input := []scripts.Value{}
 		for j := 0; j < 2; j++ {
 			v, err := scripts.NewValue("integer", strconv.Itoa(gofakeit.Number(0, 100)))
@@ -114,7 +128,7 @@ func jobRepository_UserJobs_Found(t *testing.T, repo scripts.JobRepository) {
 			input = append(input, v)
 		}
 
-		proto, err := scripts.NewJobPrototype(ownerID, input)
+		proto, err := scripts.NewJobPrototype(ownerID, scriptID, input)
 		require.NoError(t, err)
 
 		_, err = repo.Create(ctx, proto)
@@ -123,7 +137,7 @@ func jobRepository_UserJobs_Found(t *testing.T, repo scripts.JobRepository) {
 
 	jobs, err := repo.UserJobs(ctx, ownerID)
 	require.NoError(t, err)
-	require.Len(t, jobs, 3)
+	require.Len(t, jobs, 2)
 	for _, j := range jobs {
 		require.Equal(t, ownerID, j.OwnerID())
 	}
@@ -148,7 +162,7 @@ func jobRepository_UserJobsWithState_Found(t *testing.T, repo scripts.JobReposit
 		if i%2 == 0 {
 			protoOwner = scripts.UserID(ownerID + 1)
 		}
-		proto, err := scripts.NewJobPrototype(protoOwner, proto.Input())
+		proto, err := scripts.NewJobPrototype(protoOwner, proto.ScriptID(), proto.Input())
 		require.NoError(t, err)
 
 		job, err := repo.Create(ctx, proto)
@@ -157,9 +171,9 @@ func jobRepository_UserJobsWithState_Found(t *testing.T, repo scripts.JobReposit
 		if job.OwnerID() == ownerID {
 			err := job.Run()
 			require.NoError(t, err)
+			err = repo.Update(ctx, job)
+			require.NoError(t, err)
 		}
-		err = repo.Update(context.Background(), job)
-		require.NoError(t, err)
 
 	}
 
@@ -180,7 +194,7 @@ func jobRepository_UserJobsWithState_NotFound(t *testing.T, repo scripts.JobRepo
 
 	for i := 0; i < 3; i++ {
 		proto := generateRandomJobPrototype(t)
-		proto, err := scripts.NewJobPrototype(ownerID, proto.Input())
+		proto, err := scripts.NewJobPrototype(ownerID, proto.ScriptID(), proto.Input())
 		require.NoError(t, err)
 
 		_, err = repo.Create(ctx, proto)
@@ -204,7 +218,7 @@ func jobRepository_MixedUserJobs(t *testing.T, repo scripts.JobRepository) {
 		}
 
 		proto := generateRandomJobPrototype(t)
-		proto, err := scripts.NewJobPrototype(owner, proto.Input())
+		proto, err := scripts.NewJobPrototype(owner, proto.ScriptID(), proto.Input())
 		require.NoError(t, err)
 
 		_, err = repo.Create(ctx, proto)
@@ -242,7 +256,7 @@ func jobRepository_MixedUserJobsWithState(t *testing.T, repo scripts.JobReposito
 		}
 
 		proto := generateRandomJobPrototype(t)
-		proto, err := scripts.NewJobPrototype(owner, proto.Input())
+		proto, err := scripts.NewJobPrototype(owner, proto.ScriptID(), proto.Input())
 		require.NoError(t, err)
 
 		job, err := repo.Create(ctx, proto)
@@ -282,17 +296,24 @@ func generateRandomJobPrototype(t *testing.T) *scripts.JobPrototype {
 	t.Helper()
 
 	ownerID := scripts.UserID(gofakeit.IntRange(1, 1000))
+	scriptID := scripts.ScriptID(gofakeit.IntRange(1, 3))
 
-	input := make([]scripts.Value, 0, gofakeit.IntRange(1, 5))
-	for i := 0; i < cap(input); i++ {
-		numStr := strconv.Itoa(gofakeit.Number(0, 100))
-		v, err := scripts.NewValue("integer", numStr)
-		require.NoError(t, err)
-		input = append(input, v)
-	}
+	input := generateRandomValuePrototype(t)
 
-	proto, err := scripts.NewJobPrototype(ownerID, input)
+	proto, err := scripts.NewJobPrototype(ownerID, scriptID, input)
 	require.NoError(t, err)
 
 	return proto
+}
+
+func generateRandomValuePrototype(t *testing.T) []scripts.Value {
+	t.Helper()
+	arr := make([]scripts.Value, 0, 2)
+	for i := 0; i < cap(arr); i++ {
+		numStr := strconv.Itoa(gofakeit.Number(0, 100))
+		v, err := scripts.NewValue("integer", numStr)
+		require.NoError(t, err)
+		arr = append(arr, v)
+	}
+	return arr
 }

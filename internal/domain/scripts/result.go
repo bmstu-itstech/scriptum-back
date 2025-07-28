@@ -1,6 +1,8 @@
 package scripts
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type StatusCode = int
 
@@ -8,6 +10,34 @@ type Result struct {
 	output []Value
 	code   StatusCode
 	errMsg *string
+}
+
+func (r *Result) Code() StatusCode {
+	return r.code
+}
+
+func (r *Result) Output() []Value {
+	return r.output[:]
+}
+
+func (r *Result) ErrorMessage() *string {
+	return r.errMsg
+}
+
+func RestoreResult(output []Value, code StatusCode, errMsg *string) *Result {
+	var msg *string
+	var out []Value
+	if errMsg != nil {
+		msg = errMsg
+	}
+	if output != nil {
+		out = output[:]
+	}
+	return &Result{
+		output: out,
+		code:   code,
+		errMsg: msg,
+	}
 }
 
 func NewSuccessResult(output []Value) (*Result, error) {
