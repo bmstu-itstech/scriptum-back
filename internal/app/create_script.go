@@ -64,6 +64,9 @@ func (u *ScriptCreateUC) CreateScript(ctx context.Context, req ScriptCreateDTO) 
 	proto, err := scripts.NewScriptPrototype(
 		scripts.UserID(req.OwnerID), req.ScriptName, req.ScriptDescription, vis, input, output, url,
 	)
+	if err != nil {
+		return 0, err
+	}
 
 	script, err := u.scriptR.Create(ctx, proto)
 	if err != nil {

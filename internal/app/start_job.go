@@ -53,5 +53,5 @@ func (s *JobStartUC) StartJob(ctx context.Context, actorID int64, req ScriptRunD
 		return err
 	}
 
-	return s.dispatcher.Start(ctx, job)
+	return s.dispatcher.Start(ctx, job, req.NeedToNotify)
 }

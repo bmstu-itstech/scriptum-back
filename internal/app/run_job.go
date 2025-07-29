@@ -31,8 +31,18 @@ func NewJobRunUC(
 	}
 }
 
-func (l *JobRunUC) Run(ctx context.Context, jobDTO JobDTO) error {
+func (l *JobRunUC) Run(ctx context.Context, jobDTO JobDTO, needToNotify bool) error {
 	job, err := DTOToJob(jobDTO)
+	if err != nil {
+		return err
+	}
+
+	err = job.Run()
+	if err != nil {
+		return err
+	}
+
+	err = l.jobR.Update(ctx, job)
 	if err != nil {
 		return err
 	}
@@ -47,14 +57,21 @@ func (l *JobRunUC) Run(ctx context.Context, jobDTO JobDTO) error {
 		return err
 	}
 
+	err = l.jobR.Update(ctx, job)
+	if err != nil {
+		return err
+	}
+
 	user, err := l.userP.User(ctx, job.OwnerID())
 	if err != nil {
 		return err
 	}
 
-	err = l.notifier.Notify(ctx, job, user.Email())
-	if err != nil {
-		return err
+	if needToNotify {
+		err = l.notifier.Notify(ctx, job, user.Email())
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
