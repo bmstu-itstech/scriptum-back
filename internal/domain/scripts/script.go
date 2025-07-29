@@ -7,6 +7,7 @@ import (
 
 const ScriptNameMaxLen = 64
 const ScriptDescriptionMaxLen = 256
+const ScriptURLMaxLen = 200
 
 type ScriptID int32
 
@@ -96,6 +97,13 @@ func NewScriptPrototype(
 
 	if len(url) == 0 {
 		return nil, fmt.Errorf("%w: invalid Script: expected not empty URL", ErrInvalidInput)
+	}
+
+	if len(url) > ScriptURLMaxLen {
+		return nil, fmt.Errorf(
+			"%w: invalid Script: expected len(url) < %d, got len(url) = %d",
+			ErrInvalidInput, ScriptURLMaxLen, len(url),
+		)
 	}
 
 	return &ScriptPrototype{

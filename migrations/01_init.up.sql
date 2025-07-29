@@ -17,9 +17,9 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 CREATE TABLE fields (
     field_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name TEXT NOT NULL CHECK (LENGTH(name) <= 100),
-    description TEXT NOT NULL CHECK (LENGTH(description) <= 500),
-    unit TEXT NOT NULL CHECK (LENGTH(unit) <= 20),
+    name TEXT NOT NULL CHECK (LENGTH(name) <= 32),
+    description TEXT NOT NULL CHECK (LENGTH(description) <= 256),
+    unit TEXT NOT NULL CHECK (LENGTH(unit) <= 16),
     field_type FIELD_TYPE NOT NULL,
     param PARAM_TYPE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -27,8 +27,8 @@ CREATE TABLE fields (
 
 CREATE TABLE scripts (
     script_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name TEXT NOT NULL CHECK (LENGTH(name) <= 100),        
-    description TEXT CHECK (LENGTH(description) <= 500),   
+    name TEXT NOT NULL CHECK (LENGTH(name) <= 64),        
+    description TEXT CHECK (LENGTH(description) <= 256),   
     path TEXT NOT NULL CHECK (LENGTH(path) <= 200),
     visibility VISIBILITY NOT NULL,
     owner_id BIGINT NOT NULL,
