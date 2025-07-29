@@ -112,3 +112,19 @@ func NewValue(typ string, data string) (Value, error) {
 		ErrInvalidInput, typ,
 	)
 }
+
+type JSONValue struct {
+	Type  string `json:"type"`
+	Value string `json:"value"`
+}
+
+func (jv *JSONValue) ToValue() (Value, error) {
+	return NewValue(jv.Type, jv.Value)
+}
+
+func FromValue(v Value) JSONValue {
+	return JSONValue{
+		Type:  v.Type().String(),
+		Value: v.String(),
+	}
+}

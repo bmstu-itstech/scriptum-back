@@ -23,20 +23,24 @@ func NewLauncher(publisher message.Publisher) (*WatermillDispatcher, error) {
 
 func MarshalJob(job scripts.Job, needToNotify bool) ([]byte, error) {
 	type Job struct {
-		JobID        scripts.JobID    `json:"job_id"`
-		OwnerID      scripts.UserID   `json:"owner_id"`
-		ScriptID     scripts.ScriptID `json:"script_id"`
-		Input        []scripts.Value  `json:"in"`
-		UserEmail    scripts.Email    `json:"user_email"`
-		NeedToNotify bool             `json:"need_to_notify"`
-		CreatedAt    time.Time        `json:"started_at"`
+		JobID        scripts.JobID       `json:"job_id"`
+		OwnerID      scripts.UserID      `json:"owner_id"`
+		ScriptID     scripts.ScriptID    `json:"script_id"`
+		Input        []scripts.JSONValue `json:"in"`
+		NeedToNotify bool                `json:"need_to_notify"`
+		CreatedAt    time.Time           `json:"started_at"`
+	}
+
+	rawInputs := make([]scripts.JSONValue, 0, len(job.Input()))
+	for _, v := range job.Input() {
+		rawInputs = append(rawInputs, scripts.FromValue(v))
 	}
 
 	return json.Marshal(Job{
 		JobID:        job.ID(),
 		OwnerID:      job.OwnerID(),
 		ScriptID:     job.ScriptID(),
-		Input:        job.Input(),
+		Input:        rawInputs,
 		CreatedAt:    job.CreatedAt(),
 		NeedToNotify: needToNotify,
 	})
