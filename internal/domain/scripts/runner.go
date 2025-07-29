@@ -3,5 +3,5 @@ package scripts
 import "context"
 
 type Runner interface {
-	Run(context.Context, *Job, string, []Field) (Result, error)
+	Run(ctx context.Context, job *Job, path URL, expected []Field) (Result, error)
 }

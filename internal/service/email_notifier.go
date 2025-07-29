@@ -11,14 +11,15 @@ import (
 )
 
 type EmailNotifier struct {
-	from     string
-	password string
-	host     string
-	port     int
+	templateFile string
+	from         string
+	password     string
+	host         string
+	port         int
 }
 
-func NewEmailNotifier(from, password, host string, port int) (*EmailNotifier, error) {
-	return &EmailNotifier{from, password, host, port}, nil
+func NewEmailNotifier(templateFile, from, password, host string, port int) (*EmailNotifier, error) {
+	return &EmailNotifier{templateFile, from, password, host, port}, nil
 }
 
 type EmailTemplateData struct {
@@ -27,8 +28,6 @@ type EmailTemplateData struct {
 	OutputValues []string
 	ErrorMessage string
 }
-
-const templateFile = "resources/template/email_template.html"
 
 func (e *EmailNotifier) Notify(_ context.Context, j *scripts.Job, email scripts.Email) error {
 	res, err := j.Result()
@@ -52,7 +51,7 @@ func (e *EmailNotifier) Notify(_ context.Context, j *scripts.Job, email scripts.
 		data.ErrorMessage = *msg
 	}
 
-	tmplBytes, err := os.ReadFile(templateFile)
+	tmplBytes, err := os.ReadFile(e.templateFile)
 	if err != nil {
 		return err
 	}

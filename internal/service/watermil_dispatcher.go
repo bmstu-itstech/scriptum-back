@@ -23,17 +23,17 @@ func NewLauncher(publisher message.Publisher) (*WatermillDispatcher, error) {
 
 func MarshalJob(job scripts.Job, needToNotify bool) ([]byte, error) {
 	type Job struct {
-		JobID        scripts.JobID       `json:"job_id"`
-		OwnerID      scripts.UserID      `json:"owner_id"`
-		ScriptID     scripts.ScriptID    `json:"script_id"`
-		Input        []scripts.JSONValue `json:"in"`
-		NeedToNotify bool                `json:"need_to_notify"`
-		CreatedAt    time.Time           `json:"started_at"`
+		JobID        scripts.JobID    `json:"job_id"`
+		OwnerID      scripts.UserID   `json:"owner_id"`
+		ScriptID     scripts.ScriptID `json:"script_id"`
+		Input        []JSONValue      `json:"in"`
+		NeedToNotify bool             `json:"need_to_notify"`
+		CreatedAt    time.Time        `json:"started_at"`
 	}
 
-	rawInputs := make([]scripts.JSONValue, 0, len(job.Input()))
+	rawInputs := make([]JSONValue, 0, len(job.Input()))
 	for _, v := range job.Input() {
-		rawInputs = append(rawInputs, scripts.FromValue(v))
+		rawInputs = append(rawInputs, fromValue(v))
 	}
 
 	return json.Marshal(Job{
@@ -55,4 +55,20 @@ func (d *WatermillDispatcher) Start(ctx context.Context, request scripts.Job, ne
 	}
 
 	return err
+}
+
+type JSONValue struct {
+	Type  string `json:"type"`
+	Value string `json:"value"`
+}
+
+func (jv *JSONValue) toValue() (scripts.Value, error) {
+	return scripts.NewValue(jv.Type, jv.Value)
+}
+
+func fromValue(v scripts.Value) JSONValue {
+	return JSONValue{
+		Type:  v.Type().String(),
+		Value: v.String(),
+	}
 }

@@ -6,29 +6,25 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/ThreeDotsLabs/watermill/message"
-
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
 
 type PythonLauncher struct {
 	interpreter string
 	flags       []string
-	publisher   message.Publisher
 }
 
-func NewPythonLauncher(interpreter string, publisher message.Publisher, flags ...string) (*PythonLauncher, error) {
+func NewPythonLauncher(interpreter string, flags ...string) (*PythonLauncher, error) {
 	if interpreter == "" {
 		interpreter = "python3"
 	}
 	return &PythonLauncher{
 		interpreter: interpreter,
 		flags:       flags,
-		publisher:   publisher,
 	}, nil
 }
 
-func (p *PythonLauncher) Run(ctx context.Context, job *scripts.Job, path string, expected []scripts.Field) (scripts.Result, error) {
+func (p *PythonLauncher) Run(ctx context.Context, job *scripts.Job, path scripts.URL, expected []scripts.Field) (scripts.Result, error) {
 	args := []string{path}
 	values := job.Input()
 	rawValues := make([]string, len(values))
