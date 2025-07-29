@@ -46,7 +46,7 @@ func MarshalJob(job scripts.Job, needToNotify bool) ([]byte, error) {
 	})
 }
 
-func (d *WatermillDispatcher) Launch(ctx context.Context, request scripts.Job, needToNotify bool) error {
+func (d *WatermillDispatcher) Start(ctx context.Context, request scripts.Job, needToNotify bool) error {
 	payload, err := MarshalJob(request, needToNotify)
 	if err == nil {
 		msg := message.NewMessage(uuid.NewString(), payload)

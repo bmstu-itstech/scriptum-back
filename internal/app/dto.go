@@ -37,13 +37,14 @@ type ResultDTO struct {
 }
 
 type JobDTO struct {
-	JobID      int64
-	OwnerID    int64
-	Input      []ValueDTO
-	State      string
-	Result     *ResultDTO
-	CreatedAt  time.Time
-	FinishedAt *time.Time
+	JobID        int64
+	OwnerID      int64
+	Input        []ValueDTO
+	State        string
+	Result       *ResultDTO
+	CreatedAt    time.Time
+	FinishedAt   *time.Time
+	NeedToNotify bool
 }
 
 type FileDTO struct {
