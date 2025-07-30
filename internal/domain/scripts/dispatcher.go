@@ -3,5 +3,5 @@ package scripts
 import "context"
 
 type Dispatcher interface {
-	Start(context.Context, *Job) error
+	Start(context.Context, *Job, bool) error
 }

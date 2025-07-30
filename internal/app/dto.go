@@ -30,20 +30,17 @@ type ValueDTO struct {
 	Data string
 }
 
-type ResultDTO struct {
-	Code   int
-	Output []ValueDTO
-	ErrMsg *string
-}
-
 type JobDTO struct {
-	JobID      int64
-	OwnerID    int64
-	Input      []ValueDTO
-	State      string
-	Result     *ResultDTO
-	CreatedAt  time.Time
-	FinishedAt *time.Time
+	JobID        int64
+	OwnerID      int64
+	ScriptID     int64
+	Input        []ValueDTO
+	Expected     []FieldDTO
+	Url          string
+	State        string
+	CreatedAt    time.Time
+	FinishedAt   *time.Time
+	NeedToNotify bool
 }
 
 type FileDTO struct {
@@ -66,20 +63,88 @@ type ScriptRunDTO struct {
 	NeedToNotify bool
 }
 
-func DTOToFields(_ []FieldDTO) ([]scripts.Field, error) {
-	return nil, nil
+func FieldsToDTO(fields []scripts.Field) ([]FieldDTO, error) {
+	result := make([]FieldDTO, len(fields))
+	for i, field := range fields {
+		result[i] = FieldDTO{
+			Type: field.ValueType().String(),
+			Name: field.Name(),
+			Desc: field.Description(),
+			Unit: field.Unit(),
+		}
+	}
+	return result, nil
+}
+
+func DTOToFields(fields []FieldDTO) ([]scripts.Field, error) {
+	jobFields := make([]scripts.Field, len(fields))
+	for i, v := range fields {
+		valueType, err := scripts.NewValueType(v.Type)
+		if err != nil {
+			return nil, err
+		}
+		f, err := scripts.NewField(*valueType, v.Name, v.Desc, v.Unit)
+		if err != nil {
+			return nil, err
+		}
+		jobFields[i] = *f
+	}
+	return jobFields, nil
 }
 
 func ScriptToDTO(_ scripts.Script) ScriptDTO {
 	return ScriptDTO{}
 }
 
-func DTOToJob(_ JobDTO) (*scripts.Job, error) {
-	return nil, nil
+func DTOToJob(j JobDTO) (*scripts.Job, error) {
+	values, err := DTOToValues(j.Input)
+	if err != nil {
+		return nil, err
+	}
+
+	expected, err := DTOToFields(j.Expected)
+	if err != nil {
+		return nil, err
+	}
+
+	job, err := scripts.RestoreJob(
+		j.JobID,
+		j.OwnerID,
+		j.ScriptID,
+		j.State,
+		values,
+		expected,
+		j.Url,
+		nil,
+		j.CreatedAt,
+		j.FinishedAt,
+	)
+
+	return job, err
 }
 
-func DTOToValues(_ []ValueDTO) ([]scripts.Value, error) {
-	return nil, nil
+func ValuesToDTO(values []scripts.Value) ([]ValueDTO, error) {
+	jobValues := make([]ValueDTO, len(values))
+	for i, v := range values {
+		val := ValueDTO{
+			v.Type().String(),
+			v.String(),
+		}
+		jobValues[i] = val
+	}
+	return jobValues, nil
+}
+
+func DTOToValues(values []ValueDTO) ([]scripts.Value, error) {
+	jobValues := make([]scripts.Value, len(values))
+	for i, v := range values {
+		val, err := scripts.NewValue(v.Type, v.Data)
+		if err != nil {
+			return nil, err
+		}
+		jobValues[i] = val
+	}
+	return jobValues, nil
 }
 
 func DTOToFile(_ FileDTO) (*scripts.File, error) {
