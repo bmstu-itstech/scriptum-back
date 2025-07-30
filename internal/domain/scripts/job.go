@@ -40,9 +40,11 @@ type JobPrototype struct {
 	scriptID  ScriptID
 	input     []Value
 	createdAt time.Time
+	expected  []Field
+	url       URL
 }
 
-func NewJobPrototype(ownerID UserID, scriptID ScriptID, input []Value) (*JobPrototype, error) {
+func NewJobPrototype(ownerID UserID, scriptID ScriptID, input []Value, expected []Field, url URL) (*JobPrototype, error) {
 	if ownerID <= 0 {
 		return nil, fmt.Errorf("%w: invalid ownerID", ErrInvalidInput)
 	}
@@ -50,10 +52,27 @@ func NewJobPrototype(ownerID UserID, scriptID ScriptID, input []Value) (*JobProt
 		return nil, fmt.Errorf("%w: invalid scriptID", ErrInvalidInput)
 	}
 
+	if len(expected) == 0 {
+		return nil, fmt.Errorf("%w: invalid Expected: expected at least one output field", ErrInvalidInput)
+	}
+
+	if len(url) == 0 {
+		return nil, fmt.Errorf("%w: invalid URL: expected not empty URL", ErrInvalidInput)
+	}
+
+	if len(url) > ScriptURLMaxLen {
+		return nil, fmt.Errorf(
+			"%w: invalid Script: expected len(url) < %d, got len(url) = %d",
+			ErrInvalidInput, ScriptURLMaxLen, len(url),
+		)
+	}
+
 	return &JobPrototype{
 		ownerID:   ownerID,
 		scriptID:  scriptID,
 		input:     input,
+		expected:  expected,
+		url:       url,
 		createdAt: time.Now(),
 	}, nil
 }
@@ -68,6 +87,14 @@ func (p *JobPrototype) ScriptID() ScriptID {
 
 func (p *JobPrototype) Input() []Value {
 	return p.input[:] // Возврат копии
+}
+
+func (p *JobPrototype) Expected() []Field {
+	return p.expected[:]
+}
+
+func (p *JobPrototype) URL() URL {
+	return p.url
 }
 
 func (p *JobPrototype) CreatedAt() time.Time {
@@ -102,6 +129,8 @@ func RestoreJob(
 	scriptID int64,
 	state string,
 	input []Value,
+	expected []Field,
+	url URL,
 	result *Result,
 	createdAt time.Time,
 	finishedAt *time.Time,
@@ -123,6 +152,8 @@ func RestoreJob(
 			ownerID:   UserID(ownerID),
 			scriptID:  ScriptID(scriptID),
 			input:     input,
+			expected:  expected,
+			url:       url,
 			createdAt: createdAt,
 		},
 		id:         JobID(id),

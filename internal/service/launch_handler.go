@@ -18,12 +18,15 @@ type LaunchHandler struct {
 
 func UnmarshalJob(data []byte) (*app.JobDTO, error) {
 	type Job struct {
-		JobID        scripts.JobID    `json:"job_id"`
-		OwnerID      scripts.UserID   `json:"owner_id"`
-		ScriptID     scripts.ScriptID `json:"script_id"`
-		Input        []JSONValue      `json:"in"`
-		NeedToNotify bool             `json:"need_to_notify"`
-		CreatedAt    time.Time        `json:"started_at"`
+		JobID    scripts.JobID    `json:"job_id"`
+		OwnerID  scripts.UserID   `json:"owner_id"`
+		ScriptID scripts.ScriptID `json:"script_id"`
+		Input    []JSONValue      `json:"in"`
+		Expected []scripts.Field  `json:"exp"`
+		URL      string           `json:"url"`
+
+		NeedToNotify bool      `json:"need_to_notify"`
+		CreatedAt    time.Time `json:"started_at"`
 	}
 
 	var jsonJob Job
@@ -45,11 +48,17 @@ func UnmarshalJob(data []byte) (*app.JobDTO, error) {
 		return nil, err
 	}
 
+	expected, err := app.FieldsToDTO(jsonJob.Expected)
+	if err != nil {
+		return nil, err
+	}
+
 	job := &app.JobDTO{
 		JobID:        int64(jsonJob.JobID),
 		OwnerID:      int64(jsonJob.OwnerID),
 		ScriptID:     int64(jsonJob.ScriptID),
 		Input:        inputVal,
+		Expected:     expected,
 		State:        scripts.JobPending.String(),
 		CreatedAt:    jsonJob.CreatedAt,
 		FinishedAt:   nil,
@@ -69,7 +78,7 @@ func NewLaunchHandler(
 	}, nil
 }
 
-func (l *LaunchHandler) Listen(ctx context.Context, callback func(context.Context, app.JobDTO)) error {
+func (l *LaunchHandler) Listen(ctx context.Context, callback func(context.Context, app.JobDTO) error) error {
 	messages, err := l.subscriber.Subscribe(ctx, "script-start")
 	if err != nil {
 		l.watLogger.Error("Subscribe error", err, nil)
@@ -102,7 +111,12 @@ func (l *LaunchHandler) Listen(ctx context.Context, callback func(context.Contex
 						msg.Nack()
 						return
 					}
-					callback(ctx, *req)
+					if err := callback(ctx, *req); err != nil {
+						l.watLogger.Error("Callback error", err, nil)
+						msg.Nack()
+						return
+					}
+
 					msg.Ack()
 				}(msg)
 			}

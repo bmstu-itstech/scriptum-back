@@ -35,6 +35,8 @@ type JobDTO struct {
 	OwnerID      int64
 	ScriptID     int64
 	Input        []ValueDTO
+	Expected     []FieldDTO
+	Url          string
 	State        string
 	CreatedAt    time.Time
 	FinishedAt   *time.Time
@@ -61,8 +63,33 @@ type ScriptRunDTO struct {
 	NeedToNotify bool
 }
 
-func DTOToFields(_ []FieldDTO) ([]scripts.Field, error) {
-	return nil, nil
+func FieldsToDTO(fields []scripts.Field) ([]FieldDTO, error) {
+	result := make([]FieldDTO, len(fields))
+	for i, field := range fields {
+		result[i] = FieldDTO{
+			Type: field.ValueType().String(),
+			Name: field.Name(),
+			Desc: field.Description(),
+			Unit: field.Unit(),
+		}
+	}
+	return result, nil
+}
+
+func DTOToFields(fields []FieldDTO) ([]scripts.Field, error) {
+	jobFields := make([]scripts.Field, len(fields))
+	for i, v := range fields {
+		valueType, err := scripts.NewValueType(v.Type)
+		if err != nil {
+			return nil, err
+		}
+		f, err := scripts.NewField(*valueType, v.Name, v.Desc, v.Unit)
+		if err != nil {
+			return nil, err
+		}
+		jobFields[i] = *f
+	}
+	return jobFields, nil
 }
 
 func ScriptToDTO(_ scripts.Script) ScriptDTO {
@@ -75,12 +102,19 @@ func DTOToJob(j JobDTO) (*scripts.Job, error) {
 		return nil, err
 	}
 
+	expected, err := DTOToFields(j.Expected)
+	if err != nil {
+		return nil, err
+	}
+
 	job, err := scripts.RestoreJob(
 		j.JobID,
 		j.OwnerID,
 		j.ScriptID,
 		j.State,
 		values,
+		expected,
+		j.Url,
 		nil,
 		j.CreatedAt,
 		j.FinishedAt,

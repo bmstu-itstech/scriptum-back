@@ -246,6 +246,8 @@ func (s *Script) Assemble(by UserID, input []Value) (*JobPrototype, error) {
 	return &JobPrototype{
 		ownerID:   by,
 		input:     input,
+		expected:  s.Output(),
+		url:       s.URL(),
 		createdAt: time.Now(),
 	}, nil
 }

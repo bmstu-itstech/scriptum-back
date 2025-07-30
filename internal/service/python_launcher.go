@@ -15,17 +15,14 @@ type PythonLauncher struct {
 }
 
 func NewPythonLauncher(interpreter string, flags ...string) (*PythonLauncher, error) {
-	if interpreter == "" {
-		interpreter = "python3"
-	}
 	return &PythonLauncher{
 		interpreter: interpreter,
 		flags:       flags,
 	}, nil
 }
 
-func (p *PythonLauncher) Run(ctx context.Context, job *scripts.Job, path scripts.URL, expected []scripts.Field) (scripts.Result, error) {
-	args := []string{path}
+func (p *PythonLauncher) Run(ctx context.Context, job *scripts.Job) (scripts.Result, error) {
+	args := []string{job.URL()}
 	values := job.Input()
 	rawValues := make([]string, len(values))
 	for i, v := range values {
@@ -54,6 +51,8 @@ func (p *PythonLauncher) Run(ctx context.Context, job *scripts.Job, path scripts
 	}
 
 	out := strings.Fields(stdout.String())
+
+	expected := job.Expected()
 
 	outVals := make([]scripts.Value, len(expected))
 	for i, token := range out {

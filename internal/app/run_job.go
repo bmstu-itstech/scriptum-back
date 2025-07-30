@@ -40,11 +40,6 @@ func (l *JobRunUC) Run(ctx context.Context, jobDTO JobDTO) error {
 		return err
 	}
 
-	script, err := l.scriptR.Script(ctx, job.ScriptID())
-	if err != nil {
-		return err
-	}
-
 	err = job.Run()
 	if err != nil {
 		return err
@@ -55,7 +50,7 @@ func (l *JobRunUC) Run(ctx context.Context, jobDTO JobDTO) error {
 		return err
 	}
 
-	res, err := l.runner.Run(ctx, job, script.URL(), script.Output())
+	res, err := l.runner.Run(ctx, job)
 	if err != nil {
 		return err
 	}
