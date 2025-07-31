@@ -43,6 +43,35 @@ type JobDTO struct {
 	NeedToNotify bool
 }
 
+func JobToDTO(j scripts.Job) (JobDTO, error) {
+	input, err := ValuesToDTO(j.Input())
+	if err != nil {
+		return JobDTO{}, err
+	}
+
+	expected, err := FieldsToDTO(j.Expected())
+	if err != nil {
+		return JobDTO{}, err
+	}
+
+	finishedAt, err := j.FinishedAt()
+	if err != nil {
+		return JobDTO{}, err
+	}
+	return JobDTO{
+		JobID:      int64(j.ID()),
+		OwnerID:    int64(j.OwnerID()),
+		ScriptID:   int64(j.ScriptID()),
+		Input:      input,
+		Expected:   expected,
+		Url:        j.URL(),
+		State:      j.State().String(),
+		CreatedAt:  j.CreatedAt(),
+		FinishedAt: finishedAt,
+	}, nil
+
+}
+
 type FileDTO struct {
 	Name    string
 	Content []byte
@@ -92,8 +121,51 @@ func DTOToFields(fields []FieldDTO) ([]scripts.Field, error) {
 	return jobFields, nil
 }
 
-func ScriptToDTO(_ scripts.Script) ScriptDTO {
-	return ScriptDTO{}
+func ScriptToDTO(script scripts.Script) (ScriptDTO, error) {
+	input, err := FieldsToDTO(script.Input())
+	if err != nil {
+		return ScriptDTO{}, nil
+	}
+	output, err := FieldsToDTO(script.Output())
+	if err != nil {
+		return ScriptDTO{}, nil
+	}
+	return ScriptDTO{
+		ID:         int32(script.ID()),
+		OwnerID:    int64(script.OwnerID()),
+		Name:       script.Name(),
+		Desc:       script.Desc(),
+		Input:      input,
+		Output:     output,
+		URL:        script.URL(),
+		Visibility: script.Visibility().String(),
+		CreatedAt:  script.CreatedAt(),
+	}, nil
+}
+
+func DTOToScript(s ScriptDTO) (*scripts.Script, error) {
+	input, err := DTOToFields(s.Input)
+	if err != nil {
+		return nil, err
+	}
+
+	output, err := DTOToFields(s.Output)
+	if err != nil {
+		return nil, err
+	}
+
+	script, err := scripts.RestoreScript(
+		int64(s.ID),
+		s.OwnerID,
+		s.Name,
+		s.Desc,
+		s.Visibility,
+		input,
+		output,
+		s.URL,
+		s.CreatedAt,
+	)
+	return script, err
 }
 
 func DTOToJob(j JobDTO) (*scripts.Job, error) {
