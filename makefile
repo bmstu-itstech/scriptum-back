@@ -22,3 +22,21 @@ test:
 	rm -f $(FILES_TO_CLEAN)
 	rm -rf $(MOCKS)
 	@echo "Тесты завершены"
+
+
+ENV_FILE := .env
+COMPOSE := docker compose --env-file=$(ENV_FILE)
+SERVICES := db migrate
+
+test_services: 
+	$(COMPOSE) down -v
+	rm -rf .pgdata
+	$(COMPOSE) up -d $(SERVICES)
+	go test -v ./internal/service/
+	$(COMPOSE) down -v
+	rm -rf .pgdata
+
+reset_test_services:
+	$(COMPOSE) down -v
+	rm -rf .pgdata
+	

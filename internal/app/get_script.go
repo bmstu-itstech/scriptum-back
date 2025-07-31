@@ -29,5 +29,5 @@ func (u *GetScriptUC) Script(ctx context.Context, actorId int64, scriptId int32)
 		return ScriptDTO{}, scripts.ErrPermissionDenied
 	}
 
-	return ScriptToDTO(s), nil
+	return ScriptToDTO(s)
 }

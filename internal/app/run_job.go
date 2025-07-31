@@ -8,6 +8,7 @@ import (
 )
 
 type JobRunUC struct {
+	scriptR  scripts.ScriptRepository
 	jobR     scripts.JobRepository
 	runner   scripts.Runner
 	notifier scripts.Notifier
@@ -16,6 +17,7 @@ type JobRunUC struct {
 }
 
 func NewJobRunUC(
+	scriptR scripts.ScriptRepository,
 	jobR scripts.JobRepository,
 	launcher scripts.Runner,
 	notifier scripts.Notifier,
@@ -23,6 +25,7 @@ func NewJobRunUC(
 	logger *slog.Logger,
 ) JobRunUC {
 	return JobRunUC{
+		scriptR:  scriptR,
 		jobR:     jobR,
 		runner:   launcher,
 		notifier: notifier,
@@ -37,6 +40,16 @@ func (l *JobRunUC) Run(ctx context.Context, jobDTO JobDTO) error {
 		return err
 	}
 
+	err = job.Run()
+	if err != nil {
+		return err
+	}
+
+	err = l.jobR.Update(ctx, job)
+	if err != nil {
+		return err
+	}
+
 	res, err := l.runner.Run(ctx, job)
 	if err != nil {
 		return err
@@ -47,14 +60,21 @@ func (l *JobRunUC) Run(ctx context.Context, jobDTO JobDTO) error {
 		return err
 	}
 
+	err = l.jobR.Update(ctx, job)
+	if err != nil {
+		return err
+	}
+
 	user, err := l.userP.User(ctx, job.OwnerID())
 	if err != nil {
 		return err
 	}
 
-	err = l.notifier.Notify(ctx, job, user.Email())
-	if err != nil {
-		return err
+	if jobDTO.NeedToNotify {
+		err = l.notifier.Notify(ctx, job, user.Email())
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -7,6 +7,7 @@ import (
 
 const ScriptNameMaxLen = 64
 const ScriptDescriptionMaxLen = 256
+const ScriptURLMaxLen = 200
 
 type ScriptID int32
 
@@ -23,6 +24,19 @@ func (v Visibility) String() string {
 
 func (v Visibility) IsZero() bool {
 	return v.s == ""
+}
+
+func NewScriptVisibilityFromString(s string) (Visibility, error) {
+	switch s {
+	case "public":
+		return VisibilityPublic, nil
+	case "private":
+		return VisibilityPrivate, nil
+	}
+	return Visibility{}, fmt.Errorf(
+		"%w: invalid Visibility: expected one of ['public', 'private'], got %s",
+		ErrInvalidInput, s,
+	)
 }
 
 type ScriptPrototype struct {
@@ -56,14 +70,14 @@ func NewScriptPrototype(
 	if len(name) > ScriptNameMaxLen {
 		return nil, fmt.Errorf(
 			"%w: invalid Script: expected len(name) < %d, got len(name) = %d",
-			ErrInvalidInput, FieldNameMaxLen, len(name),
+			ErrInvalidInput, ScriptNameMaxLen, len(name),
 		)
 	}
 
 	if len(desc) > ScriptDescriptionMaxLen {
 		return nil, fmt.Errorf(
 			"%w: invalid Script: expected len(desc) < %d, got len(desc) = %d",
-			ErrInvalidInput, FieldDescriptionMaxLen, len(desc),
+			ErrInvalidInput, ScriptDescriptionMaxLen, len(desc),
 		)
 	}
 
@@ -83,6 +97,13 @@ func NewScriptPrototype(
 
 	if len(url) == 0 {
 		return nil, fmt.Errorf("%w: invalid Script: expected not empty URL", ErrInvalidInput)
+	}
+
+	if len(url) > ScriptURLMaxLen {
+		return nil, fmt.Errorf(
+			"%w: invalid Script: expected len(url) < %d, got len(url) = %d",
+			ErrInvalidInput, ScriptURLMaxLen, len(url),
+		)
 	}
 
 	return &ScriptPrototype{
@@ -124,6 +145,10 @@ func (s *ScriptPrototype) URL() URL {
 	return s.url
 }
 
+func (s *ScriptPrototype) IsPublic() bool {
+	return s.vis == VisibilityPublic
+}
+
 func (s *ScriptPrototype) IsAvailableFor(userID UserID) bool {
 	if s.vis == VisibilityPublic {
 		return true
@@ -157,6 +182,49 @@ func (s *Script) CreatedAt() time.Time {
 	return s.createdAt
 }
 
+func (s *Script) IsZero() bool {
+	return s.id == 0
+}
+
+func RestoreScript(
+	id int64,
+	ownerID int64,
+	name string,
+	desc string,
+	vis string,
+	input []Field,
+	output []Field,
+	url string,
+	createdAt time.Time,
+) (*Script, error) {
+	if id == 0 {
+		return nil, fmt.Errorf("script.id is empty")
+	}
+
+	if vis == "" {
+		return nil, fmt.Errorf("script.vis is empty")
+	}
+
+	svis, err := NewScriptVisibilityFromString(vis)
+	if err != nil {
+		return nil, fmt.Errorf("invalid script.vis %s", vis)
+	}
+
+	return &Script{
+		ScriptPrototype: ScriptPrototype{
+			ownerID: UserID(ownerID),
+			name:    name,
+			desc:    desc,
+			vis:     svis,
+			input:   input,
+			output:  output,
+			url:     url,
+		},
+		id:        ScriptID(id),
+		createdAt: createdAt,
+	}, nil
+}
+
 func (s *Script) Assemble(by UserID, input []Value) (*JobPrototype, error) {
 	if len(s.ScriptPrototype.input) != len(input) {
 		return nil, fmt.Errorf(
@@ -178,6 +246,8 @@ func (s *Script) Assemble(by UserID, input []Value) (*JobPrototype, error) {
 	return &JobPrototype{
 		ownerID:   by,
 		input:     input,
+		expected:  s.Output(),
+		url:       s.URL(),
 		createdAt: time.Now(),
 	}, nil
 }
