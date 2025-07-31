@@ -11,7 +11,7 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 )
 
-type LaunchHandler struct {
+type LaunchSubscriber struct {
 	subscriber message.Subscriber
 	watLogger  watermill.LoggerAdapter
 }
@@ -71,14 +71,14 @@ func UnmarshalJob(data []byte) (*app.JobDTO, error) {
 func NewLaunchHandler(
 	subscriber message.Subscriber,
 	watLogger watermill.LoggerAdapter,
-) (*LaunchHandler, error) {
-	return &LaunchHandler{
+) (*LaunchSubscriber, error) {
+	return &LaunchSubscriber{
 		subscriber: subscriber,
 		watLogger:  watLogger,
 	}, nil
 }
 
-func (l *LaunchHandler) Listen(ctx context.Context, callback func(context.Context, app.JobDTO) error) error {
+func (l *LaunchSubscriber) Listen(ctx context.Context, callback func(context.Context, app.JobDTO) error) error {
 	messages, err := l.subscriber.Subscribe(ctx, "script-start")
 	if err != nil {
 		l.watLogger.Error("Subscribe error", err, nil)

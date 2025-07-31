@@ -11,12 +11,12 @@ import (
 	"github.com/google/uuid"
 )
 
-type WatermillDispatcher struct {
+type LaunchPublisher struct {
 	publisher message.Publisher
 }
 
-func NewLauncher(publisher message.Publisher) (*WatermillDispatcher, error) {
-	return &WatermillDispatcher{
+func NewLauncher(publisher message.Publisher) (*LaunchPublisher, error) {
+	return &LaunchPublisher{
 		publisher: publisher,
 	}, nil
 }
@@ -51,7 +51,7 @@ func MarshalJob(job scripts.Job, needToNotify bool) ([]byte, error) {
 	})
 }
 
-func (d *WatermillDispatcher) Start(ctx context.Context, request scripts.Job, needToNotify bool) error {
+func (d *LaunchPublisher) Start(ctx context.Context, request scripts.Job, needToNotify bool) error {
 	payload, err := MarshalJob(request, needToNotify)
 	if err == nil {
 		msg := message.NewMessage(uuid.NewString(), payload)
