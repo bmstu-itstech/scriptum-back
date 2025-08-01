@@ -9,5 +9,5 @@ type Application struct {
 	GetJobs       GetJobsUC
 	GetScriptByID GetScriptUC
 	GetScripts    GetScriptsUC
-	SearchJob     JobDTO
+	SearchJob     SearchJobsUC
 }
