@@ -67,14 +67,14 @@ func NewScriptPrototype(
 		return nil, fmt.Errorf("%w: invalid Script: expected not empty name", ErrInvalidInput)
 	}
 
-	if len(name) > ScriptNameMaxLen {
+	if len(name) >= ScriptNameMaxLen {
 		return nil, fmt.Errorf(
 			"%w: invalid Script: expected len(name) < %d, got len(name) = %d",
 			ErrInvalidInput, ScriptNameMaxLen, len(name),
 		)
 	}
 
-	if len(desc) > ScriptDescriptionMaxLen {
+	if len(desc) >= ScriptDescriptionMaxLen {
 		return nil, fmt.Errorf(
 			"%w: invalid Script: expected len(desc) < %d, got len(desc) = %d",
 			ErrInvalidInput, ScriptDescriptionMaxLen, len(desc),
@@ -99,7 +99,7 @@ func NewScriptPrototype(
 		return nil, fmt.Errorf("%w: invalid Script: expected not empty URL", ErrInvalidInput)
 	}
 
-	if len(url) > ScriptURLMaxLen {
+	if len(url) >= ScriptURLMaxLen {
 		return nil, fmt.Errorf(
 			"%w: invalid Script: expected len(url) < %d, got len(url) = %d",
 			ErrInvalidInput, ScriptURLMaxLen, len(url),

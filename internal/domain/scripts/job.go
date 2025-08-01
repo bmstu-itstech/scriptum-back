@@ -62,7 +62,7 @@ func NewJobPrototype(ownerID UserID, scriptID ScriptID, input []Value, expected 
 
 	if len(url) > ScriptURLMaxLen {
 		return nil, fmt.Errorf(
-			"%w: invalid Script: expected len(url) < %d, got len(url) = %d",
+			"%w: invalid Script: expected len(url) <= %d, got len(url) = %d",
 			ErrInvalidInput, ScriptURLMaxLen, len(url),
 		)
 	}
