@@ -1,3 +1,6 @@
+include .env
+export
+
 TEST_DIR=.
 COVERAGE_TMP=coverage.out.tmp
 COVERAGE_OUT=coverage.out
@@ -40,3 +43,5 @@ reset_test_services:
 	$(COMPOSE) down -v
 	rm -rf .pgdata
 	
+run:
+	go run cmd/http/http.go

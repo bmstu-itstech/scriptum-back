@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"time"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
@@ -243,6 +244,9 @@ func DTOToValues(values []ValueDTO) ([]scripts.Value, error) {
 	return jobValues, nil
 }
 
-func DTOToFile(_ FileDTO) (*scripts.File, error) {
-	return nil, nil
+func DTOToFile(f FileDTO) (*scripts.File, error) {
+	if f.Name == "" {
+		return nil, errors.New("file name is empty")
+	}
+	return scripts.NewFile(f.Name, f.Content)
 }

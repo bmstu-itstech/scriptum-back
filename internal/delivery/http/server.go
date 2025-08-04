@@ -23,16 +23,12 @@ func NewServer(app *app.Application) *Server {
 }
 
 func (s *Server) GetJobs(w http.ResponseWriter, r *http.Request) {
-	gotUserID, err := jwtauth.UserIDFromContext(r.Context())
+	userID, err := jwtauth.UserIDFromContext(r.Context())
 	if err != nil {
 		httpError(w, r, err, http.StatusUnauthorized)
 		return
 	}
-	userID, err := strconv.ParseInt(gotUserID, 10, 64)
-	if err != nil {
-		httpError(w, r, err, http.StatusBadRequest)
-		return
-	}
+
 	results, err := s.app.GetJobs.Jobs(r.Context(), uint32(userID))
 	if err != nil {
 		httpError(w, r, err, http.StatusInternalServerError)
@@ -48,16 +44,12 @@ func (s *Server) GetJobs(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetJobsSearch(w http.ResponseWriter, r *http.Request, params GetJobsSearchParams) {
-	gotUserID, err := jwtauth.UserIDFromContext(r.Context())
+	userID, err := jwtauth.UserIDFromContext(r.Context())
 	if err != nil {
 		httpError(w, r, err, http.StatusUnauthorized)
 		return
 	}
-	userID, err := strconv.ParseInt(gotUserID, 10, 64)
-	if err != nil {
-		httpError(w, r, err, http.StatusBadRequest)
-		return
-	}
+
 	results, err := s.app.SearchJob.Search(r.Context(), uint32(userID), string(params.State))
 	if err != nil {
 		httpError(w, r, err, http.StatusInternalServerError)
@@ -77,16 +69,12 @@ func (s *Server) GetJobsSearch(w http.ResponseWriter, r *http.Request, params Ge
 }
 
 func (s *Server) GetJobsIdResult(w http.ResponseWriter, r *http.Request, id JobId) {
-	gotUserID, err := jwtauth.UserIDFromContext(r.Context())
+	userID, err := jwtauth.UserIDFromContext(r.Context())
 	if err != nil {
 		httpError(w, r, err, http.StatusUnauthorized)
 		return
 	}
-	userID, err := strconv.ParseInt(gotUserID, 10, 64)
-	if err != nil {
-		httpError(w, r, err, http.StatusBadRequest)
-		return
-	}
+
 	job, err := s.app.GetJob.Job(r.Context(), uint32(userID), int64(id))
 	if err != nil {
 		if errors.Is(err, fmt.Errorf("permission denied")) {
@@ -101,14 +89,9 @@ func (s *Server) GetJobsIdResult(w http.ResponseWriter, r *http.Request, id JobI
 }
 
 func (s *Server) GetJobsIdResultDownload(w http.ResponseWriter, r *http.Request, id JobId) {
-	gotUserID, err := jwtauth.UserIDFromContext(r.Context())
+	userID, err := jwtauth.UserIDFromContext(r.Context())
 	if err != nil {
 		httpError(w, r, err, http.StatusUnauthorized)
-		return
-	}
-	userID, err := strconv.ParseInt(gotUserID, 10, 64)
-	if err != nil {
-		httpError(w, r, err, http.StatusBadRequest)
 		return
 	}
 	job, err := s.app.GetJob.Job(r.Context(), uint32(userID), int64(id))
@@ -130,14 +113,9 @@ func (s *Server) GetJobsIdResultDownload(w http.ResponseWriter, r *http.Request,
 }
 
 func (s *Server) GetScripts(w http.ResponseWriter, r *http.Request) {
-	gotUserID, err := jwtauth.UserIDFromContext(r.Context())
+	userID, err := jwtauth.UserIDFromContext(r.Context())
 	if err != nil {
 		httpError(w, r, err, http.StatusUnauthorized)
-		return
-	}
-	userID, err := strconv.ParseInt(gotUserID, 10, 64)
-	if err != nil {
-		httpError(w, r, err, http.StatusBadRequest)
 		return
 	}
 	scrs, err := s.app.GetScripts.Scripts(r.Context(), uint32(userID))
@@ -156,17 +134,11 @@ func (s *Server) GetScripts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) PostScripts(w http.ResponseWriter, r *http.Request) {
-	gotUserID, err := jwtauth.UserIDFromContext(r.Context())
+	userID, err := jwtauth.UserIDFromContext(r.Context())
 	if err != nil {
 		httpError(w, r, err, http.StatusUnauthorized)
 		return
 	}
-	userID, err := strconv.ParseInt(gotUserID, 10, 64)
-	if err != nil {
-		httpError(w, r, err, http.StatusBadRequest)
-		return
-	}
-
 	req := PostScriptsJSONRequestBody{}
 	if err := render.Decode(r, &req); err != nil {
 		httpError(w, r, err, http.StatusBadRequest)
@@ -218,14 +190,9 @@ func (s *Server) PostScripts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetScriptsSearch(w http.ResponseWriter, r *http.Request, params GetScriptsSearchParams) {
-	gotUserID, err := jwtauth.UserIDFromContext(r.Context())
+	userID, err := jwtauth.UserIDFromContext(r.Context())
 	if err != nil {
 		httpError(w, r, err, http.StatusUnauthorized)
-		return
-	}
-	userID, err := strconv.ParseInt(gotUserID, 10, 64)
-	if err != nil {
-		httpError(w, r, err, http.StatusBadRequest)
 		return
 	}
 	scrs, err := s.app.SearchScript.Search(r.Context(), uint32(userID), params.ScriptName)
@@ -250,14 +217,9 @@ func (s *Server) GetScriptsSearch(w http.ResponseWriter, r *http.Request, params
 }
 
 func (s *Server) DeleteScriptsId(w http.ResponseWriter, r *http.Request, id ScriptId) {
-	gotUserID, err := jwtauth.UserIDFromContext(r.Context())
+	userID, err := jwtauth.UserIDFromContext(r.Context())
 	if err != nil {
 		httpError(w, r, err, http.StatusUnauthorized)
-		return
-	}
-	userID, err := strconv.ParseInt(gotUserID, 10, 64)
-	if err != nil {
-		httpError(w, r, err, http.StatusBadRequest)
 		return
 	}
 	err = s.app.DeleteScript.DeleteScript(r.Context(), uint32(userID), uint32(id))
@@ -283,14 +245,9 @@ func (s *Server) DeleteScriptsId(w http.ResponseWriter, r *http.Request, id Scri
 }
 
 func (s *Server) GetScriptsId(w http.ResponseWriter, r *http.Request, id ScriptId) {
-	gotUserID, err := jwtauth.UserIDFromContext(r.Context())
+	userID, err := jwtauth.UserIDFromContext(r.Context())
 	if err != nil {
 		httpError(w, r, err, http.StatusUnauthorized)
-		return
-	}
-	userID, err := strconv.ParseInt(gotUserID, 10, 64)
-	if err != nil {
-		httpError(w, r, err, http.StatusBadRequest)
 		return
 	}
 	script, err := s.app.GetScriptByID.Script(r.Context(), int64(userID), int32(id))
@@ -307,14 +264,9 @@ func (s *Server) GetScriptsId(w http.ResponseWriter, r *http.Request, id ScriptI
 }
 
 func (s *Server) PutScriptsId(w http.ResponseWriter, r *http.Request, id ScriptId) {
-	gotUserID, err := jwtauth.UserIDFromContext(r.Context())
+	userID, err := jwtauth.UserIDFromContext(r.Context())
 	if err != nil {
 		httpError(w, r, err, http.StatusUnauthorized)
-		return
-	}
-	userID, err := strconv.ParseInt(gotUserID, 10, 64)
-	if err != nil {
-		httpError(w, r, err, http.StatusBadRequest)
 		return
 	}
 	scri := Script{}
@@ -341,14 +293,9 @@ func (s *Server) PutScriptsId(w http.ResponseWriter, r *http.Request, id ScriptI
 }
 
 func (s *Server) PostScriptsIdStart(w http.ResponseWriter, r *http.Request, id ScriptId) {
-	gotUserID, err := jwtauth.UserIDFromContext(r.Context())
+	userID, err := jwtauth.UserIDFromContext(r.Context())
 	if err != nil {
 		httpError(w, r, err, http.StatusUnauthorized)
-		return
-	}
-	userID, err := strconv.ParseInt(gotUserID, 10, 64)
-	if err != nil {
-		httpError(w, r, err, http.StatusBadRequest)
 		return
 	}
 

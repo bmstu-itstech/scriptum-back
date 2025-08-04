@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -17,21 +17,16 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/pkg/server"
 	"github.com/go-chi/chi/v5"
 	"github.com/jmoiron/sqlx"
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
 func main() {
 	l := logs.NewLogger("prod")
 	ctx := context.Background()
-	err := godotenv.Load()
-	if err != nil {
-		panic(err)
-	}
 
 	port, err := strconv.Atoi(os.Getenv("EMAIL_PORT"))
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed get port: %s", err.Error())
 	}
 
 	emailNotifier, err := service.NewEmailNotifier(
@@ -42,21 +37,15 @@ func main() {
 		port,
 	)
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed get email notifier: %s", err.Error())
 	}
 
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		os.Getenv("POSTGRES_HOST"),
-		os.Getenv("POSTGRES_PORT"),
-		os.Getenv("POSTGRES_USER"),
-		os.Getenv("POSTGRES_PASSWORD"),
-		os.Getenv("POSTGRES_DB"),
-		os.Getenv("POSTGRES_SSLMODE"),
-	)
-
-	db, err := sqlx.Connect("postgres", dsn)
+	if os.Getenv("DATABASE_URI") == "" {
+		log.Fatalf("DATABASE_URI is empty")
+	}
+	db, err := sqlx.Connect("postgres", os.Getenv("DATABASE_URI"))
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed connect postgres: %s", err.Error())
 	}
 	defer db.Close()
 
@@ -68,7 +57,7 @@ func main() {
 	scriptRepo := service.NewScriptRepository(db)
 	systemManager, err := service.NewSystemManager(".")
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed get system manager: %s", err.Error())
 	}
 
 	logger := sl.NewWatermillLoggerAdapter(l)
@@ -76,22 +65,22 @@ func main() {
 
 	dispatcher, err := service.NewLauncher(pubsub)
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed get launcher: %s", err.Error())
 	}
 
 	handler, err := service.NewLaunchHandler(pubsub, logger)
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed get handler: %s", err.Error())
 	}
 
 	userProv, err := service.NewMockUserProvider()
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed get user provider: %s", err.Error())
 	}
 
 	pythonLauncher, err := service.NewPythonLauncher(os.Getenv("PYTHON_INTERPRETER"))
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed get python launcher: %s", err.Error())
 	}
 
 	usecase := app.NewJobRunUC(scriptRepo, jobRepo, pythonLauncher, emailNotifier, userProv, l)

@@ -1,4 +1,9 @@
 openapi: 3.0.4
+servers:
+- url: "{url}/api"
+  variables:
+    url:
+      default: localhost:8080
 
 info:
   title: Scriptum - OpenAPI 3.0
