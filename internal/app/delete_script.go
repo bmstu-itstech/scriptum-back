@@ -17,8 +17,8 @@ type ScriptDeleteUC struct {
 func NewScriptDeleteUC(
 	scriptR scripts.ScriptRepository,
 	userR scripts.UserProvider,
-	logger *slog.Logger,
 	manager scripts.FileManager,
+	logger *slog.Logger,
 ) ScriptDeleteUC {
 	return ScriptDeleteUC{
 		scriptR: scriptR,

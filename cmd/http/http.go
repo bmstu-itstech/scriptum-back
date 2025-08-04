@@ -3,33 +3,23 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 
-	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 	"github.com/bmstu-itstech/scriptum-back/internal/app"
 	httpapi "github.com/bmstu-itstech/scriptum-back/internal/delivery/http"
 	"github.com/bmstu-itstech/scriptum-back/internal/service"
 	"github.com/bmstu-itstech/scriptum-back/pkg/logs"
+	"github.com/bmstu-itstech/scriptum-back/pkg/logs/sl"
 	"github.com/bmstu-itstech/scriptum-back/pkg/server"
 	"github.com/go-chi/chi/v5"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
-
-type Config struct {
-	DBHost     string
-	DBPort     string
-	DBUser     string
-	DBPassword string
-	DBName     string
-	DBSSLMode  string
-}
 
 func main() {
 	l := logs.NewLogger("prod")
@@ -55,22 +45,13 @@ func main() {
 		panic(err)
 	}
 
-	cfg := Config{
-		DBHost:     os.Getenv("POSTGRES_HOST"),
-		DBPort:     os.Getenv("POSTGRES_PORT"),
-		DBUser:     os.Getenv("POSTGRES_USER"),
-		DBPassword: os.Getenv("POSTGRES_PASSWORD"),
-		DBName:     os.Getenv("POSTGRES_DB"),
-		DBSSLMode:  os.Getenv("POSTGRES_SSLMODE"),
-	}
-
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		cfg.DBHost,
-		cfg.DBPort,
-		cfg.DBUser,
-		cfg.DBPassword,
-		cfg.DBName,
-		cfg.DBSSLMode,
+		os.Getenv("POSTGRES_HOST"),
+		os.Getenv("POSTGRES_PORT"),
+		os.Getenv("POSTGRES_USER"),
+		os.Getenv("POSTGRES_PASSWORD"),
+		os.Getenv("POSTGRES_DB"),
+		os.Getenv("POSTGRES_SSLMODE"),
 	)
 
 	db, err := sqlx.Connect("postgres", dsn)
@@ -90,7 +71,7 @@ func main() {
 		panic(err)
 	}
 
-	logger := watermill.NewStdLogger(false, false)
+	logger := sl.NewWatermillLoggerAdapter(l)
 	pubsub := gochannel.NewGoChannel(gochannel.Config{}, logger)
 
 	dispatcher, err := service.NewLauncher(pubsub)
@@ -108,7 +89,7 @@ func main() {
 		panic(err)
 	}
 
-	pythonLauncher, err := service.NewPythonLauncher("")
+	pythonLauncher, err := service.NewPythonLauncher(os.Getenv("PYTHON_INTERPRETER"))
 	if err != nil {
 		panic(err)
 	}
@@ -118,7 +99,7 @@ func main() {
 
 	application := app.Application{
 		CreateScript:  app.NewScriptCreateUC(scriptRepo, userProv, systemManager, l),
-		DeleteScript:  app.NewScriptDeleteUC(scriptRepo, userProv, l, systemManager),
+		DeleteScript:  app.NewScriptDeleteUC(scriptRepo, userProv, systemManager, l),
 		UpdateScript:  app.NewScriptUpdateUC(scriptRepo, l),
 		SearchScript:  app.NewSearchScriptsUC(scriptRepo, userProv, l),
 		StartJob:      app.NewJobStartUC(scriptRepo, jobRepo, dispatcher, l),
@@ -129,7 +110,7 @@ func main() {
 		SearchJob:     app.NewSearchJobsUC(jobRepo, userProv, l),
 	}
 
-	log.Println("Starting server")
+	l.Info("Starting server")
 	server.RunHTTPServer(func(router chi.Router) http.Handler {
 		return httpapi.HandlerFromMux(httpapi.NewServer(&application), router)
 	})
