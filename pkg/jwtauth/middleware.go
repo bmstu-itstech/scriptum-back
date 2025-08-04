@@ -33,7 +33,7 @@ func HTTPMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		r = r.WithContext(userUUIDToContext(r.Context(), claims.UserUUID))
+		r = r.WithContext(userIDToContext(r.Context(), claims.UserUUID))
 
 		next.ServeHTTP(w, r)
 	})

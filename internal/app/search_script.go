@@ -17,8 +17,8 @@ func NewSearchScriptsUC(
 	scriptR scripts.ScriptRepository,
 	userP scripts.UserProvider,
 	logger *slog.Logger,
-) GetScriptsUC {
-	return GetScriptsUC{scriptR: scriptR, userP: userP, logger: logger}
+) SearchScriptsUC {
+	return SearchScriptsUC{scriptR: scriptR, userP: userP, logger: logger}
 }
 
 func (u *SearchScriptsUC) Search(ctx context.Context, userID uint32, substr string) ([]ScriptDTO, error) {

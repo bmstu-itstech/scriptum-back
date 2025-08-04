@@ -12,11 +12,11 @@ type ScriptUpdateUC struct {
 	logger  *slog.Logger
 }
 
-func NewUpdateCreateUC(
+func NewScriptUpdateUC(
 	scriptR scripts.ScriptRepository,
 	logger *slog.Logger,
-) ScriptCreateUC {
-	return ScriptCreateUC{
+) ScriptUpdateUC {
+	return ScriptUpdateUC{
 		scriptR: scriptR,
 		logger:  logger,
 	}

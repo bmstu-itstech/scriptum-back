@@ -51,8 +51,8 @@ func MarshalJob(job scripts.Job, needToNotify bool) ([]byte, error) {
 	})
 }
 
-func (d *LaunchPublisher) Start(ctx context.Context, request scripts.Job, needToNotify bool) error {
-	payload, err := MarshalJob(request, needToNotify)
+func (d *LaunchPublisher) Start(ctx context.Context, request *scripts.Job, needToNotify bool) error {
+	payload, err := MarshalJob(*request, needToNotify)
 	if err == nil {
 		msg := message.NewMessage(uuid.NewString(), payload)
 		err = d.publisher.Publish("script-start", msg)

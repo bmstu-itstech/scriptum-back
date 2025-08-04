@@ -43,38 +43,16 @@ type JobDTO struct {
 	NeedToNotify bool
 }
 
-func JobToDTO(j scripts.Job) (JobDTO, error) {
-	input, err := ValuesToDTO(j.Input())
-	if err != nil {
-		return JobDTO{}, err
-	}
-
-	expected, err := FieldsToDTO(j.Expected())
-	if err != nil {
-		return JobDTO{}, err
-	}
-
-	finishedAt, err := j.FinishedAt()
-	if err != nil {
-		return JobDTO{}, err
-	}
-	return JobDTO{
-		JobID:      int64(j.ID()),
-		OwnerID:    int64(j.OwnerID()),
-		ScriptID:   int64(j.ScriptID()),
-		Input:      input,
-		Expected:   expected,
-		Url:        j.URL(),
-		State:      j.State().String(),
-		CreatedAt:  j.CreatedAt(),
-		FinishedAt: finishedAt,
-	}, nil
-
-}
-
 type FileDTO struct {
 	Name    string
 	Content []byte
+}
+
+type UserDTO struct {
+	UserID  uint32
+	Name    string
+	Email   string
+	IsAdmin bool
 }
 
 type ScriptCreateDTO struct {
@@ -168,6 +146,34 @@ func DTOToScript(s ScriptDTO) (*scripts.Script, error) {
 	return script, err
 }
 
+func JobToDTO(j scripts.Job) (JobDTO, error) {
+	input, err := ValuesToDTO(j.Input())
+	if err != nil {
+		return JobDTO{}, err
+	}
+
+	expected, err := FieldsToDTO(j.Expected())
+	if err != nil {
+		return JobDTO{}, err
+	}
+
+	finishedAt, err := j.FinishedAt()
+	if err != nil {
+		return JobDTO{}, err
+	}
+	return JobDTO{
+		JobID:      int64(j.ID()),
+		OwnerID:    int64(j.OwnerID()),
+		ScriptID:   int64(j.ScriptID()),
+		Input:      input,
+		Expected:   expected,
+		Url:        j.URL(),
+		State:      j.State().String(),
+		CreatedAt:  j.CreatedAt(),
+		FinishedAt: finishedAt,
+	}, nil
+}
+
 func DTOToJob(j JobDTO) (*scripts.Job, error) {
 	values, err := DTOToValues(j.Input)
 	if err != nil {
@@ -193,6 +199,24 @@ func DTOToJob(j JobDTO) (*scripts.Job, error) {
 	)
 
 	return job, err
+}
+
+func UserToDTO(u scripts.User) (UserDTO, error) {
+	return UserDTO{
+		UserID:  uint32(u.UserID()),
+		Name:    string(u.Name()),
+		Email:   string(u.Email()),
+		IsAdmin: u.IsAdmin(),
+	}, nil
+}
+
+func DTOToUser(u UserDTO) (*scripts.User, error) {
+	return scripts.NewUser(
+		scripts.UserID(u.UserID),
+		scripts.Name(u.Name),
+		scripts.Email(u.Email),
+		u.IsAdmin,
+	)
 }
 
 func ValuesToDTO(values []scripts.Value) ([]ValueDTO, error) {

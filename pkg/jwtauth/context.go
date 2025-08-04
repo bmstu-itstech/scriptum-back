@@ -9,16 +9,16 @@ type ctxKey int
 
 const userCtxKey ctxKey = iota
 
-func userUUIDToContext(ctx context.Context, userUUID string) context.Context {
-	return context.WithValue(ctx, userCtxKey, userUUID)
+func userIDToContext(ctx context.Context, userID string) context.Context {
+	return context.WithValue(ctx, userCtxKey, userID)
 }
 
-var ErrNoUserUUIDInContext = errors.New("no user uuid in context")
+var ErrNoUserIDInContext = errors.New("no user id in context")
 
-func UserUUIDFromContext(ctx context.Context) (string, error) {
+func UserIDFromContext(ctx context.Context) (string, error) {
 	u, ok := ctx.Value(userCtxKey).(string)
 	if !ok {
-		return "", ErrNoUserUUIDInContext
+		return "", ErrNoUserIDInContext
 	}
 	return u, nil
 }

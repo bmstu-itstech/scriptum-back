@@ -6,6 +6,7 @@ type Application struct {
 	UpdateScript  ScriptUpdateUC
 	SearchScript  SearchScriptsUC
 	StartJob      JobStartUC
+	GetJob        GetJobUC
 	GetJobs       GetJobsUC
 	GetScriptByID GetScriptUC
 	GetScripts    GetScriptsUC
