@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -11,26 +12,44 @@ import (
 )
 
 type SystemManager struct {
-	directory string
+	directory   string
+	maxFileSize int64
 }
 
-func NewSystemManager(dir string) (*SystemManager, error) {
+func NewSystemManager(dir string, maxFileSize int64) (*SystemManager, error) {
 	err := os.MkdirAll(dir, 0755)
-
 	if err != nil {
 		return nil, err
 	}
 
 	return &SystemManager{
-		directory: dir,
+		directory:   dir,
+		maxFileSize: maxFileSize,
 	}, nil
 }
 
-func (s *SystemManager) Save(_ context.Context, file *scripts.File) (scripts.URL, error) {
-	filename := generateFilename(s.directory, file.Name())
+func (s *SystemManager) Save(_ context.Context, name string, content io.Reader) (scripts.URL, error) {
+	filename := generateFilename(s.directory, name)
 
-	err := os.WriteFile(filename, file.Content(), 0644)
-	return scripts.URL(filename), err
+	file, err := os.Create(filename)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	limitedReader := io.LimitReader(content, s.maxFileSize+1)
+
+	written, err := io.Copy(file, limitedReader)
+	if err != nil {
+		return "", err
+	}
+
+	if written > s.maxFileSize {
+		_ = os.Remove(filename)
+		return "", fmt.Errorf("%w:file size exceeds limit of %d bytes", scripts.ErrFileUpload, s.maxFileSize)
+	}
+
+	return scripts.URL(filename), nil
 }
 
 func (s *SystemManager) Delete(_ context.Context, path scripts.URL) error {
@@ -41,10 +60,10 @@ func generateFilename(dir, originalName string) string {
 	base := filepath.Base(originalName)
 	filename := fmt.Sprintf("%s/%s_%s", dir, uuid.New().String(), base)
 
-	if len(filename) > scripts.ScriptURLMaxLen {
+	if len(filename) > scripts.FileURLMaxLen {
 		runes := []rune(filename)
-		if len(runes) > scripts.ScriptURLMaxLen {
-			runes = runes[:scripts.ScriptURLMaxLen]
+		if len(runes) > scripts.FileURLMaxLen {
+			runes = runes[:scripts.FileURLMaxLen]
 		}
 		filename = string(runes)
 	}

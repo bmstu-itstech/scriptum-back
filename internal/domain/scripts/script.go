@@ -7,7 +7,6 @@ import (
 
 const ScriptNameMaxLen = 64
 const ScriptDescriptionMaxLen = 256
-const ScriptURLMaxLen = 200
 
 type ScriptID int32
 
@@ -46,7 +45,7 @@ type ScriptPrototype struct {
 	vis     Visibility // !vis.IsZero()
 	input   []Field    // len(input) > 0
 	output  []Field    // len(output) > 0
-	url     URL        // len(url) > 0
+	file    FileID     // len(url) > 0
 }
 
 func NewScriptPrototype(
@@ -56,7 +55,7 @@ func NewScriptPrototype(
 	visibility Visibility,
 	input []Field,
 	output []Field,
-	url URL,
+	file File,
 ) (*ScriptPrototype, error) {
 	if ownerID == 0 {
 		// Ошибка программиста
@@ -95,17 +94,6 @@ func NewScriptPrototype(
 		return nil, fmt.Errorf("%w: invalid Script: expected at least one output field", ErrInvalidInput)
 	}
 
-	if len(url) == 0 {
-		return nil, fmt.Errorf("%w: invalid Script: expected not empty URL", ErrInvalidInput)
-	}
-
-	if len(url) > ScriptURLMaxLen {
-		return nil, fmt.Errorf(
-			"%w: invalid Script: expected len(url) <= %d, got len(url) = %d",
-			ErrInvalidInput, ScriptURLMaxLen, len(url),
-		)
-	}
-
 	return &ScriptPrototype{
 		ownerID: ownerID,
 		name:    name,
@@ -113,7 +101,7 @@ func NewScriptPrototype(
 		vis:     visibility,
 		input:   input[:],
 		output:  output[:],
-		url:     url,
+		file:    file.ID(),
 	}, nil
 }
 
@@ -141,8 +129,8 @@ func (s *ScriptPrototype) Output() []Field {
 	return s.output[:]
 }
 
-func (s *ScriptPrototype) URL() URL {
-	return s.url
+func (s *ScriptPrototype) FileID() FileID {
+	return s.file
 }
 
 func (s *ScriptPrototype) IsPublic() bool {
@@ -194,7 +182,7 @@ func RestoreScript(
 	vis string,
 	input []Field,
 	output []Field,
-	url string,
+	fileID FileID,
 	createdAt time.Time,
 ) (*Script, error) {
 	if id == 0 {
@@ -218,14 +206,14 @@ func RestoreScript(
 			vis:     svis,
 			input:   input,
 			output:  output,
-			url:     url,
+			file:    fileID,
 		},
 		id:        ScriptID(id),
 		createdAt: createdAt,
 	}, nil
 }
 
-func (s *Script) Assemble(by UserID, input []Value) (*JobPrototype, error) {
+func (s *Script) Assemble(by UserID, input []Value, url URL) (*JobPrototype, error) {
 	if len(s.ScriptPrototype.input) != len(input) {
 		return nil, fmt.Errorf(
 			"%w: failed to assemble job: expected %d input values, got %d",
@@ -248,7 +236,7 @@ func (s *Script) Assemble(by UserID, input []Value) (*JobPrototype, error) {
 		ownerID:   by,
 		input:     input,
 		expected:  s.Output(),
-		url:       s.URL(),
+		url:       url,
 		createdAt: time.Now(),
 	}, nil
 }

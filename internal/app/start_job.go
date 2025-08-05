@@ -9,6 +9,7 @@ import (
 
 type JobStartUC struct {
 	scriptR    scripts.ScriptRepository
+	fileR      scripts.FileRepository
 	jobR       scripts.JobRepository
 	dispatcher scripts.Dispatcher
 	logger     *slog.Logger
@@ -16,12 +17,14 @@ type JobStartUC struct {
 
 func NewJobStartUC(
 	scriptR scripts.ScriptRepository,
+	fileR scripts.FileRepository,
 	jobR scripts.JobRepository,
 	dispatcher scripts.Dispatcher,
 	logger *slog.Logger,
 ) JobStartUC {
 	return JobStartUC{
 		scriptR:    scriptR,
+		fileR:      fileR,
 		jobR:       jobR,
 		dispatcher: dispatcher,
 		logger:     logger,
@@ -43,7 +46,12 @@ func (s *JobStartUC) StartJob(ctx context.Context, actorID int64, req ScriptRunD
 		return err
 	}
 
-	proto, err := script.Assemble(scripts.UserID(actorID), input)
+	file, err := s.fileR.File(ctx, script.FileID())
+	if err != nil {
+		return err
+	}
+
+	proto, err := script.Assemble(scripts.UserID(actorID), input, file.URL())
 	if err != nil {
 		return err
 	}

@@ -1,27 +1,40 @@
 package scripts
 
-import "fmt"
+import (
+	"fmt"
+)
+
+type FileID int64
+
+const FileURLMaxLen = 200
 
 type File struct {
-	name    string // len(name) > 0
-	content []byte
+	id  FileID
+	url string
 }
 
-func (f *File) Name() string {
-	return f.name
+func (f *File) ID() FileID {
+	return f.id
 }
 
-func (f *File) Content() []byte {
-	return f.content
+func (f *File) URL() string {
+	return f.url
 }
 
-func NewFile(name string, content []byte) (*File, error) {
-	if name == "" {
-		return nil, fmt.Errorf("%w: expected not empty filename", ErrInvalidInput)
+func NewFile(id FileID, url string) (*File, error) {
+	if url == "" {
+		return nil, fmt.Errorf("%w: file url must not be empty", ErrInvalidInput)
+	}
+
+	if len(url) > FileURLMaxLen {
+		return nil, fmt.Errorf(
+			"%w: invalid File: expected len(url) <= %d, got len(url) = %d",
+			ErrInvalidInput, FileURLMaxLen, len(url),
+		)
 	}
 
 	return &File{
-		name:    name,
-		content: content,
+		id:  id,
+		url: url,
 	}, nil
 }

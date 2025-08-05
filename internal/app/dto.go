@@ -1,7 +1,7 @@
 package app
 
 import (
-	"errors"
+	"io"
 	"time"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
@@ -17,11 +17,11 @@ type FieldDTO struct {
 type ScriptDTO struct {
 	ID         int32
 	OwnerID    int64
+	FileID     int64
 	Name       string
 	Desc       string
 	Input      []FieldDTO
 	Output     []FieldDTO
-	URL        string
 	Visibility string
 	CreatedAt  time.Time
 }
@@ -45,8 +45,8 @@ type JobDTO struct {
 }
 
 type FileDTO struct {
-	Name    string
-	Content []byte
+	Name   string
+	Reader io.Reader
 }
 
 type UserDTO struct {
@@ -116,7 +116,6 @@ func ScriptToDTO(script scripts.Script) (ScriptDTO, error) {
 		Desc:       script.Desc(),
 		Input:      input,
 		Output:     output,
-		URL:        script.URL(),
 		Visibility: script.Visibility().String(),
 		CreatedAt:  script.CreatedAt(),
 	}, nil
@@ -141,7 +140,7 @@ func DTOToScript(s ScriptDTO) (*scripts.Script, error) {
 		s.Visibility,
 		input,
 		output,
-		s.URL,
+		scripts.FileID(s.FileID),
 		s.CreatedAt,
 	)
 	return script, err
@@ -242,11 +241,4 @@ func DTOToValues(values []ValueDTO) ([]scripts.Value, error) {
 		jobValues[i] = val
 	}
 	return jobValues, nil
-}
-
-func DTOToFile(f FileDTO) (*scripts.File, error) {
-	if f.Name == "" {
-		return nil, errors.New("file name is empty")
-	}
-	return scripts.NewFile(f.Name, f.Content)
 }
