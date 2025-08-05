@@ -244,6 +244,7 @@ func (s *Script) Assemble(by UserID, input []Value) (*JobPrototype, error) {
 	}
 
 	return &JobPrototype{
+		scriptID:  s.id,
 		ownerID:   by,
 		input:     input,
 		expected:  s.Output(),

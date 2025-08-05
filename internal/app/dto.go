@@ -160,7 +160,7 @@ func JobToDTO(j scripts.Job) (JobDTO, error) {
 
 	finishedAt, err := j.FinishedAt()
 	if err != nil {
-		return JobDTO{}, err
+		finishedAt = nil
 	}
 	return JobDTO{
 		JobID:      int64(j.ID()),

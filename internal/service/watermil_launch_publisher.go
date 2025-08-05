@@ -21,13 +21,29 @@ func NewLauncher(publisher message.Publisher) (*LaunchPublisher, error) {
 	}, nil
 }
 
+type JSONField struct {
+	Type string `json:"type"`
+	Name string `json:"name"`
+	Desc string `json:"desc"`
+	Unit string `json:"unit"`
+}
+
+func fromField(f scripts.Field) JSONField {
+	return JSONField{
+		Type: f.ValueType().String(),
+		Name: f.Name(),
+		Desc: f.Description(),
+		Unit: f.Unit(),
+	}
+}
+
 func MarshalJob(job scripts.Job, needToNotify bool) ([]byte, error) {
 	type Job struct {
 		JobID    scripts.JobID    `json:"job_id"`
 		OwnerID  scripts.UserID   `json:"owner_id"`
 		ScriptID scripts.ScriptID `json:"script_id"`
 		Input    []JSONValue      `json:"in"`
-		Expected []scripts.Field  `json:"exp"`
+		Expected []JSONField      `json:"exp"`
 		URL      string           `json:"url"`
 
 		NeedToNotify bool      `json:"need_to_notify"`
@@ -39,12 +55,17 @@ func MarshalJob(job scripts.Job, needToNotify bool) ([]byte, error) {
 		rawInputs = append(rawInputs, fromValue(v))
 	}
 
+	rawExp := make([]JSONField, 0, len(job.Expected()))
+	for _, f := range job.Expected() {
+		rawExp = append(rawExp, fromField(f))
+	}
+
 	return json.Marshal(Job{
 		JobID:        job.ID(),
 		OwnerID:      job.OwnerID(),
 		ScriptID:     job.ScriptID(),
 		Input:        rawInputs,
-		Expected:     job.Expected(),
+		Expected:     rawExp,
 		URL:          job.URL(),
 		CreatedAt:    job.CreatedAt(),
 		NeedToNotify: needToNotify,

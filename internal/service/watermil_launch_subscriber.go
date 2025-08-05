@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill"
@@ -22,7 +23,7 @@ func UnmarshalJob(data []byte) (*app.JobDTO, error) {
 		OwnerID  scripts.UserID   `json:"owner_id"`
 		ScriptID scripts.ScriptID `json:"script_id"`
 		Input    []JSONValue      `json:"in"`
-		Expected []scripts.Field  `json:"exp"`
+		Expected []JSONField      `json:"exp"`
 		URL      string           `json:"url"`
 
 		NeedToNotify bool      `json:"need_to_notify"`
@@ -48,7 +49,20 @@ func UnmarshalJob(data []byte) (*app.JobDTO, error) {
 		return nil, err
 	}
 
-	expected, err := app.FieldsToDTO(jsonJob.Expected)
+	exp := make([]scripts.Field, len(jsonJob.Expected))
+	for i, v := range jsonJob.Expected {
+		val, err := scripts.NewValueType(v.Type)
+		if err != nil {
+			return nil, err
+		}
+		f, err := scripts.NewField(*val, v.Name, v.Desc, v.Unit)
+		if err != nil {
+			return nil, err
+		}
+		exp[i] = *f
+	}
+
+	expected, err := app.FieldsToDTO(exp)
 	if err != nil {
 		return nil, err
 	}
@@ -107,6 +121,7 @@ func (l *LaunchSubscriber) Listen(ctx context.Context, callback func(context.Con
 				go func(msg *message.Message) {
 					req, err := UnmarshalJob(msg.Payload)
 					if err != nil {
+						fmt.Println(err)
 						l.watLogger.Error("Decode error", err, nil)
 						msg.Nack()
 						return
