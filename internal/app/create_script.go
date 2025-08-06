@@ -58,20 +58,9 @@ func (u *ScriptCreateUC) CreateScript(ctx context.Context, req ScriptCreateDTO) 
 		return 0, err
 	}
 
-	url, err := u.manager.Save(ctx, req.File.Name, req.File.Reader)
+	file, err := u.fileR.File(ctx, scripts.FileID(req.FileID))
 	if err != nil {
 		u.logger.Error("failed to save file", "err", err)
-		return 0, err
-	}
-
-	fileID, err := u.fileR.Create(ctx, &url)
-	if err != nil {
-		u.logger.Error("failed to save file", "err", err)
-		return 0, err
-	}
-	file, err := scripts.NewFile(fileID, url)
-	if err != nil {
-		u.logger.Error("failed to convert file", "err", err)
 		return 0, err
 	}
 

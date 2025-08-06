@@ -60,7 +60,7 @@ type ScriptCreateDTO struct {
 	OwnerID           int64
 	ScriptName        string
 	ScriptDescription string
-	File              FileDTO
+	FileID            int64
 	InFields          []FieldDTO
 	OutFields         []FieldDTO
 }
