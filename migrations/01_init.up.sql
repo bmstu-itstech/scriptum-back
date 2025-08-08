@@ -25,16 +25,24 @@ CREATE TABLE fields (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
+CREATE TABLE files (
+    file_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    url TEXT NOT NULL UNIQUE CHECK (LENGTH(url) <= 200),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE scripts (
     script_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name TEXT NOT NULL CHECK (LENGTH(name) <= 64),        
     description TEXT CHECK (LENGTH(description) <= 256),   
-    path TEXT NOT NULL CHECK (LENGTH(path) <= 200),
     visibility VISIBILITY NOT NULL,
     owner_id BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT unique_path UNIQUE(path)
+    file_id BIGINT NOT NULL,
+    FOREIGN KEY (file_id) REFERENCES files(file_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
 
 CREATE TABLE script_fields (
     script_id BIGINT NOT NULL,

@@ -52,6 +52,7 @@ func (l *JobRunUC) Run(ctx context.Context, jobDTO JobDTO) error {
 
 	res, err := l.runner.Run(ctx, job)
 	if err != nil {
+
 		return err
 	}
 

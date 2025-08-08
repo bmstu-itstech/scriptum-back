@@ -83,9 +83,10 @@ func (r *JobRepo) Delete(ctx context.Context, jobID scripts.JobID) error {
 const getJobQuery = "SELECT * FROM jobs WHERE job_id=$1"
 
 const getURLQuery = `
-	SELECT path
-	FROM scripts
-	WHERE script_id = $1
+	SELECT f.url
+	FROM scripts s
+	JOIN files f ON s.file_id = f.file_id
+	WHERE s.script_id = $1
 `
 
 const paramsJobQuery = `

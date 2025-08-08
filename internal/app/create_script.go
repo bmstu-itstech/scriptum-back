@@ -9,6 +9,7 @@ import (
 
 type ScriptCreateUC struct {
 	scriptR scripts.ScriptRepository
+	fileR   scripts.FileRepository
 	userP   scripts.UserProvider
 	manager scripts.FileManager
 	logger  *slog.Logger
@@ -17,12 +18,14 @@ type ScriptCreateUC struct {
 func NewScriptCreateUC(
 	scriptR scripts.ScriptRepository,
 	userP scripts.UserProvider,
+	fileR scripts.FileRepository,
 	manager scripts.FileManager,
 	logger *slog.Logger,
 ) ScriptCreateUC {
 	return ScriptCreateUC{
 		scriptR: scriptR,
 		userP:   userP,
+		fileR:   fileR,
 		manager: manager,
 		logger:  logger,
 	}
@@ -55,20 +58,14 @@ func (u *ScriptCreateUC) CreateScript(ctx context.Context, req ScriptCreateDTO) 
 		return 0, err
 	}
 
-	file, err := DTOToFile(req.File)
-	if err != nil {
-		u.logger.Error("failed to convert file", "err", err)
-		return 0, err
-	}
-
-	url, err := u.manager.Save(ctx, file)
+	file, err := u.fileR.File(ctx, scripts.FileID(req.FileID))
 	if err != nil {
 		u.logger.Error("failed to save file", "err", err)
 		return 0, err
 	}
 
 	proto, err := scripts.NewScriptPrototype(
-		scripts.UserID(req.OwnerID), req.ScriptName, req.ScriptDescription, vis, input, output, url,
+		scripts.UserID(req.OwnerID), req.ScriptName, req.ScriptDescription, vis, input, output, *file,
 	)
 	if err != nil {
 		u.logger.Error("failed to create script prototype", "err", err)

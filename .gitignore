@@ -8,6 +8,8 @@
 *.so
 *.dylib
 
+.DS_Store
+
 *.py
 
 # Test binary, built with `go test -c`

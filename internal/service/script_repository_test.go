@@ -55,7 +55,7 @@ func scriptRepository_Update(t *testing.T, repo scripts.ScriptRepository) {
 		created.Visibility().String(),
 		created.Input(),
 		created.Output(),
-		string(created.URL()),
+		1,
 		created.CreatedAt(),
 	)
 	require.NoError(t, err)
@@ -72,7 +72,6 @@ func scriptRepository_Update(t *testing.T, repo scripts.ScriptRepository) {
 	require.Equal(t, created.OwnerID(), got.OwnerID())
 	require.Equal(t, created.Input(), got.Input())
 	require.Equal(t, created.Output(), got.Output())
-	require.Equal(t, created.URL(), got.URL())
 	require.Equal(t, created.Visibility(), got.Visibility())
 }
 
@@ -86,7 +85,6 @@ func scriptRepository_Create(t *testing.T, repo scripts.ScriptRepository) {
 	require.Equal(t, script.Desc(), created.Desc())
 	require.Equal(t, script.Visibility(), created.Visibility())
 	require.Equal(t, script.OwnerID(), created.OwnerID())
-	require.Equal(t, script.URL(), created.URL())
 	require.Equal(t, script.Input(), created.Input())
 	require.Equal(t, script.Output(), created.Output())
 }
@@ -108,7 +106,6 @@ func scriptRepository_CreateMultiple(t *testing.T, repo scripts.ScriptRepository
 		require.Equal(t, script.Desc(), created.Desc())
 		require.Equal(t, script.Visibility(), created.Visibility())
 		require.Equal(t, script.OwnerID(), created.OwnerID())
-		require.Equal(t, script.URL(), created.URL())
 		require.Equal(t, script.Input(), created.Input())
 		require.Equal(t, script.Output(), created.Output())
 	}
@@ -126,7 +123,9 @@ func scriptRepository_UserScripts_Found(t *testing.T, repo scripts.ScriptReposit
 	require.NoError(t, err)
 
 	for i := 0; i < 3; i++ {
-		proto, err := scripts.NewScriptPrototype(ownerID, gofakeit.LetterN(10), gofakeit.Sentence(5), scripts.VisibilityPrivate, []scripts.Field{*inputP}, []scripts.Field{*outputP}, scripts.URL(gofakeit.LetterN(20)))
+		file, err := scripts.NewFile(1, gofakeit.LetterN(20))
+		require.NoError(t, err)
+		proto, err := scripts.NewScriptPrototype(ownerID, gofakeit.LetterN(10), gofakeit.Sentence(5), scripts.VisibilityPrivate, []scripts.Field{*inputP}, []scripts.Field{*outputP}, *file)
 		require.NoError(t, err)
 		_, err = repo.Create(ctx, proto)
 		require.NoError(t, err)
@@ -161,7 +160,9 @@ func scriptRepository_PublicScripts_Found(t *testing.T, repo scripts.ScriptRepos
 	require.NoError(t, err)
 
 	for i := 0; i < 3; i++ {
-		proto, err := scripts.NewScriptPrototype(scripts.UserID(gofakeit.IntRange(1, 1000)), gofakeit.LetterN(10), gofakeit.Sentence(5), scripts.VisibilityPublic, []scripts.Field{*inputP}, []scripts.Field{*outputP}, scripts.URL(gofakeit.LetterN(20)))
+		file, err := scripts.NewFile(1, gofakeit.LetterN(20))
+		require.NoError(t, err)
+		proto, err := scripts.NewScriptPrototype(scripts.UserID(gofakeit.IntRange(1, 1000)), gofakeit.LetterN(10), gofakeit.Sentence(5), scripts.VisibilityPublic, []scripts.Field{*inputP}, []scripts.Field{*outputP}, *file)
 		require.NoError(t, err)
 		_, err = repo.Create(ctx, proto)
 		require.NoError(t, err)
@@ -198,9 +199,10 @@ func scriptRepository_SearchPublicScripts_Found(t *testing.T, repo scripts.Scrip
 	name := "FindMeScript"
 	desc := gofakeit.Sentence(5)
 	vis := scripts.VisibilityPublic
-	url := scripts.URL(gofakeit.LetterN(20))
+	file, err := scripts.NewFile(1, gofakeit.LetterN(20))
+	require.NoError(t, err)
 
-	proto, err := scripts.NewScriptPrototype(ownerID, name, desc, vis, []scripts.Field{*inputP}, []scripts.Field{*outputP}, url)
+	proto, err := scripts.NewScriptPrototype(ownerID, name, desc, vis, []scripts.Field{*inputP}, []scripts.Field{*outputP}, *file)
 	require.NoError(t, err)
 
 	_, err = repo.Create(ctx, proto)
@@ -237,9 +239,11 @@ func scriptRepository_SearchUserScripts_Found(t *testing.T, repo scripts.ScriptR
 	name := "UserScriptSearchTarget"
 	desc := gofakeit.Sentence(5)
 	vis := scripts.VisibilityPrivate
-	url := scripts.URL(gofakeit.LetterN(20))
 
-	proto, err := scripts.NewScriptPrototype(ownerID, name, desc, vis, []scripts.Field{*inputP}, []scripts.Field{*outputP}, url)
+	file, err := scripts.NewFile(1, gofakeit.LetterN(20))
+	require.NoError(t, err)
+
+	proto, err := scripts.NewScriptPrototype(ownerID, name, desc, vis, []scripts.Field{*inputP}, []scripts.Field{*outputP}, *file)
 	require.NoError(t, err)
 
 	_, err = repo.Create(ctx, proto)
@@ -274,9 +278,12 @@ func scriptRepository_MixedUserPublicScripts(t *testing.T, repo scripts.ScriptRe
 	outputP, err := scripts.NewField(*val, gofakeit.LetterN(10), gofakeit.LetterN(10), gofakeit.LetterN(10))
 	require.NoError(t, err)
 
-	privProto, err := scripts.NewScriptPrototype(ownerID, "PrivateScript", "desc", scripts.VisibilityPrivate, []scripts.Field{*inputP}, []scripts.Field{*outputP}, scripts.URL(gofakeit.LetterN(20)))
+	file, err := scripts.NewFile(1, gofakeit.LetterN(20))
 	require.NoError(t, err)
-	pubProto, err := scripts.NewScriptPrototype(ownerID, "PublicScript", "desc", scripts.VisibilityPublic, []scripts.Field{*inputP}, []scripts.Field{*outputP}, scripts.URL(gofakeit.LetterN(20)))
+
+	privProto, err := scripts.NewScriptPrototype(ownerID, "PrivateScript", "desc", scripts.VisibilityPrivate, []scripts.Field{*inputP}, []scripts.Field{*outputP}, *file)
+	require.NoError(t, err)
+	pubProto, err := scripts.NewScriptPrototype(ownerID, "PublicScript", "desc", scripts.VisibilityPublic, []scripts.Field{*inputP}, []scripts.Field{*outputP}, *file)
 	require.NoError(t, err)
 
 	_, err = repo.Create(ctx, privProto)
@@ -313,9 +320,12 @@ func scriptRepository_MixedSearchUserAndPublic(t *testing.T, repo scripts.Script
 	pubName := "PublicSearchTest"
 	privName := "PrivateSearchTest"
 
-	pubProto, err := scripts.NewScriptPrototype(ownerID, pubName, "desc", scripts.VisibilityPublic, []scripts.Field{*inputP}, []scripts.Field{*outputP}, scripts.URL(gofakeit.LetterN(20)))
+	file, err := scripts.NewFile(1, gofakeit.LetterN(20))
 	require.NoError(t, err)
-	privProto, err := scripts.NewScriptPrototype(ownerID, privName, "desc", scripts.VisibilityPrivate, []scripts.Field{*inputP}, []scripts.Field{*outputP}, scripts.URL(gofakeit.LetterN(20)))
+
+	pubProto, err := scripts.NewScriptPrototype(ownerID, pubName, "desc", scripts.VisibilityPublic, []scripts.Field{*inputP}, []scripts.Field{*outputP}, *file)
+	require.NoError(t, err)
+	privProto, err := scripts.NewScriptPrototype(ownerID, privName, "desc", scripts.VisibilityPrivate, []scripts.Field{*inputP}, []scripts.Field{*outputP}, *file)
 	require.NoError(t, err)
 
 	_, err = repo.Create(ctx, pubProto)
@@ -347,7 +357,9 @@ func generateRandomScriptPrototype(t *testing.T) *scripts.ScriptPrototype {
 	name := gofakeit.LetterN(10)
 	desc := gofakeit.Sentence(5)
 	vis := scripts.VisibilityPublic
-	url := scripts.URL(gofakeit.LetterN(20))
+
+	file, err := scripts.NewFile(1, gofakeit.LetterN(20))
+	require.NoError(t, err)
 
 	val, err := scripts.NewValueType("integer")
 	require.NoError(t, err)
@@ -371,7 +383,7 @@ func generateRandomScriptPrototype(t *testing.T) *scripts.ScriptPrototype {
 		vis,
 		[]scripts.Field{*inputP1, *inputP2},
 		[]scripts.Field{*outputP1, *outputP2},
-		url,
+		*file,
 	)
 	require.NoError(t, err)
 

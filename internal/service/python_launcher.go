@@ -46,10 +46,6 @@ func (p *PythonLauncher) Run(ctx context.Context, job *scripts.Job) (scripts.Res
 		exitCode = -1
 	}
 
-	if err != nil {
-		return scripts.Result{}, err
-	}
-
 	out := strings.Fields(stdout.String())
 
 	expected := job.Expected()
@@ -70,9 +66,6 @@ func (p *PythonLauncher) Run(ctx context.Context, job *scripts.Job) (scripts.Res
 		}
 	} else {
 		res = scripts.NewFailureResult(exitCode, stderr.String())
-	}
-	if err != nil {
-		return scripts.Result{}, err
 	}
 
 	return *res, nil

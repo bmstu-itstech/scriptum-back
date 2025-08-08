@@ -55,7 +55,8 @@ func main() {
 
 	jobRepo := service.NewJobRepository(db)
 	scriptRepo := service.NewScriptRepository(db)
-	systemManager, err := service.NewSystemManager(".")
+	fileRepo := service.NewFileRepository(db)
+	systemManager, err := service.NewSystemManager(".", 1024*1024*7)
 	if err != nil {
 		log.Fatalf("failed get system manager: %s", err.Error())
 	}
@@ -87,11 +88,11 @@ func main() {
 	handler.Listen(ctx, usecase.Run)
 
 	application := app.Application{
-		CreateScript:  app.NewScriptCreateUC(scriptRepo, userProv, systemManager, l),
-		DeleteScript:  app.NewScriptDeleteUC(scriptRepo, userProv, systemManager, l),
+		CreateScript:  app.NewScriptCreateUC(scriptRepo, userProv, fileRepo, systemManager, l),
+		DeleteScript:  app.NewScriptDeleteUC(scriptRepo, userProv, systemManager, fileRepo, l),
 		UpdateScript:  app.NewScriptUpdateUC(scriptRepo, l),
 		SearchScript:  app.NewSearchScriptsUC(scriptRepo, userProv, l),
-		StartJob:      app.NewJobStartUC(scriptRepo, jobRepo, dispatcher, l),
+		StartJob:      app.NewJobStartUC(scriptRepo, fileRepo, jobRepo, dispatcher, l),
 		GetJob:        app.NewGetJobUC(jobRepo, userProv, l),
 		GetJobs:       app.NewGetJobsUC(jobRepo, userProv, l),
 		GetScriptByID: app.NewGetScript(scriptRepo, l),
