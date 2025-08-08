@@ -12,8 +12,6 @@ info:
 tags:
 - name: scripts
   description: Scripts
-- name: users
-  description: Users (and admin actions)
 - name: jobs
   description: Jobs (~= pipelines)
 
