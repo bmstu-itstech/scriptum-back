@@ -40,6 +40,11 @@ func (u *FileCreateUC) CreateFile(ctx context.Context, req FileDTO) (int32, erro
 	fileID, err := u.fileR.Create(ctx, &url)
 	if err != nil {
 		u.logger.Error("failed to save file", "err", err)
+		err := u.manager.Delete(ctx, url)
+		if err != nil {
+			u.logger.Error("failed to delete file", "err", err)
+			return 0, err
+		}
 		return 0, err
 	}
 

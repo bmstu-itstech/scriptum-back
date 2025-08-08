@@ -45,7 +45,7 @@ type ScriptPrototype struct {
 	vis     Visibility // !vis.IsZero()
 	input   []Field    // len(input) > 0
 	output  []Field    // len(output) > 0
-	file    FileID     // len(url) > 0
+	file    FileID     // FileID != 0
 }
 
 func NewScriptPrototype(
@@ -92,6 +92,11 @@ func NewScriptPrototype(
 
 	if len(output) == 0 {
 		return nil, fmt.Errorf("%w: invalid Script: expected at least one output field", ErrInvalidInput)
+	}
+
+	if file.ID() == 0 {
+		// Ошибка программиста
+		return nil, fmt.Errorf("empty fileID")
 	}
 
 	return &ScriptPrototype{

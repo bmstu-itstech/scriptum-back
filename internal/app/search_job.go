@@ -22,18 +22,22 @@ func NewSearchJobsUC(
 }
 
 func (u *SearchJobsUC) Search(ctx context.Context, userID uint32, state string) ([]JobDTO, error) {
+	u.logger.Info("searching jobs ", "userID", userID)
 	_, err := u.userP.User(ctx, scripts.UserID(userID))
 	if err != nil {
+		u.logger.Error("failed to search job", "err", err)
 		return nil, err
 	}
 
 	jobState, err := scripts.NewJobStateFromString(state)
 	if err != nil {
+		u.logger.Error("failed to search job", "err", err)
 		return nil, err
 	}
 
 	jobs, err := u.jobR.UserJobsWithState(ctx, scripts.UserID(userID), jobState)
 	if err != nil {
+		u.logger.Error("failed to search job", "err", err)
 		return nil, err
 	}
 
@@ -41,6 +45,7 @@ func (u *SearchJobsUC) Search(ctx context.Context, userID uint32, state string) 
 	for _, j := range jobs {
 		job, err := JobToDTO(j)
 		if err != nil {
+			u.logger.Error("failed to search job", "err", err)
 			return nil, err
 		}
 		dto = append(dto, job)

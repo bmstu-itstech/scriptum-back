@@ -22,19 +22,23 @@ func NewSearchScriptsUC(
 }
 
 func (u *SearchScriptsUC) Search(ctx context.Context, userID uint32, substr string) ([]ScriptDTO, error) {
+	u.logger.Info("searching scripts ", "substr", substr)
 	user, err := u.userP.User(ctx, scripts.UserID(userID))
 	if err != nil {
+		u.logger.Error("failed to search script", "err", err)
 		return nil, err
 	}
 
 	allScripts, err := u.scriptR.SearchPublicScripts(ctx, substr)
 	if err != nil {
+		u.logger.Error("failed to search script", "err", err)
 		return nil, err
 	}
 
 	if !user.IsAdmin() {
 		userScripts, err := u.scriptR.SearchUserScripts(ctx, scripts.UserID(userID), substr)
 		if err != nil {
+			u.logger.Error("failed to search script", "err", err)
 			return nil, err
 		}
 		allScripts = append(allScripts, userScripts...)
@@ -44,6 +48,7 @@ func (u *SearchScriptsUC) Search(ctx context.Context, userID uint32, substr stri
 	for _, s := range allScripts {
 		script, err := ScriptToDTO(s)
 		if err != nil {
+			u.logger.Error("failed to search script", "err", err)
 			return nil, err
 		}
 		dto = append(dto, script)

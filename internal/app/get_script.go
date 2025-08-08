@@ -19,13 +19,16 @@ func NewGetScript(scriptR scripts.ScriptRepository, logger *slog.Logger) GetScri
 	}
 }
 
-func (u *GetScriptUC) Script(ctx context.Context, actorId int64, scriptId int32) (ScriptDTO, error) {
-	s, err := u.scriptR.Script(ctx, scripts.ScriptID(scriptId))
+func (u *GetScriptUC) Script(ctx context.Context, actorId int64, scriptID int32) (ScriptDTO, error) {
+	u.logger.Info("get script", "scriptID", scriptID)
+	s, err := u.scriptR.Script(ctx, scripts.ScriptID(scriptID))
 	if err != nil {
+		u.logger.Error("failed to get script", "err", err)
 		return ScriptDTO{}, err
 	}
 
 	if !s.IsAvailableFor(scripts.UserID(actorId)) {
+		u.logger.Error("failed to get script", "err", scripts.ErrPermissionDenied)
 		return ScriptDTO{}, scripts.ErrPermissionDenied
 	}
 
