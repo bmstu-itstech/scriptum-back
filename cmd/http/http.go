@@ -56,7 +56,8 @@ func main() {
 	jobRepo := service.NewJobRepository(db)
 	scriptRepo := service.NewScriptRepository(db)
 	fileRepo := service.NewFileRepository(db)
-	systemManager, err := service.NewSystemManager(".", 1024*1024*7)
+	var MaxFileSize int64 = 4 << 10
+	systemManager, err := service.NewSystemManager(os.Getenv("SCRIPTS_DIR"), MaxFileSize)
 	if err != nil {
 		log.Fatalf("failed get system manager: %s", err.Error())
 	}
