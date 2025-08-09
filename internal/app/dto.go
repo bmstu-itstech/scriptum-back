@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"io"
 	"time"
 
@@ -31,6 +32,12 @@ type ValueDTO struct {
 	Data string
 }
 
+type ResultDTO struct {
+	Output []ValueDTO
+	Code   int32
+	ErrMsg *string
+}
+
 type JobDTO struct {
 	JobID        int64
 	OwnerID      int64
@@ -42,6 +49,7 @@ type JobDTO struct {
 	CreatedAt    time.Time
 	FinishedAt   *time.Time
 	NeedToNotify bool
+	JobResult    *ResultDTO
 }
 
 type FileDTO struct {
@@ -147,6 +155,21 @@ func DTOToScript(s ScriptDTO) (*scripts.Script, error) {
 	return script, err
 }
 
+func ResultToDTO(r *scripts.Result) (*ResultDTO, error) {
+	if r == nil {
+		return nil, nil
+	}
+	output, err := ValuesToDTO(r.Output())
+	if err != nil {
+		return nil, err
+	}
+	return &ResultDTO{
+		Output: output,
+		Code:   int32(r.Code()),
+		ErrMsg: r.ErrorMessage(),
+	}, nil
+}
+
 func JobToDTO(j scripts.Job) (JobDTO, error) {
 	input, err := ValuesToDTO(j.Input())
 	if err != nil {
@@ -162,6 +185,19 @@ func JobToDTO(j scripts.Job) (JobDTO, error) {
 	if err != nil {
 		finishedAt = nil
 	}
+
+	res, err := j.Result()
+	if err != nil {
+		if !errors.Is(err, scripts.ErrJobIsNotFinished) {
+			return JobDTO{}, err
+		}
+	}
+
+	resDto, err := ResultToDTO(res)
+	if err != nil {
+		return JobDTO{}, err
+	}
+
 	return JobDTO{
 		JobID:      int64(j.ID()),
 		OwnerID:    int64(j.OwnerID()),
@@ -172,6 +208,7 @@ func JobToDTO(j scripts.Job) (JobDTO, error) {
 		State:      j.State().String(),
 		CreatedAt:  j.CreatedAt(),
 		FinishedAt: finishedAt,
+		JobResult:  resDto,
 	}, nil
 }
 

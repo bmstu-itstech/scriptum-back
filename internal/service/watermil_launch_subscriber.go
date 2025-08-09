@@ -71,6 +71,7 @@ func UnmarshalJob(data []byte) (*app.JobDTO, error) {
 		JobID:        int64(jsonJob.JobID),
 		OwnerID:      int64(jsonJob.OwnerID),
 		ScriptID:     int64(jsonJob.ScriptID),
+		Url:          jsonJob.URL,
 		Input:        inputVal,
 		Expected:     expected,
 		State:        scripts.JobPending.String(),

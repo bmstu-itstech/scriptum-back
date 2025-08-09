@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,6 +16,8 @@ import (
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 )
+
+const MaxFileSize = 10 << 20
 
 type Server struct {
 	app *app.Application
@@ -37,7 +40,7 @@ func (s *Server) GetJobs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resultsToSend := make([]Job, len(results))
+	resultsToSend := make([]Result, len(results))
 	for i, res := range results {
 		resultsToSend[i] = DTOToJobHttp(res)
 	}
@@ -62,7 +65,7 @@ func (s *Server) GetJobsSearch(w http.ResponseWriter, r *http.Request, params Ge
 		httpError(w, r, fmt.Errorf("no results found"), http.StatusNotFound)
 		return
 	}
-	resultsToSend := make([]Job, len(results))
+	resultsToSend := make([]Result, len(results))
 	for i, res := range results {
 		resultsToSend[i] = DTOToJobHttp(res)
 	}
@@ -147,7 +150,8 @@ func (s *Server) PostScripts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	script, fileID := *req.Script, *req.FileId
+	script := *req.Script
+	fileID := *script.FileId
 	if userID != script.Owner {
 		httpError(w, r, fmt.Errorf("permission denied"), http.StatusForbidden)
 		return
@@ -197,20 +201,32 @@ func (s *Server) PostScriptsUpload(w http.ResponseWriter, r *http.Request) {
 		httpError(w, r, err, http.StatusUnauthorized)
 		return
 	}
-	req := PostScriptsUploadMultipartRequestBody{}
-	if err := render.Decode(r, &req); err != nil {
-		httpError(w, r, err, http.StatusBadRequest)
-		return
-	}
-	fileBytes, err := req.File.Bytes()
+
+	err = r.ParseMultipartForm(MaxFileSize)
 	if err != nil {
 		httpError(w, r, err, http.StatusBadRequest)
 		return
 	}
+
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		httpError(w, r, err, http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		httpError(w, r, fmt.Errorf("failed to read file: %v", err),
+			http.StatusInternalServerError)
+		return
+	}
+
 	reqDto := app.FileDTO{
 		Name:   uuid.New().String(),
 		Reader: bytes.NewReader(fileBytes),
 	}
+
 	fileID, err := s.app.CreateFile.CreateFile(r.Context(), reqDto)
 	if err != nil {
 		httpError(w, r, err, http.StatusInternalServerError)
@@ -374,7 +390,7 @@ func httpError(w http.ResponseWriter, r *http.Request, err error, code int) {
 	render.JSON(w, r, Error{Message: &msg})
 }
 
-func DTOToJobHttp(job app.JobDTO) Job {
+func DTOToJobHttp(job app.JobDTO) Result {
 	expected := make([]Field, len(job.Expected))
 	for i, field := range job.Expected {
 		expected[i] = DTOToFieldHttp(field)
@@ -383,7 +399,7 @@ func DTOToJobHttp(job app.JobDTO) Job {
 	for i, val := range job.Input {
 		in[i] = DTOToValueHttp(val)
 	}
-	return Job{
+	j := Job{
 		CreatedAt:    &job.CreatedAt,
 		Expected:     &expected,
 		FinishedAt:   job.FinishedAt,
@@ -394,6 +410,23 @@ func DTOToJobHttp(job app.JobDTO) Job {
 		ScriptId:     &job.ScriptID,
 		Status:       (*Status)(&job.State),
 		UserId:       &job.OwnerID,
+	}
+	if job.JobResult == nil {
+		return Result{
+			Job: &j,
+		}
+	}
+	
+	out := make([]Value, len(job.JobResult.Output))
+	for i, val := range job.JobResult.Output {
+		out[i] = DTOToValueHttp(val)
+	}
+	c := int(job.JobResult.Code)
+	return Result{
+		Out:          &out,
+		Code:         &c,
+		ErrorMessage: job.JobResult.ErrMsg,
+		Job:          &j,
 	}
 }
 

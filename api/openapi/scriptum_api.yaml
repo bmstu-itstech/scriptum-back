@@ -68,9 +68,6 @@ paths:
               properties:
                 script:
                   $ref: '#/components/schemas/Script'
-                file_id:
-                  type: integer
-                  format: int64
       responses:
         '201':
           description: created new script

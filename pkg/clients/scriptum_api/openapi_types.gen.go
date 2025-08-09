@@ -106,7 +106,6 @@ type GetJobsSearchParams struct {
 
 // PostScriptsJSONBody defines parameters for PostScripts.
 type PostScriptsJSONBody struct {
-	FileId *int64  `json:"file_id,omitempty"`
 	Script *Script `json:"script,omitempty"`
 }
 

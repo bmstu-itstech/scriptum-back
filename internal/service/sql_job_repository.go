@@ -260,7 +260,7 @@ func (r *JobRepo) UserJobs(ctx context.Context, userID scripts.UserID) ([]script
 
 	var jobRows []JobRow
 	if err := r.db.SelectContext(ctx, &jobRows, userJobsQuery, userID); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("UserJobs: %w", err)
 	}
 
 	return r.buildJobsFromRows(ctx, jobRows)
@@ -282,28 +282,28 @@ func (r *JobRepo) buildJobsFromRows(ctx context.Context, rows []JobRow) ([]scrip
 	for _, jr := range rows {
 		inputValues, outputValues, err := getJobValues(ctx, r.db, jr.ID)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("buildJobsFromRows: getJobValues: %w", err)
 		}
 
 		var result *scripts.Result
 		if jr.StatusCode != nil {
 			result = scripts.RestoreResult(outputValues, scripts.StatusCode(*jr.StatusCode), jr.ErrorMessage)
-		}
+		} //
 
 		var path string
 		err = r.db.GetContext(ctx, &path, getURLQuery, jr.ScriptID)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("buildJobsFromRows: GetContext: %w", err)
 		}
 
 		var outFields []fieldRow
 		err = r.db.SelectContext(ctx, &outFields, getFieldsQuery, jr.ScriptID, "out")
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("buildJobsFromRows: SelectContext: %w", err)
 		}
 		outputs, err := convertFieldRowsToDomain(outFields)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("buildJobsFromRows: convertFieldRowsToDomain: %w", err)
 		}
 		job, err := scripts.RestoreJob(
 			jr.ID,
@@ -318,7 +318,7 @@ func (r *JobRepo) buildJobsFromRows(ctx context.Context, rows []JobRow) ([]scrip
 			jr.ClosedAt,
 		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("buildJobsFromRows: RestoreJob: %w", err)
 		}
 		jobs = append(jobs, *job)
 	}
