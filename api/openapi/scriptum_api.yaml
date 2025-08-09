@@ -7,7 +7,7 @@ servers:
 
 info:
   title: Scriptum - OpenAPI 3.0
-  version: 1.0.0
+  version: 1.0.1
 
 tags:
 - name: scripts
@@ -68,8 +68,9 @@ paths:
               properties:
                 script:
                   $ref: '#/components/schemas/Script'
-                file:
-                  $ref: '#/components/schemas/File'
+                file_id:
+                  type: integer
+                  format: int64
       responses:
         '201':
           description: created new script
@@ -91,12 +92,6 @@ paths:
                 $ref: '#/components/schemas/Error'
         '401':
           description: unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: forbidden (create script but for another user)
           content:
             application/json:
               schema:
@@ -376,6 +371,55 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /scripts/upload:
+    post:
+      tags:
+      - scripts
+      summary: Upload script
+      description: Upload file of script
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required:
+              - file
+      responses:
+        '201':
+          description: file uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  file_id:
+                    type: integer
+                    format: int64
+                  message:
+                    type: string
+                    example: "File uploaded successfully"
+        '400':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /jobs:
     get:
@@ -614,8 +658,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Field'
-        path:
-          $ref: "#/components/schemas/FilePath"
+        file_id:
+          type: integer
+          format: int64
         owner:
           $ref: '#/components/schemas/UserId'
         visibility:
@@ -634,7 +679,7 @@ components:
           example: "complex"
         data:
           type: string
-          example: "-1.6+24.04j"
+          example: "-1.6+24.04i"
     Status:
       type: string
       enum: [ pending, running, finished ]
@@ -733,8 +778,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Field'
-        file:
-          $ref: '#/components/schemas/File'
+        file_id:
+          type: integer
+          format: int64
     ScriptRunData:
       type: object
       properties:

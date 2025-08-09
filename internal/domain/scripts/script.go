@@ -45,7 +45,7 @@ type ScriptPrototype struct {
 	vis     Visibility // !vis.IsZero()
 	input   []Field    // len(input) > 0
 	output  []Field    // len(output) > 0
-	file    FileID     // FileID != 0
+	fileID  FileID     // FileID != 0
 }
 
 func NewScriptPrototype(
@@ -106,7 +106,7 @@ func NewScriptPrototype(
 		vis:     visibility,
 		input:   input[:],
 		output:  output[:],
-		file:    file.ID(),
+		fileID:  file.ID(),
 	}, nil
 }
 
@@ -135,7 +135,7 @@ func (s *ScriptPrototype) Output() []Field {
 }
 
 func (s *ScriptPrototype) FileID() FileID {
-	return s.file
+	return s.fileID
 }
 
 func (s *ScriptPrototype) IsPublic() bool {
@@ -211,7 +211,7 @@ func RestoreScript(
 			vis:     svis,
 			input:   input,
 			output:  output,
-			file:    fileID,
+			fileID:  fileID,
 		},
 		id:        ScriptID(id),
 		createdAt: createdAt,

@@ -11,4 +11,5 @@ type Application struct {
 	GetScriptByID GetScriptUC
 	GetScripts    GetScriptsUC
 	SearchJob     SearchJobsUC
+	CreateFile    FileCreateUC
 }

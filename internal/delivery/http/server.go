@@ -1,6 +1,7 @@
 package scriptumapi
 
 import (
+	"bytes"
 	"encoding/csv"
 	"encoding/json"
 	"errors"
@@ -12,6 +13,7 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/app"
 	"github.com/bmstu-itstech/scriptum-back/pkg/jwtauth"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 )
 
 type Server struct {
@@ -145,7 +147,7 @@ func (s *Server) PostScripts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	script, file := *req.Script, *req.File
+	script, fileID := *req.Script, *req.FileId
 	if userID != script.Owner {
 		httpError(w, r, fmt.Errorf("permission denied"), http.StatusForbidden)
 		return
@@ -163,7 +165,7 @@ func (s *Server) PostScripts(w http.ResponseWriter, r *http.Request) {
 		OwnerID:           userID,
 		ScriptName:        *script.ScriptName,
 		ScriptDescription: *script.ScriptDescription,
-		File:              FileToDTOHttp(file),
+		FileID:            fileID,
 		InFields:          in,
 		OutFields:         out,
 	}
@@ -185,6 +187,42 @@ func (s *Server) PostScripts(w http.ResponseWriter, r *http.Request) {
 	}{
 		ScriptId: int64(scriptID),
 		Message:  "Script created successfully",
+	}
+	render.JSON(w, r, mes)
+}
+
+func (s *Server) PostScriptsUpload(w http.ResponseWriter, r *http.Request) {
+	_, err := jwtauth.UserIDFromContext(r.Context())
+	if err != nil {
+		httpError(w, r, err, http.StatusUnauthorized)
+		return
+	}
+	req := PostScriptsUploadMultipartRequestBody{}
+	if err := render.Decode(r, &req); err != nil {
+		httpError(w, r, err, http.StatusBadRequest)
+		return
+	}
+	fileBytes, err := req.File.Bytes()
+	if err != nil {
+		httpError(w, r, err, http.StatusBadRequest)
+		return
+	}
+	reqDto := app.FileDTO{
+		Name:   uuid.New().String(),
+		Reader: bytes.NewReader(fileBytes),
+	}
+	fileID, err := s.app.CreateFile.CreateFile(r.Context(), reqDto)
+	if err != nil {
+		httpError(w, r, err, http.StatusInternalServerError)
+		return
+	}
+	render.Status(r, http.StatusCreated)
+	mes := struct {
+		FileId  int64  `json:"file_id"`
+		Message string `json:"message"`
+	}{
+		FileId:  int64(fileID),
+		Message: "File uploaded successfully",
 	}
 	render.JSON(w, r, mes)
 }
@@ -406,7 +444,7 @@ func DTOToScriptHttp(script app.ScriptDTO) Script {
 		InFields:          &in,
 		OutFields:         &out,
 		Owner:             script.OwnerID,
-		Path:              &script.URL,
+		FileId:            &script.FileID,
 		ScriptDescription: &script.Desc,
 		ScriptId:          &id,
 		ScriptName:        &script.Name,
@@ -428,35 +466,12 @@ func ScriptToDTOHttp(script Script) app.ScriptDTO {
 		ID:         int32(*script.ScriptId),
 		Name:       *script.ScriptName,
 		Desc:       *script.ScriptDescription,
-		URL:        *script.Path,
+		FileID:     *script.FileId,
 		Visibility: string(*script.Visibility),
 		Input:      in,
 		Output:     out,
 		OwnerID:    int64(script.Owner),
 		CreatedAt:  *script.CreatedAt,
-	}
-}
-
-func DTOToFileHttp(file app.FileDTO) File {
-	result := File{}
-
-	if file.Name != "" {
-		name := file.Name
-		result.Name = &name
-	}
-
-	if len(file.Content) > 0 {
-		result.Content.InitFromBytes(file.Content, file.Name)
-	}
-
-	return result
-}
-
-func FileToDTOHttp(file File) app.FileDTO {
-	c, _ := file.Content.Bytes()
-	return app.FileDTO{
-		Name:    *file.Name,
-		Content: c,
 	}
 }
 

@@ -39,12 +39,6 @@ type Field struct {
 	Unit        *string `json:"unit,omitempty"`
 }
 
-// File defines model for File.
-type File struct {
-	Content *openapi_types.File `json:"content,omitempty"`
-	Name    *string             `json:"name,omitempty"`
-}
-
 // FilePath defines model for FilePath.
 type FilePath = string
 
@@ -76,10 +70,10 @@ type Result struct {
 // Script defines model for Script.
 type Script struct {
 	CreatedAt         *time.Time  `json:"created_at,omitempty"`
+	FileId            *int64      `json:"file_id,omitempty"`
 	InFields          *[]Field    `json:"in_fields,omitempty"`
 	OutFields         *[]Field    `json:"out_fields,omitempty"`
 	Owner             UserId      `json:"owner"`
-	Path              *FilePath   `json:"path,omitempty"`
 	ScriptDescription *string     `json:"script_description,omitempty"`
 	ScriptId          *ScriptId   `json:"script_id,omitempty"`
 	ScriptName        *string     `json:"script_name,omitempty"`
@@ -112,7 +106,7 @@ type GetJobsSearchParams struct {
 
 // PostScriptsJSONBody defines parameters for PostScripts.
 type PostScriptsJSONBody struct {
-	File   *File   `json:"file,omitempty"`
+	FileId *int64  `json:"file_id,omitempty"`
 	Script *Script `json:"script,omitempty"`
 }
 
@@ -120,6 +114,11 @@ type PostScriptsJSONBody struct {
 type GetScriptsSearchParams struct {
 	// ScriptName substring of script name
 	ScriptName string `form:"script_name" json:"script_name"`
+}
+
+// PostScriptsUploadMultipartBody defines parameters for PostScriptsUpload.
+type PostScriptsUploadMultipartBody struct {
+	File openapi_types.File `json:"file"`
 }
 
 // PostScriptsIdStartJSONBody defines parameters for PostScriptsIdStart.
@@ -130,6 +129,9 @@ type PostScriptsIdStartJSONBody struct {
 
 // PostScriptsJSONRequestBody defines body for PostScripts for application/json ContentType.
 type PostScriptsJSONRequestBody PostScriptsJSONBody
+
+// PostScriptsUploadMultipartRequestBody defines body for PostScriptsUpload for multipart/form-data ContentType.
+type PostScriptsUploadMultipartRequestBody PostScriptsUploadMultipartBody
 
 // PutScriptsIdJSONRequestBody defines body for PutScriptsId for application/json ContentType.
 type PutScriptsIdJSONRequestBody = Script

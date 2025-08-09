@@ -35,6 +35,9 @@ type ServerInterface interface {
 	// Search scripts
 	// (GET /scripts/search)
 	GetScriptsSearch(w http.ResponseWriter, r *http.Request, params GetScriptsSearchParams)
+	// Upload script
+	// (POST /scripts/upload)
+	PostScriptsUpload(w http.ResponseWriter, r *http.Request)
 	// Delete script
 	// (DELETE /scripts/{id})
 	DeleteScriptsId(w http.ResponseWriter, r *http.Request, id ScriptId)
@@ -92,6 +95,12 @@ func (_ Unimplemented) PostScripts(w http.ResponseWriter, r *http.Request) {
 // Search scripts
 // (GET /scripts/search)
 func (_ Unimplemented) GetScriptsSearch(w http.ResponseWriter, r *http.Request, params GetScriptsSearchParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Upload script
+// (POST /scripts/upload)
+func (_ Unimplemented) PostScriptsUpload(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -300,6 +309,23 @@ func (siw *ServerInterfaceWrapper) GetScriptsSearch(w http.ResponseWriter, r *ht
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetScriptsSearch(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// PostScriptsUpload operation middleware
+func (siw *ServerInterfaceWrapper) PostScriptsUpload(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostScriptsUpload(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -554,6 +580,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/scripts/search", wrapper.GetScriptsSearch)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/scripts/upload", wrapper.PostScriptsUpload)
 	})
 	r.Group(func(r chi.Router) {
 		r.Delete(options.BaseURL+"/scripts/{id}", wrapper.DeleteScriptsId)

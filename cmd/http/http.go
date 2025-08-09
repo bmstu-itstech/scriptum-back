@@ -98,6 +98,7 @@ func main() {
 		GetScriptByID: app.NewGetScript(scriptRepo, l),
 		GetScripts:    app.NewGetScriptsUС(scriptRepo, userProv, l),
 		SearchJob:     app.NewSearchJobsUC(jobRepo, userProv, l),
+		CreateFile:    app.NewFileCreateUC(userProv, fileRepo, systemManager, l),
 	}
 
 	l.Info("Starting server")

@@ -112,6 +112,9 @@ type ClientInterface interface {
 	// GetScriptsSearch request
 	GetScriptsSearch(ctx context.Context, params *GetScriptsSearchParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// PostScriptsUploadWithBody request with any body
+	PostScriptsUploadWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DeleteScriptsId request
 	DeleteScriptsId(ctx context.Context, id ScriptId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -215,6 +218,18 @@ func (c *Client) PostScripts(ctx context.Context, body PostScriptsJSONRequestBod
 
 func (c *Client) GetScriptsSearch(ctx context.Context, params *GetScriptsSearchParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetScriptsSearchRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostScriptsUploadWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostScriptsUploadRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -549,6 +564,35 @@ func NewGetScriptsSearchRequest(server string, params *GetScriptsSearchParams) (
 	return req, nil
 }
 
+// NewPostScriptsUploadRequestWithBody generates requests for PostScriptsUpload with any type of body
+func NewPostScriptsUploadRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/scripts/upload")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewDeleteScriptsIdRequest generates requests for DeleteScriptsId
 func NewDeleteScriptsIdRequest(server string, id ScriptId) (*http.Request, error) {
 	var err error
@@ -777,6 +821,9 @@ type ClientWithResponsesInterface interface {
 	// GetScriptsSearchWithResponse request
 	GetScriptsSearchWithResponse(ctx context.Context, params *GetScriptsSearchParams, reqEditors ...RequestEditorFn) (*GetScriptsSearchResponse, error)
 
+	// PostScriptsUploadWithBodyWithResponse request with any body
+	PostScriptsUploadWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostScriptsUploadResponse, error)
+
 	// DeleteScriptsIdWithResponse request
 	DeleteScriptsIdWithResponse(ctx context.Context, id ScriptId, reqEditors ...RequestEditorFn) (*DeleteScriptsIdResponse, error)
 
@@ -931,7 +978,6 @@ type PostScriptsResponse struct {
 	}
 	JSON400 *Error
 	JSON401 *Error
-	JSON403 *Error
 	JSON404 *Error
 	JSON500 *Error
 }
@@ -973,6 +1019,34 @@ func (r GetScriptsSearchResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetScriptsSearchResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PostScriptsUploadResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *struct {
+		FileId  *int64  `json:"file_id,omitempty"`
+		Message *string `json:"message,omitempty"`
+	}
+	JSON400 *Error
+	JSON401 *Error
+	JSON500 *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r PostScriptsUploadResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostScriptsUploadResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1156,6 +1230,15 @@ func (c *ClientWithResponses) GetScriptsSearchWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseGetScriptsSearchResponse(rsp)
+}
+
+// PostScriptsUploadWithBodyWithResponse request with arbitrary body returning *PostScriptsUploadResponse
+func (c *ClientWithResponses) PostScriptsUploadWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostScriptsUploadResponse, error) {
+	rsp, err := c.PostScriptsUploadWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostScriptsUploadResponse(rsp)
 }
 
 // DeleteScriptsIdWithResponse request returning *DeleteScriptsIdResponse
@@ -1507,13 +1590,6 @@ func ParsePostScriptsResponse(rsp *http.Response) (*PostScriptsResponse, error) 
 		}
 		response.JSON401 = &dest
 
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest Error
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -1581,6 +1657,56 @@ func ParseGetScriptsSearchResponse(rsp *http.Response) (*GetScriptsSearchRespons
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostScriptsUploadResponse parses an HTTP response from a PostScriptsUploadWithResponse call
+func ParsePostScriptsUploadResponse(rsp *http.Response) (*PostScriptsUploadResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostScriptsUploadResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest struct {
+			FileId  *int64  `json:"file_id,omitempty"`
+			Message *string `json:"message,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest Error

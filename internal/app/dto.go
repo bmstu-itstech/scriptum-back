@@ -112,6 +112,7 @@ func ScriptToDTO(script scripts.Script) (ScriptDTO, error) {
 	return ScriptDTO{
 		ID:         int32(script.ID()),
 		OwnerID:    int64(script.OwnerID()),
+		FileID:     int64(script.FileID()),
 		Name:       script.Name(),
 		Desc:       script.Desc(),
 		Input:      input,
