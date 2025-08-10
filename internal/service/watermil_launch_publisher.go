@@ -11,6 +11,18 @@ import (
 	"github.com/google/uuid"
 )
 
+type WJob struct {
+	JobID    scripts.JobID    `json:"job_id"`
+	OwnerID  scripts.UserID   `json:"owner_id"`
+	ScriptID scripts.ScriptID `json:"script_id"`
+	Input    []JSONValue      `json:"in"`
+	Expected []JSONField      `json:"exp"`
+	URL      string           `json:"url"`
+
+	NeedToNotify bool      `json:"need_to_notify"`
+	CreatedAt    time.Time `json:"started_at"`
+}
+
 type LaunchPublisher struct {
 	publisher message.Publisher
 }
@@ -37,19 +49,7 @@ func fromField(f scripts.Field) JSONField {
 	}
 }
 
-func MarshalJob(job scripts.Job, needToNotify bool) ([]byte, error) {
-	type Job struct {
-		JobID    scripts.JobID    `json:"job_id"`
-		OwnerID  scripts.UserID   `json:"owner_id"`
-		ScriptID scripts.ScriptID `json:"script_id"`
-		Input    []JSONValue      `json:"in"`
-		Expected []JSONField      `json:"exp"`
-		URL      string           `json:"url"`
-
-		NeedToNotify bool      `json:"need_to_notify"`
-		CreatedAt    time.Time `json:"started_at"`
-	}
-
+func marshalJob(job scripts.Job, needToNotify bool) ([]byte, error) {
 	rawInputs := make([]JSONValue, 0, len(job.Input()))
 	for _, v := range job.Input() {
 		rawInputs = append(rawInputs, fromValue(v))
@@ -60,7 +60,7 @@ func MarshalJob(job scripts.Job, needToNotify bool) ([]byte, error) {
 		rawExp = append(rawExp, fromField(f))
 	}
 
-	return json.Marshal(Job{
+	return json.Marshal(WJob{
 		JobID:        job.ID(),
 		OwnerID:      job.OwnerID(),
 		ScriptID:     job.ScriptID(),
@@ -73,7 +73,7 @@ func MarshalJob(job scripts.Job, needToNotify bool) ([]byte, error) {
 }
 
 func (d *LaunchPublisher) Start(ctx context.Context, request *scripts.Job, needToNotify bool) error {
-	payload, err := MarshalJob(*request, needToNotify)
+	payload, err := marshalJob(*request, needToNotify)
 	if err == nil {
 		msg := message.NewMessage(uuid.NewString(), payload)
 		err = d.publisher.Publish("script-start", msg)

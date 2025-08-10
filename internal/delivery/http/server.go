@@ -3,13 +3,10 @@ package scriptumapi
 import (
 	"bytes"
 	"encoding/csv"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
-	"time"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/app"
 	"github.com/bmstu-itstech/scriptum-back/pkg/jwtauth"
@@ -416,7 +413,7 @@ func DTOToJobHttp(job app.JobDTO) Result {
 			Job: &j,
 		}
 	}
-	
+
 	out := make([]Value, len(job.JobResult.Output))
 	for i, val := range job.JobResult.Output {
 		out[i] = DTOToValueHttp(val)
@@ -509,45 +506,22 @@ func ScriptToDTOHttp(script Script) app.ScriptDTO {
 }
 
 func renderCSVJobResult(w http.ResponseWriter, job app.JobDTO) error {
+	if job.JobResult == nil {
+		return fmt.Errorf("no results to render")
+	}
+
 	w.Header().Set("Content-Type", "text/csv")
 
 	csvWriter := csv.NewWriter(w)
 
-	header := []string{
-		"JobID",
-		"OwnerID",
-		"ScriptID",
-		"Input",
-		"Expected",
-		"Url",
-		"State",
-		"CreatedAt",
-		"FinishedAt",
-		"NeedToNotify",
-	}
+	header := []string{"Results"}
 	if err := csvWriter.Write(header); err != nil {
 		return err
 	}
 
-	inputJSON, err := json.Marshal(job.Input)
-	if err != nil {
-		return err
-	}
-	expectedJSON, err := json.Marshal(job.Expected)
-	if err != nil {
-		return err
-	}
-	row := []string{
-		strconv.FormatUint(uint64(job.JobID), 10),
-		strconv.FormatUint(uint64(job.OwnerID), 10),
-		strconv.FormatUint(uint64(job.ScriptID), 10),
-		string(inputJSON),
-		string(expectedJSON),
-		job.Url,
-		job.State,
-		job.CreatedAt.Format(time.RFC3339),
-		job.FinishedAt.Format(time.RFC3339),
-		strconv.FormatBool(job.NeedToNotify),
+	row := make([]string, len(job.JobResult.Output))
+	for i, val := range job.JobResult.Output {
+		row[i] = val.Data
 	}
 	if err := csvWriter.Write(row); err != nil {
 		return err

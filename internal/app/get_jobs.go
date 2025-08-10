@@ -23,11 +23,6 @@ func NewGetJobsUC(
 
 func (u *GetJobsUC) Jobs(ctx context.Context, userID uint32) ([]JobDTO, error) {
 	u.logger.Info("get jobs for user", "userID", userID)
-	_, err := u.userP.User(ctx, scripts.UserID(userID))
-	if err != nil {
-		u.logger.Error("failed to get jobs for user", "err", err)
-		return nil, err
-	}
 
 	jobs, err := u.jobR.UserJobs(ctx, scripts.UserID(userID))
 	if err != nil {

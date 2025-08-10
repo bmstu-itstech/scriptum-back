@@ -24,11 +24,26 @@ func main() {
 	l := logs.NewLogger("prod")
 	ctx := context.Background()
 
+	if os.Getenv("EMAIL_PORT") == "" {
+		log.Fatalf("EMAIL_PORT is empty")
+	}
 	port, err := strconv.Atoi(os.Getenv("EMAIL_PORT"))
 	if err != nil {
 		log.Fatalf("failed get port: %s", err.Error())
 	}
 
+	if os.Getenv("EMAIL_TEMPLATE_PATH") == "" {
+		log.Fatalf("EMAIL_TEMPLATE_PATH is empty")
+	}
+	if os.Getenv("EMAIL_FROM") == "" {
+		log.Fatalf("EMAIL_FROM is empty")
+	}
+	if os.Getenv("EMAIL_PASSWORD") == "" {
+		log.Fatalf("EMAIL_PASSWORD is empty")
+	}
+	if os.Getenv("EMAIL_HOST") == "" {
+		log.Fatalf("EMAIL_HOST is empty")
+	}
 	emailNotifier, err := service.NewEmailNotifier(
 		os.Getenv("EMAIL_TEMPLATE_PATH"),
 		os.Getenv("EMAIL_FROM"),
@@ -57,6 +72,9 @@ func main() {
 	scriptRepo := service.NewScriptRepository(db)
 	fileRepo := service.NewFileRepository(db)
 	var MaxFileSize int64 = 4 << 10
+	if os.Getenv("SCRIPTS_DIR") == "" {
+		log.Fatalf("SCRIPTS_DIR is empty")
+	}
 	systemManager, err := service.NewSystemManager(os.Getenv("SCRIPTS_DIR"), MaxFileSize)
 	if err != nil {
 		log.Fatalf("failed get system manager: %s", err.Error())
@@ -80,6 +98,9 @@ func main() {
 		log.Fatalf("failed get user provider: %s", err.Error())
 	}
 
+	if os.Getenv("PYTHON_INTERPRETER") == "" {
+		log.Fatalf("PYTHON_INTERPRETER is empty")
+	}
 	pythonLauncher, err := service.NewPythonLauncher(os.Getenv("PYTHON_INTERPRETER"))
 	if err != nil {
 		log.Fatalf("failed get python launcher: %s", err.Error())

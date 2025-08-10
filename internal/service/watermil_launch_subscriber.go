@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -18,19 +17,7 @@ type LaunchSubscriber struct {
 }
 
 func UnmarshalJob(data []byte) (*app.JobDTO, error) {
-	type Job struct {
-		JobID    scripts.JobID    `json:"job_id"`
-		OwnerID  scripts.UserID   `json:"owner_id"`
-		ScriptID scripts.ScriptID `json:"script_id"`
-		Input    []JSONValue      `json:"in"`
-		Expected []JSONField      `json:"exp"`
-		URL      string           `json:"url"`
-
-		NeedToNotify bool      `json:"need_to_notify"`
-		CreatedAt    time.Time `json:"started_at"`
-	}
-
-	var jsonJob Job
+	var jsonJob WJob
 	if err := json.Unmarshal(data, &jsonJob); err != nil {
 		return nil, err
 	}
@@ -127,13 +114,13 @@ func (l *LaunchSubscriber) Listen(ctx context.Context, callback func(context.Con
 						msg.Nack()
 						return
 					}
+					msg.Ack()
+
 					if err := callback(ctx, *req); err != nil {
 						l.watLogger.Error("Callback error", err, nil)
 						msg.Nack()
 						return
 					}
-
-					msg.Ack()
 				}(msg)
 			}
 		}
