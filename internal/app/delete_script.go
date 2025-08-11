@@ -59,7 +59,7 @@ func (u *ScriptDeleteUC) DeleteScript(ctx context.Context, actorID uint32, scrip
 	err = u.fileR.Delete(ctx, scripts.ScriptID(scriptID))
 	if err != nil {
 		u.logger.Error("failed to delete script", "err", err)
-		_, err := u.scriptR.Create(ctx, &script.ScriptPrototype)
+		_, err := u.scriptR.Restore(ctx, &script)
 		if err != nil {
 			u.logger.Error("failed to restore script", "err", err)
 			return err

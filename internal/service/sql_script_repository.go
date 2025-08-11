@@ -121,6 +121,51 @@ func (r *ScriptRepo) Create(ctx context.Context, script *scripts.ScriptPrototype
 	return scr, err
 }
 
+const createScriptWithIDQuery = `
+	INSERT INTO scripts (script_id, name, description, visibility, owner_id, file_id)
+	VALUES (:script_id, :name, :description, :visibility, :owner_id, :file_id)
+	RETURNING script_id
+`
+
+func (r *ScriptRepo) Restore(ctx context.Context, script *scripts.Script) (*scripts.Script, error) {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		} else {
+			err = tx.Commit()
+		}
+	}()
+
+	dbStruct := convertScriptPrototipeToDB(&script.ScriptPrototype)
+	dbStruct.ID = int64(script.ID())
+
+	named, args, err := sqlx.Named(createScriptWithIDQuery, dbStruct)
+	if err != nil {
+		return nil, err
+	}
+	named = tx.Rebind(named)
+
+	var scriptID int64
+	err = tx.QueryRowContext(ctx, named, args...).Scan(&scriptID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := insertFieldsTx(ctx, tx, scriptID, script.Input(), "in"); err != nil {
+		return nil, err
+	}
+	if err := insertFieldsTx(ctx, tx, scriptID, script.Output(), "out"); err != nil {
+		return nil, err
+	}
+
+	scr, err := script.Build(scripts.ScriptID(scriptID))
+	return scr, err
+}
+
 const getScriptQuery = "SELECT * FROM scripts WHERE script_id=$1"
 
 const getFieldsQuery = `

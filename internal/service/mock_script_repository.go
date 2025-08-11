@@ -36,6 +36,22 @@ func (r *MockScriptRepo) Create(ctx context.Context, script *scripts.ScriptProto
 	return newScript, nil
 }
 
+func (r *MockScriptRepo) Restore(ctx context.Context, script *scripts.Script) (*scripts.Script, error) {
+	r.Lock()
+	defer r.Unlock()
+
+	r.lastID++
+
+	newScript, err := script.Build(r.lastID)
+	if err != nil {
+		return nil, err
+	}
+
+	r.m[r.lastID] = *newScript
+
+	return newScript, nil
+}
+
 func (r *MockScriptRepo) Update(ctx context.Context, script *scripts.Script) error {
 	r.Lock()
 	defer r.Unlock()

@@ -6,6 +6,7 @@ import (
 
 type ScriptRepository interface {
 	Create(ctx context.Context, script *ScriptPrototype) (*Script, error)
+	Restore(ctx context.Context, script *Script) (*Script, error)
 	Update(ctx context.Context, script *Script) error
 	Delete(ctx context.Context, id ScriptID) error
 
