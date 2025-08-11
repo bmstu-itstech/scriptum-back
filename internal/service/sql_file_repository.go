@@ -21,9 +21,7 @@ func NewFileRepository(db *sqlx.DB) *FileRepo {
 	}
 }
 
-const getFileQuery = `
-	SELECT * FROM files WHERE file_id=$1		
-	`
+const getFileQuery = `SELECT * FROM files WHERE file_id = $1`
 
 func (f *FileRepo) File(ctx context.Context, fileID scripts.FileID) (*scripts.File, error) {
 	var fileRow FileRow
@@ -57,10 +55,10 @@ func (f *FileRepo) Create(ctx context.Context, url *scripts.URL) (scripts.FileID
 	return scripts.FileID(fileID), nil
 }
 
-const deleteFileQuery = `DELETE FROM files WHERE script_id = $1`
+const deleteFileQuery = `DELETE FROM files WHERE file_id = $1`
 
-func (f *FileRepo) Delete(ctx context.Context, ScriptID scripts.ScriptID) error {
-	result, err := f.db.ExecContext(ctx, deleteFileQuery, ScriptID)
+func (f *FileRepo) Delete(ctx context.Context, fileID scripts.ScriptID) error {
+	result, err := f.db.ExecContext(ctx, deleteFileQuery, fileID)
 	if err != nil {
 		return err
 	}
@@ -71,7 +69,7 @@ func (f *FileRepo) Delete(ctx context.Context, ScriptID scripts.ScriptID) error 
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("%w Delete: cannot delete file with id: %d", scripts.ErrFileNotFound, ScriptID)
+		return fmt.Errorf("%w Delete: cannot delete file with id: %d", scripts.ErrFileNotFound, fileID)
 	}
 
 	return nil

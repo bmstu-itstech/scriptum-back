@@ -35,33 +35,33 @@ func (u *ScriptDeleteUC) DeleteScript(ctx context.Context, actorID uint32, scrip
 	u.logger.Info("deleting script", "actorID", actorID)
 	script, err := u.scriptR.Script(ctx, scripts.ScriptID(scriptID))
 	if err != nil {
-		u.logger.Error("failed to delete script", "err", err)
+		u.logger.Error("failed to delete script", "err1", err)
 		return err
 	}
 
 	file, err := u.fileR.File(ctx, script.FileID())
 	if err != nil {
-		u.logger.Error("failed to delete script", "err", err)
+		u.logger.Error("failed to delete script", "err2", err)
 		return err
 	}
 
 	if !script.IsAvailableFor(scripts.UserID(actorID)) {
-		u.logger.Error("failed to delete script", "err", err)
+		u.logger.Error("failed to delete script", "err3", err)
 		return scripts.ErrPermissionDenied
 	}
 
 	err = u.scriptR.Delete(ctx, scripts.ScriptID(scriptID))
 	if err != nil {
-		u.logger.Error("failed to delete script", "err", err)
+		u.logger.Error("failed to delete script", "err4", err)
 		return err
 	}
 
-	err = u.fileR.Delete(ctx, scripts.ScriptID(scriptID))
+	err = u.fileR.Delete(ctx, scripts.ScriptID(script.FileID()))
 	if err != nil {
-		u.logger.Error("failed to delete script", "err", err)
-		_, err := u.scriptR.Restore(ctx, &script)
+		u.logger.Error("failed to delete script", "err5", err)
+		_, err := u.scriptR.Create(ctx, &script.ScriptPrototype)
 		if err != nil {
-			u.logger.Error("failed to restore script", "err", err)
+			u.logger.Error("failed to restore script", "err6", err)
 			return err
 		}
 		return err
@@ -69,16 +69,16 @@ func (u *ScriptDeleteUC) DeleteScript(ctx context.Context, actorID uint32, scrip
 
 	err = u.manager.Delete(ctx, file.URL())
 	if err != nil {
-		u.logger.Error("failed to delete script", "err", err)
+		u.logger.Error("failed to delete script", "err7", err)
 		url := file.URL()
 		_, err := u.fileR.Create(ctx, &url)
 		if err != nil {
-			u.logger.Error("failed to restore script", "err", err)
+			u.logger.Error("failed to restore script", "err8", err)
 			return err
 		}
 		_, err = u.scriptR.Create(ctx, &script.ScriptPrototype)
 		if err != nil {
-			u.logger.Error("failed to restore script", "err", err)
+			u.logger.Error("failed to restore script", "err9", err)
 			return err
 		}
 		return err
