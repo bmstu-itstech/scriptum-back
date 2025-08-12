@@ -70,23 +70,13 @@ func (u *ScriptDeleteUC) DeleteScript(ctx context.Context, actorID uint32, scrip
 	err = u.manager.Delete(ctx, file.URL())
 	if err != nil {
 		u.logger.Error("failed to delete script", "err7", err)
-		url := file.URL()
-		restoredFileId, err := u.fileR.Create(ctx, &url)
+		_, err := u.fileR.Restore(ctx, file)
 		if err != nil {
 			u.logger.Error("failed to restore script", "err8", err)
 			return err
 		}
-		newFile, _ := scripts.NewFile(restoredFileId, url)
-		newScriptProto, _ := scripts.NewScriptPrototype(
-			script.ScriptPrototype.OwnerID(),
-			script.ScriptPrototype.Name(),
-			script.ScriptPrototype.Desc(),
-			script.ScriptPrototype.Visibility(),
-			script.ScriptPrototype.Input(),
-			script.ScriptPrototype.Output(),
-			*newFile,
-		)
-		_, err = u.scriptR.Create(ctx, newScriptProto)
+
+		_, err = u.scriptR.Restore(ctx, &script)
 		if err != nil {
 			u.logger.Error("failed to restore script", "err9", err)
 			return err

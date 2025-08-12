@@ -55,6 +55,25 @@ func (f *FileRepo) Create(ctx context.Context, url *scripts.URL) (scripts.FileID
 	return scripts.FileID(fileID), nil
 }
 
+const restoreFileQuery = `
+	INSERT INTO files (file_id, url)
+	VALUES ($1, $2)
+	RETURNING file_id
+`
+
+func (f *FileRepo) Restore(ctx context.Context, file *scripts.File) (scripts.FileID, error) {
+	var fileID int64
+	err := f.db.QueryRowContext(ctx, restoreFileQuery, file.ID(), file.URL()).Scan(&fileID)
+	if err != nil {
+		return 0, err
+	}
+	if fileID != int64(file.ID()) {
+		return 0, fmt.Errorf("%w Restore: cannot restore file with id: %d: file ids do not match", scripts.ErrFileNotFound, file.ID())
+	}
+
+	return scripts.FileID(fileID), nil
+}
+
 const deleteFileQuery = `DELETE FROM files WHERE file_id = $1`
 
 func (f *FileRepo) Delete(ctx context.Context, fileID scripts.ScriptID) error {
