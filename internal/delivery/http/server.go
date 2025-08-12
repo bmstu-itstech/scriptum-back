@@ -514,11 +514,6 @@ func renderCSVJobResult(w http.ResponseWriter, job app.JobDTO) error {
 
 	csvWriter := csv.NewWriter(w)
 
-	header := []string{"Results"}
-	if err := csvWriter.Write(header); err != nil {
-		return err
-	}
-
 	row := make([]string, len(job.JobResult.Output))
 	for i, val := range job.JobResult.Output {
 		row[i] = val.Data
