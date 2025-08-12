@@ -440,7 +440,7 @@ func insertFieldsTx(ctx context.Context, tx *sqlx.Tx, scriptID int64, fields []s
 		if err != nil {
 			return err
 		}
-		defer stmt.Close()
+		defer func() { _ = stmt.Close() }()
 
 		if err := stmt.GetContext(ctx, &fieldID, fieldRow); err != nil {
 			return err

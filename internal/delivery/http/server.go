@@ -210,7 +210,6 @@ func (s *Server) PostScriptsUpload(w http.ResponseWriter, r *http.Request) {
 		httpError(w, r, err, http.StatusBadRequest)
 		return
 	}
-	defer file.Close()
 
 	fileBytes, err := io.ReadAll(file)
 	if err != nil {
@@ -225,6 +224,11 @@ func (s *Server) PostScriptsUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileID, err := s.app.CreateFile.CreateFile(r.Context(), reqDto)
+	if err != nil {
+		httpError(w, r, err, http.StatusInternalServerError)
+		return
+	}
+	err = file.Close()
 	if err != nil {
 		httpError(w, r, err, http.StatusInternalServerError)
 		return

@@ -219,14 +219,14 @@ func RestoreScript(
 }
 
 func (s *Script) Assemble(by UserID, input []Value, url URL) (*JobPrototype, error) {
-	if len(s.ScriptPrototype.input) != len(input) {
+	if len(s.input) != len(input) {
 		return nil, fmt.Errorf(
 			"%w: failed to assemble job: expected %d input values, got %d",
-			ErrInvalidInput, len(s.ScriptPrototype.input), len(input),
+			ErrInvalidInput, len(s.input), len(input),
 		)
 	}
 
-	for i, field := range s.ScriptPrototype.input {
+	for i, field := range s.input {
 		value := input[i]
 		if field.ValueType() != value.Type() {
 			return nil, fmt.Errorf(

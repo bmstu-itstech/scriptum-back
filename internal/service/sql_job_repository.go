@@ -372,7 +372,7 @@ func insertValuesTx(ctx context.Context, tx *sqlx.Tx, jobID, scriptID int64, val
 		if err != nil {
 			return err
 		}
-		defer stmt.Close()
+		defer func() { _ = stmt.Close() }()
 
 		if err := stmt.GetContext(ctx, &parameterID, row); err != nil {
 			return err

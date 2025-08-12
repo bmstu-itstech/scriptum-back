@@ -35,7 +35,7 @@ func (s *SystemManager) Save(_ context.Context, name string, content io.Reader) 
 	if err != nil {
 		return "", err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	limitedReader := io.LimitReader(content, s.maxFileSize+1)
 
