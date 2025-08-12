@@ -35,33 +35,33 @@ func (u *ScriptDeleteUC) DeleteScript(ctx context.Context, actorID uint32, scrip
 	u.logger.Info("deleting script", "actorID", actorID)
 	script, err := u.scriptR.Script(ctx, scripts.ScriptID(scriptID))
 	if err != nil {
-		u.logger.Error("failed to delete script", "err1", err)
+		u.logger.Error("failed to get script", "err", err)
 		return err
 	}
 
 	file, err := u.fileR.File(ctx, script.FileID())
 	if err != nil {
-		u.logger.Error("failed to delete script", "err2", err)
+		u.logger.Error("failed to get file", "err", err)
 		return err
 	}
 
 	if !script.IsAvailableFor(scripts.UserID(actorID)) {
-		u.logger.Error("failed to delete script", "err3", err)
+		u.logger.Error("script is not available to delete by user", "err", err)
 		return scripts.ErrPermissionDenied
 	}
 
 	err = u.scriptR.Delete(ctx, scripts.ScriptID(scriptID))
 	if err != nil {
-		u.logger.Error("failed to delete script", "err4", err)
+		u.logger.Error("failed to delete script", "err", err)
 		return err
 	}
 
 	err = u.fileR.Delete(ctx, scripts.ScriptID(script.FileID()))
 	if err != nil {
-		u.logger.Error("failed to delete script", "err5", err)
-		_, err := u.scriptR.Create(ctx, &script.ScriptPrototype)
+		u.logger.Error("failed to delete file while deleting script", "err", err)
+		_, err := u.scriptR.Restore(ctx, &script)
 		if err != nil {
-			u.logger.Error("failed to restore script", "err6", err)
+			u.logger.Error("failed to restore script while deleting script", "err", err)
 			return err
 		}
 		return err
@@ -69,16 +69,16 @@ func (u *ScriptDeleteUC) DeleteScript(ctx context.Context, actorID uint32, scrip
 
 	err = u.manager.Delete(ctx, file.URL())
 	if err != nil {
-		u.logger.Error("failed to delete script", "err7", err)
+		u.logger.Error("failed to delete file from system", "err", err)
 		_, err := u.fileR.Restore(ctx, file)
 		if err != nil {
-			u.logger.Error("failed to restore script", "err8", err)
+			u.logger.Error("failed to restore file while deleting file from system", "err", err)
 			return err
 		}
 
 		_, err = u.scriptR.Restore(ctx, &script)
 		if err != nil {
-			u.logger.Error("failed to restore script", "err9", err)
+			u.logger.Error("failed to restore script while deleting file from system", "err9", err)
 			return err
 		}
 		return err
