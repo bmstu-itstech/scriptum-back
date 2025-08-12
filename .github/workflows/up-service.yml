@@ -2,7 +2,7 @@ name: Up Scriptum Service
 run-name: ${{ github.actor }} is deploying Scriptum Service
 on:
   push:
-    branches: [ main, dev, ci ]
+    branches: [ main, delivery, ci ]
 jobs:
   test:
     runs-on: ubuntu-latest

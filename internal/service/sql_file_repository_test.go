@@ -26,6 +26,9 @@ func setUpFileRepository() (*service.FileRepo, error) {
 }
 
 func testFileRepository(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test sql file repository in short mode.")
+	}
 	r, err := setUpFileRepository()
 	require.NoError(t, err)
 

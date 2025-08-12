@@ -1,4 +1,4 @@
-include .env
+-include .env
 export
 
 TEST_DIR=.
@@ -11,7 +11,7 @@ test:
 	# @echo "Делаем моки..."
 	# mockgen -source= -destination= -package=
 	@echo "Запуск тестов..."
-	go test -v -race -coverpkg=./... -coverprofile=$(COVERAGE_TMP) $(TEST_DIR)/...
+	go test -short -v -race -coverpkg=./... -coverprofile=$(COVERAGE_TMP) $(TEST_DIR)/...
 	@echo "Обработка покрытия..."
 
 	# Добавляем условие для исключения файлов
@@ -31,16 +31,13 @@ ENV_FILE := .env
 COMPOSE := docker compose --env-file=$(ENV_FILE)
 SERVICES := db migrate
 
-up_services:
+up_services: include_env
 	$(COMPOSE) down -v
 	rm -rf .pgdata
 	$(COMPOSE) up -d $(SERVICES)
 
-test_services: 
-	$(COMPOSE) down -v
-	rm -rf .pgdata
-	$(COMPOSE) up -d $(SERVICES)
-	go test -v ./internal/service/
+test_all: up_services
+	go test -v -race -coverpkg=./... -coverprofile=$(COVERAGE_TMP) $(TEST_DIR)/...
 	$(COMPOSE) down -v
 	rm -rf .pgdata
 

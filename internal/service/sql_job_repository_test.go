@@ -27,6 +27,9 @@ func setUpJobRepository() (*service.JobRepo, error) {
 }
 
 func testJobRepository(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping testing sql job repository in short mode.")
+	}
 	r, err := setUpJobRepository()
 	require.NoError(t, err)
 	jobRepository_JobNotFound(t, r)
