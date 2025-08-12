@@ -1,46 +1,40 @@
 package scripts
 
 import (
-	"context"
-	"mime/multipart"
+	"fmt"
 )
 
+type FileID int64
+
+const FileURLMaxLen = 200
+
 type File struct {
-	name     string
-	fileType string
-	content  []byte
+	id  FileID
+	url string
 }
 
-type FileReader interface {
-	ReadFile(context.Context, multipart.File, *multipart.FileHeader) (*File, error)
+func (f *File) ID() FileID {
+	return f.id
 }
 
-func (f *File) Name() string {
-	return f.name
+func (f *File) URL() string {
+	return f.url
 }
 
-func (f *File) FileType() string {
-	return f.fileType
-}
-
-func (f *File) Content() []byte {
-	return f.content
-}
-
-func NewFile(name, fileType string, content []byte) (*File, error) {
-	if name == "" {
-		return nil, ErrFileNameEmpty
+func NewFile(id FileID, url string) (*File, error) {
+	if url == "" {
+		return nil, fmt.Errorf("%w: file url must not be empty", ErrInvalidInput)
 	}
-	if fileType == "" {
-		return nil, ErrFileTypeEmpty
-	}
-	if len(content) == 0 {
-		return nil, ErrFileContentEmpty
+
+	if len(url) > FileURLMaxLen {
+		return nil, fmt.Errorf(
+			"%w: invalid File: expected len(url) <= %d, got len(url) = %d",
+			ErrInvalidInput, FileURLMaxLen, len(url),
+		)
 	}
 
 	return &File{
-		name:     name,
-		fileType: fileType,
-		content:  content,
+		id:  id,
+		url: url,
 	}, nil
 }

@@ -1,3 +1,6 @@
+include .env
+export
+
 TEST_DIR=.
 COVERAGE_TMP=coverage.out.tmp
 COVERAGE_OUT=coverage.out
@@ -22,3 +25,28 @@ test:
 	rm -f $(FILES_TO_CLEAN)
 	rm -rf $(MOCKS)
 	@echo "Тесты завершены"
+
+
+ENV_FILE := .env
+COMPOSE := docker compose --env-file=$(ENV_FILE)
+SERVICES := db migrate
+
+up_services:
+	$(COMPOSE) down -v
+	rm -rf .pgdata
+	$(COMPOSE) up -d $(SERVICES)
+
+test_services: 
+	$(COMPOSE) down -v
+	rm -rf .pgdata
+	$(COMPOSE) up -d $(SERVICES)
+	go test -v ./internal/service/
+	$(COMPOSE) down -v
+	rm -rf .pgdata
+
+reset_test_services:
+	$(COMPOSE) down -v
+	rm -rf .pgdata
+	
+run:
+	go run cmd/http/http.go

@@ -1,14 +1,64 @@
 package scripts
 
+import "fmt"
+
+const FieldNameMaxLen = 32
+const FieldDescriptionMaxLen = 256
+const FieldUnitMaxLen = 16
+
 type Field struct {
-	fieldType Type
-	name      string
-	desc      string
-	unit      string
+	typ_ ValueType
+	name string // 0 <  len(name) <= FieldNameMaxLen
+	desc string // 0 <= len(desc) <= FieldDescriptionMaxLen
+	unit string // 0 <  len(unit) <= FieldUnitMaxLen
 }
 
-func (f *Field) FieldType() Type {
-	return f.fieldType
+func NewField(typ ValueType, name string, desc string, unit string) (*Field, error) {
+	if typ.IsZero() {
+		// Это может случиться тогда и только тогда, когда typ был создан не через конструктор, то есть
+		// это ошибка программиста
+		return nil, fmt.Errorf("typ is empty")
+	}
+
+	if name == "" {
+		return nil, fmt.Errorf("%w: invalid Field: expected not empty name len", ErrInvalidInput)
+	}
+
+	if len(name) > FieldNameMaxLen {
+		return nil, fmt.Errorf(
+			"%w: invalid Field: expected len(name) < %d, got len(name) = %d",
+			ErrInvalidInput, FieldNameMaxLen, len(name),
+		)
+	}
+
+	if len(desc) > FieldDescriptionMaxLen {
+		return nil, fmt.Errorf(
+			"%w: invalid Field: expected len(desc) < %d, got len(desc) = %d",
+			ErrInvalidInput, FieldDescriptionMaxLen, len(desc),
+		)
+	}
+
+	if unit == "" {
+		return nil, fmt.Errorf("%w: invalid Field: expected not empty unit", ErrInvalidInput)
+	}
+
+	if len(unit) > FieldUnitMaxLen {
+		return nil, fmt.Errorf(
+			"%w: invalid Field: expected len(unit) < %d, got len(unit) = %d",
+			ErrInvalidInput, FieldUnitMaxLen, len(unit),
+		)
+	}
+
+	return &Field{
+		typ_: typ,
+		name: name,
+		desc: desc,
+		unit: unit,
+	}, nil
+}
+
+func (f *Field) ValueType() ValueType {
+	return f.typ_
 }
 
 func (f *Field) Name() string {
@@ -21,23 +71,4 @@ func (f *Field) Description() string {
 
 func (f *Field) Unit() string {
 	return f.unit
-}
-
-func NewField(fieldType Type, name, desc, unit string) (*Field, error) {
-	if name == "" {
-		return nil, ErrFieldNameEmpty
-	}
-	if desc == "" {
-		return nil, ErrFieldDescEmpty
-	}
-	if unit == "" {
-		return nil, ErrFieldUnitEmpty
-	}
-
-	return &Field{
-		fieldType: fieldType,
-		name:      name,
-		desc:      desc,
-		unit:      unit,
-	}, nil
 }

@@ -1,45 +1,62 @@
 package scripts
 
+import (
+	"fmt"
+)
+
 type StatusCode = int
-type ErrorMessage = string
 
 type Result struct {
-	job      Job
-	code     StatusCode
-	out      Vector
-	errorMes *ErrorMessage
-}
-
-func (r *Result) Job() Job {
-	return r.job
+	output []Value
+	code   StatusCode
+	errMsg *string
 }
 
 func (r *Result) Code() StatusCode {
 	return r.code
 }
 
-func (r *Result) Out() Vector {
-	return r.out
+func (r *Result) Output() []Value {
+	return r.output[:]
 }
 
-func (r *Result) ErrorMessage() *ErrorMessage {
-	return r.errorMes
+func (r *Result) ErrorMessage() *string {
+	return r.errMsg
 }
 
-func NewResult(job Job, code StatusCode, out Vector, errorMes ErrorMessage) (*Result, error) {
+func RestoreResult(output []Value, code StatusCode, errMsg *string) *Result {
+	var msg *string
+	var out []Value
+	if errMsg != nil {
+		msg = errMsg
+	}
+	if output != nil {
+		out = output[:]
+	}
 	return &Result{
-		job:      job,
-		code:     code,
-		out:      out,
-		errorMes: &errorMes,
+		output: out,
+		code:   code,
+		errMsg: msg,
+	}
+}
+
+func NewSuccessResult(output []Value) (*Result, error) {
+	if len(output) == 0 {
+		// Скрипт не может не иметь выходных значений, поэтому ошибка программиста.
+		return nil, fmt.Errorf("empty output")
+	}
+
+	return &Result{
+		output: output[:], // Копирование
+		code:   0,
+		errMsg: nil,
 	}, nil
 }
 
-func NewResultOK(job Job, out Vector) (*Result, error) {
+func NewFailureResult(code StatusCode, errMsg string) *Result {
 	return &Result{
-		job:      job,
-		code:     0,
-		out:      out,
-		errorMes: nil,
-	}, nil
+		output: nil,
+		code:   code,
+		errMsg: &errMsg,
+	}
 }
