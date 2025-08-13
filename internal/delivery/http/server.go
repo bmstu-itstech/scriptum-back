@@ -515,12 +515,16 @@ func ScriptDataToDTOHttp(data ScriptUpdateData) app.ScriptUpdateDTO {
 		for _, field := range *data.InFields {
 			in = append(in, FieldToDTOHttp(field))
 		}
+	} else {
+		in = nil
 	}
 	if data.OutFields != nil {
 		out := make([]app.FieldDTO, 0, len(*data.OutFields))
 		for _, field := range *data.OutFields {
 			out = append(out, FieldToDTOHttp(field))
 		}
+	} else {
+		out = nil
 	}
 
 	sName := ""
