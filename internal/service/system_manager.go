@@ -35,7 +35,6 @@ func (s *SystemManager) Save(_ context.Context, name string, content io.Reader) 
 	if err != nil {
 		return "", err
 	}
-	defer func() { _ = file.Close() }()
 
 	limitedReader := io.LimitReader(content, s.maxFileSize+1)
 
@@ -47,6 +46,10 @@ func (s *SystemManager) Save(_ context.Context, name string, content io.Reader) 
 	if written > s.maxFileSize {
 		_ = os.Remove(filename)
 		return "", fmt.Errorf("%w:file size exceeds limit of %d bytes", scripts.ErrFileUpload, s.maxFileSize)
+	}
+	
+	if err := file.Close(); err != nil {
+		return "", err
 	}
 
 	return scripts.URL(filename), nil

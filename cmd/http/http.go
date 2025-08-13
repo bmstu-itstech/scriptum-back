@@ -112,7 +112,10 @@ func main() {
 	}
 
 	usecase := app.NewJobRunUC(scriptRepo, jobRepo, pythonLauncher, emailNotifier, userProv, l)
-	_ = handler.Listen(ctx, usecase.Run)
+	err = handler.Listen(ctx, usecase.Run)
+	if err != nil {
+		log.Fatalf("failed listen handler: %s", err.Error())
+	}
 
 	application := app.Application{
 		CreateScript:  app.NewScriptCreateUC(scriptRepo, userProv, fileRepo, systemManager, l),
