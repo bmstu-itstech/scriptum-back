@@ -7,7 +7,7 @@ servers:
 
 info:
   title: Scriptum - OpenAPI 3.0
-  version: 1.0.1
+  version: 1.0.2
 
 tags:
 - name: scripts
@@ -64,10 +64,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                script:
-                  $ref: '#/components/schemas/Script'
+              $ref: '#/components/schemas/ScriptCreateData'
       responses:
         '201':
           description: created new script
@@ -167,7 +164,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Script'
+              $ref: '#/components/schemas/ScriptUpdateData'
       responses:
         '200':
           description: successful operation
@@ -634,7 +631,7 @@ components:
       example: "/user1/script7/main.py"
     Visibility:
       type: string
-      enum: [ global, private ]
+      enum: [ public, private ]
       default: private
     Script:
       type: object
@@ -759,8 +756,6 @@ components:
     ScriptCreateData:
       type: object
       properties:
-        owner:
-          $ref: '#/components/schemas/UserId'
         script_name:
           type: string
           example: "Подсчет скорости полета пули в ветренную погоду"
@@ -778,6 +773,29 @@ components:
         file_id:
           type: integer
           format: int64
+      required:
+      - script_name
+      - script_description
+      - in_fields
+      - out_fields
+      - file_id
+    ScriptUpdateData:
+      type: object
+      properties:
+        script_name:
+          type: string
+          example: "Подсчет скорости полета пули в ветренную погоду"
+        script_description:
+          type: string
+          example: "Скрипт для подсчета скорости полета пули в ветренную погоду"
+        in_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/Field'
+        out_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/Field'
     ScriptRunData:
       type: object
       properties:

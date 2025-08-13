@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/app"
@@ -147,25 +148,21 @@ func (s *Server) PostScripts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	script := *req.Script
-	fileID := *script.FileId
-	if userID != script.Owner {
-		httpError(w, r, fmt.Errorf("permission denied"), http.StatusForbidden)
-		return
-	}
+	script := req
+	fileID := script.FileId
 
-	in := make([]app.FieldDTO, len(*script.InFields))
-	for i, field := range *script.InFields {
+	in := make([]app.FieldDTO, len(script.InFields))
+	for i, field := range script.InFields {
 		in[i] = FieldToDTOHttp(field)
 	}
-	out := make([]app.FieldDTO, len(*script.OutFields))
-	for i, field := range *script.OutFields {
+	out := make([]app.FieldDTO, len(script.OutFields))
+	for i, field := range script.OutFields {
 		out[i] = FieldToDTOHttp(field)
 	}
 	reqDto := app.ScriptCreateDTO{
 		OwnerID:           userID,
-		ScriptName:        *script.ScriptName,
-		ScriptDescription: *script.ScriptDescription,
+		ScriptName:        script.ScriptName,
+		ScriptDescription: script.ScriptDescription,
 		FileID:            fileID,
 		InFields:          in,
 		OutFields:         out,
@@ -324,13 +321,15 @@ func (s *Server) PutScriptsId(w http.ResponseWriter, r *http.Request, id ScriptI
 		httpError(w, r, err, http.StatusUnauthorized)
 		return
 	}
-	scri := Script{}
-	if err := render.Decode(r, &scri); err != nil {
+	in := PutScriptsIdJSONRequestBody{}
+	if err := render.Decode(r, &in); err != nil {
 		httpError(w, r, err, http.StatusBadRequest)
 		return
 	}
+	log.Println("ok1")
 
-	err = s.app.UpdateScript.UpdateScript(r.Context(), int64(userID), ScriptToDTOHttp(scri))
+	err = s.app.UpdateScript.UpdateScript(r.Context(), int64(userID), id, ScriptDataToDTOHttp(in))
+	log.Println("ok2")
 	if err != nil {
 		if errors.Is(err, fmt.Errorf("user not found")) {
 			httpError(w, r, err, http.StatusNotFound)
@@ -487,13 +486,13 @@ func DTOToScriptHttp(script app.ScriptDTO) Script {
 }
 
 func ScriptToDTOHttp(script Script) app.ScriptDTO {
-	in := make([]app.FieldDTO, len(*script.InFields))
-	for i, field := range *script.InFields {
-		in[i] = FieldToDTOHttp(field)
+	in := make([]app.FieldDTO, 0, len(*script.InFields))
+	for _, field := range *script.InFields {
+		in = append(in, FieldToDTOHttp(field))
 	}
-	out := make([]app.FieldDTO, len(*script.OutFields))
-	for i, field := range *script.OutFields {
-		out[i] = FieldToDTOHttp(field)
+	out := make([]app.FieldDTO, 0, len(*script.OutFields))
+	for _, field := range *script.OutFields {
+		out = append(out, FieldToDTOHttp(field))
 	}
 
 	return app.ScriptDTO{
@@ -506,6 +505,37 @@ func ScriptToDTOHttp(script Script) app.ScriptDTO {
 		Output:     out,
 		OwnerID:    int64(script.Owner),
 		CreatedAt:  *script.CreatedAt,
+	}
+}
+
+func ScriptDataToDTOHttp(data ScriptUpdateData) app.ScriptUpdateDTO {
+	var in, out []app.FieldDTO
+	if data.InFields != nil {
+		in := make([]app.FieldDTO, 0, len(*data.InFields))
+		for _, field := range *data.InFields {
+			in = append(in, FieldToDTOHttp(field))
+		}
+	}
+	if data.OutFields != nil {
+		out := make([]app.FieldDTO, 0, len(*data.OutFields))
+		for _, field := range *data.OutFields {
+			out = append(out, FieldToDTOHttp(field))
+		}
+	}
+
+	sName := ""
+	if data.ScriptName != nil {
+		sName = *data.ScriptName
+	}
+	sDesc := ""
+	if data.ScriptDescription != nil {
+		sDesc = *data.ScriptDescription
+	}
+	return app.ScriptUpdateDTO{
+		InFields:          in,
+		OutFields:         out,
+		ScriptName:        sName,
+		ScriptDescription: sDesc,
 	}
 }
 

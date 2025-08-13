@@ -22,8 +22,8 @@ const (
 
 // Defines values for Visibility.
 const (
-	Global  Visibility = "global"
 	Private Visibility = "private"
+	Public  Visibility = "public"
 )
 
 // Error defines model for Error.
@@ -80,8 +80,25 @@ type Script struct {
 	Visibility        *Visibility `json:"visibility,omitempty"`
 }
 
+// ScriptCreateData defines model for ScriptCreateData.
+type ScriptCreateData struct {
+	FileId            int64   `json:"file_id"`
+	InFields          []Field `json:"in_fields"`
+	OutFields         []Field `json:"out_fields"`
+	ScriptDescription string  `json:"script_description"`
+	ScriptName        string  `json:"script_name"`
+}
+
 // ScriptId defines model for ScriptId.
 type ScriptId = int64
+
+// ScriptUpdateData defines model for ScriptUpdateData.
+type ScriptUpdateData struct {
+	InFields          *[]Field `json:"in_fields,omitempty"`
+	OutFields         *[]Field `json:"out_fields,omitempty"`
+	ScriptDescription *string  `json:"script_description,omitempty"`
+	ScriptName        *string  `json:"script_name,omitempty"`
+}
 
 // Status defines model for Status.
 type Status string
@@ -104,11 +121,6 @@ type GetJobsSearchParams struct {
 	State Status `form:"state" json:"state"`
 }
 
-// PostScriptsJSONBody defines parameters for PostScripts.
-type PostScriptsJSONBody struct {
-	Script *Script `json:"script,omitempty"`
-}
-
 // GetScriptsSearchParams defines parameters for GetScriptsSearch.
 type GetScriptsSearchParams struct {
 	// ScriptName substring of script name
@@ -127,13 +139,13 @@ type PostScriptsIdStartJSONBody struct {
 }
 
 // PostScriptsJSONRequestBody defines body for PostScripts for application/json ContentType.
-type PostScriptsJSONRequestBody PostScriptsJSONBody
+type PostScriptsJSONRequestBody = ScriptCreateData
 
 // PostScriptsUploadMultipartRequestBody defines body for PostScriptsUpload for multipart/form-data ContentType.
 type PostScriptsUploadMultipartRequestBody PostScriptsUploadMultipartBody
 
 // PutScriptsIdJSONRequestBody defines body for PutScriptsId for application/json ContentType.
-type PutScriptsIdJSONRequestBody = Script
+type PutScriptsIdJSONRequestBody = ScriptUpdateData
 
 // PostScriptsIdStartJSONRequestBody defines body for PostScriptsIdStart for application/json ContentType.
 type PostScriptsIdStartJSONRequestBody PostScriptsIdStartJSONBody

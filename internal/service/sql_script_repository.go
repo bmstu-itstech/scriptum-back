@@ -22,10 +22,10 @@ func NewScriptRepository(db *sqlx.DB) *ScriptRepo {
 }
 
 const createScriptQuery = `
-		INSERT INTO scripts (name, description, visibility, owner_id, file_id)
-		VALUES (:name, :description, :visibility, :owner_id, :file_id)
-		RETURNING script_id
-	`
+INSERT INTO scripts (name, description, visibility, owner_id, file_id)
+VALUES (:name, :description, :visibility, :owner_id, :file_id)
+RETURNING script_id
+`
 
 const updateQuery = `
 UPDATE scripts
