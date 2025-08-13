@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/app"
@@ -326,10 +325,8 @@ func (s *Server) PutScriptsId(w http.ResponseWriter, r *http.Request, id ScriptI
 		httpError(w, r, err, http.StatusBadRequest)
 		return
 	}
-	log.Println("ok1")
 
 	err = s.app.UpdateScript.UpdateScript(r.Context(), int64(userID), id, ScriptDataToDTOHttp(in))
-	log.Println("ok2")
 	if err != nil {
 		if errors.Is(err, fmt.Errorf("user not found")) {
 			httpError(w, r, err, http.StatusNotFound)
