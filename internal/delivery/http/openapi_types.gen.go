@@ -28,15 +28,15 @@ const (
 
 // Error defines model for Error.
 type Error struct {
-	Message *string `json:"message,omitempty"`
+	Message string `json:"message"`
 }
 
 // Field defines model for Field.
 type Field struct {
-	Description *string `json:"description,omitempty"`
-	Name        *string `json:"name,omitempty"`
-	Type        *string `json:"type,omitempty"`
-	Unit        *string `json:"unit,omitempty"`
+	Description string `json:"description"`
+	Name        string `json:"name"`
+	Type        string `json:"type"`
+	Unit        string `json:"unit"`
 }
 
 // FilePath defines model for FilePath.
@@ -44,16 +44,16 @@ type FilePath = string
 
 // Job defines model for Job.
 type Job struct {
-	CreatedAt    *time.Time `json:"created_at,omitempty"`
-	Expected     *[]Field   `json:"expected,omitempty"`
+	CreatedAt    time.Time  `json:"created_at"`
+	Expected     []Field    `json:"expected"`
 	FinishedAt   *time.Time `json:"finished_at,omitempty"`
-	In           *[]Value   `json:"in,omitempty"`
-	JobId        *JobId     `json:"job_id,omitempty"`
-	NeedToNotify *bool      `json:"need_to_notify,omitempty"`
-	Path         *FilePath  `json:"path,omitempty"`
-	ScriptId     *ScriptId  `json:"script_id,omitempty"`
-	Status       *Status    `json:"status,omitempty"`
-	UserId       *UserId    `json:"user_id,omitempty"`
+	In           []Value    `json:"in"`
+	JobId        JobId      `json:"job_id"`
+	NeedToNotify bool       `json:"need_to_notify"`
+	Path         FilePath   `json:"path"`
+	ScriptId     ScriptId   `json:"script_id"`
+	Status       Status     `json:"status"`
+	UserId       UserId     `json:"user_id"`
 }
 
 // JobId defines model for JobId.
@@ -63,21 +63,21 @@ type JobId = int64
 type Result struct {
 	Code         *int     `json:"code,omitempty"`
 	ErrorMessage *string  `json:"error_message,omitempty"`
-	Job          *Job     `json:"job,omitempty"`
+	Job          Job      `json:"job"`
 	Out          *[]Value `json:"out,omitempty"`
 }
 
 // Script defines model for Script.
 type Script struct {
-	CreatedAt         *time.Time  `json:"created_at,omitempty"`
-	FileId            *int64      `json:"file_id,omitempty"`
-	InFields          *[]Field    `json:"in_fields,omitempty"`
-	OutFields         *[]Field    `json:"out_fields,omitempty"`
-	Owner             UserId      `json:"owner"`
-	ScriptDescription *string     `json:"script_description,omitempty"`
-	ScriptId          *ScriptId   `json:"script_id,omitempty"`
-	ScriptName        *string     `json:"script_name,omitempty"`
-	Visibility        *Visibility `json:"visibility,omitempty"`
+	CreatedAt         time.Time  `json:"created_at"`
+	FileId            int64      `json:"file_id"`
+	InFields          []Field    `json:"in_fields"`
+	OutFields         []Field    `json:"out_fields"`
+	Owner             UserId     `json:"owner"`
+	ScriptDescription string     `json:"script_description"`
+	ScriptId          ScriptId   `json:"script_id"`
+	ScriptName        string     `json:"script_name"`
+	Visibility        Visibility `json:"visibility"`
 }
 
 // ScriptCreateData defines model for ScriptCreateData.
@@ -91,6 +91,12 @@ type ScriptCreateData struct {
 
 // ScriptId defines model for ScriptId.
 type ScriptId = int64
+
+// ScriptRunData defines model for ScriptRunData.
+type ScriptRunData struct {
+	InParams     []Value `json:"in_params"`
+	NeedToNotify *bool   `json:"need_to_notify,omitempty"`
+}
 
 // ScriptUpdateData defines model for ScriptUpdateData.
 type ScriptUpdateData struct {
@@ -108,8 +114,8 @@ type UserId = int64
 
 // Value defines model for Value.
 type Value struct {
-	Data *string `json:"data,omitempty"`
-	Type *string `json:"type,omitempty"`
+	Data string `json:"data"`
+	Type string `json:"type"`
 }
 
 // Visibility defines model for Visibility.
@@ -132,12 +138,6 @@ type PostScriptsUploadMultipartBody struct {
 	File openapi_types.File `json:"file"`
 }
 
-// PostScriptsIdStartJSONBody defines parameters for PostScriptsIdStart.
-type PostScriptsIdStartJSONBody struct {
-	InParams      []Value `json:"in_params"`
-	NotifyByEmail *bool   `json:"notify_by_email,omitempty"`
-}
-
 // PostScriptsJSONRequestBody defines body for PostScripts for application/json ContentType.
 type PostScriptsJSONRequestBody = ScriptCreateData
 
@@ -148,4 +148,4 @@ type PostScriptsUploadMultipartRequestBody PostScriptsUploadMultipartBody
 type PutScriptsIdJSONRequestBody = ScriptUpdateData
 
 // PostScriptsIdStartJSONRequestBody defines body for PostScriptsIdStart for application/json ContentType.
-type PostScriptsIdStartJSONRequestBody PostScriptsIdStartJSONBody
+type PostScriptsIdStartJSONRequestBody = ScriptRunData

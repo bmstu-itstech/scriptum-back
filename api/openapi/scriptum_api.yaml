@@ -264,17 +264,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                in_params:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Value'
-                notify_by_email:
-                  type: boolean
-                  default: false
-              required:
-              - in_params
+              $ref: '#/components/schemas/ScriptRunData'
       responses:
         '202':
           description: request accepted
@@ -396,6 +386,9 @@ paths:
                   message:
                     type: string
                     example: "File uploaded successfully"
+                required:
+                - file_id
+                - message
         '400':
           description: invalid request
           content:
@@ -512,13 +505,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Result'
-            application/octet-stream:
-              schema:
-                type: string
-                format: binary
+                $ref: '#/components/schemas/Result'
           headers:
             Content-Disposition:
               schema:
@@ -626,6 +613,11 @@ components:
         unit:
           type: string
           example: "метры"
+      required:
+      - type
+      - name
+      - description
+      - unit
     FilePath:
       type: string
       example: "/user1/script7/main.py"
@@ -663,8 +655,15 @@ components:
           type: string
           format: date-time
       required:
-      - fields
+      - script_id
+      - script_name
+      - script_description
+      - in_fields
+      - out_fields
+      - file_id
       - owner
+      - visibility
+      - created_at
     Value:
       type: object
       properties:
@@ -674,6 +673,9 @@ components:
         data:
           type: string
           example: "-1.6+24.04i"
+      required:
+      - type
+      - data
     Status:
       type: string
       enum: [ pending, running, finished ]
@@ -702,12 +704,22 @@ components:
         created_at:
           type: string
           format: date-time
-        finished_at:
-          type: string
-          format: date-time
         need_to_notify:
           type: boolean
           default: false
+        finished_at:
+          type: string
+          format: date-time
+      required:
+      - job_id
+      - user_id
+      - script_id
+      - in
+      - expected
+      - path
+      - status
+      - created_at
+      - need_to_notify
     Result:
       type: object
       properties:
@@ -722,37 +734,15 @@ components:
         error_message:
           type: string
           example: "bruh"
-    User:
-      type: object
-      properties:
-        user_id:
-          $ref: '#/components/schemas/UserId'
-        full_name:
-          type: string
-          example: "Пушкин Александр Сергеевич"
-        email:
-          type: string
-          format: email
-        is_admin:
-          type: boolean
       required:
-      - full_name
-      - email
-      - is_admin
-    File:
-      type: object
-      properties:
-        name:
-          type: string
-          example: "main.py"
-        content:
-          type: string
-          format: binary
+      - job
     Error:
       type: object
       properties:
         message:
           type: string
+      required:
+      - message
     ScriptCreateData:
       type: object
       properties:
@@ -799,15 +789,15 @@ components:
     ScriptRunData:
       type: object
       properties:
-        script_id:
-          $ref: '#/components/schemas/ScriptId'
-        in:
+        in_params:
           type: array
           items:
             $ref: '#/components/schemas/Value'
         need_to_notify:
           type: boolean
           default: false
+      required:
+      - in_params
 
   securitySchemes:
     BearerAuth:

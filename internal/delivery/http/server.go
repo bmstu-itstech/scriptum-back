@@ -359,10 +359,16 @@ func (s *Server) PostScriptsIdStart(w http.ResponseWriter, r *http.Request, id S
 	for i, val := range req.InParams {
 		in[i] = ValueToDTOHttp(val)
 	}
+
+	needToNotify := false
+	if req.NeedToNotify != nil {
+		needToNotify = *req.NeedToNotify
+	}
+
 	reqDto := app.ScriptRunDTO{
 		ScriptID:     uint32(id),
 		InParams:     in,
-		NeedToNotify: *req.NotifyByEmail,
+		NeedToNotify: needToNotify,
 	}
 	err = s.app.StartJob.StartJob(r.Context(), int64(userID), reqDto)
 	if err != nil {
@@ -384,7 +390,7 @@ func (s *Server) PostScriptsIdStart(w http.ResponseWriter, r *http.Request, id S
 func httpError(w http.ResponseWriter, r *http.Request, err error, code int) {
 	msg := err.Error()
 	render.Status(r, code)
-	render.JSON(w, r, Error{Message: &msg})
+	render.JSON(w, r, Error{Message: msg})
 }
 
 func DTOToJobHttp(job app.JobDTO) Result {
@@ -397,20 +403,20 @@ func DTOToJobHttp(job app.JobDTO) Result {
 		in[i] = DTOToValueHttp(val)
 	}
 	j := Job{
-		CreatedAt:    &job.CreatedAt,
-		Expected:     &expected,
+		CreatedAt:    job.CreatedAt,
+		Expected:     expected,
 		FinishedAt:   job.FinishedAt,
-		In:           &in,
-		JobId:        &job.JobID,
-		NeedToNotify: &job.NeedToNotify,
-		Path:         &job.Url,
-		ScriptId:     &job.ScriptID,
-		Status:       (*Status)(&job.State),
-		UserId:       &job.OwnerID,
+		In:           in,
+		JobId:        job.JobID,
+		NeedToNotify: job.NeedToNotify,
+		Path:         job.Url,
+		ScriptId:     job.ScriptID,
+		Status:       (Status(job.State)),
+		UserId:       job.OwnerID,
 	}
 	if job.JobResult == nil {
 		return Result{
-			Job: &j,
+			Job: j,
 		}
 	}
 
@@ -423,39 +429,39 @@ func DTOToJobHttp(job app.JobDTO) Result {
 		Out:          &out,
 		Code:         &c,
 		ErrorMessage: job.JobResult.ErrMsg,
-		Job:          &j,
+		Job:          j,
 	}
 }
 
 func DTOToFieldHttp(field app.FieldDTO) Field {
 	return Field{
-		Description: &field.Desc,
-		Name:        &field.Name,
-		Type:        &field.Type,
-		Unit:        &field.Unit,
+		Description: field.Desc,
+		Name:        field.Name,
+		Type:        field.Type,
+		Unit:        field.Unit,
 	}
 }
 
 func FieldToDTOHttp(field Field) app.FieldDTO {
 	return app.FieldDTO{
-		Desc: *field.Description,
-		Name: *field.Name,
-		Type: *field.Type,
-		Unit: *field.Unit,
+		Desc: field.Description,
+		Name: field.Name,
+		Type: field.Type,
+		Unit: field.Unit,
 	}
 }
 
 func DTOToValueHttp(val app.ValueDTO) Value {
 	return Value{
-		Data: &val.Data,
-		Type: &val.Type,
+		Data: val.Data,
+		Type: val.Type,
 	}
 }
 
 func ValueToDTOHttp(val Value) app.ValueDTO {
 	return app.ValueDTO{
-		Data: *val.Data,
-		Type: *val.Type,
+		Data: val.Data,
+		Type: val.Type,
 	}
 }
 
@@ -470,38 +476,38 @@ func DTOToScriptHttp(script app.ScriptDTO) Script {
 	}
 	id := (ScriptId)(script.ID)
 	return Script{
-		CreatedAt:         &script.CreatedAt,
-		InFields:          &in,
-		OutFields:         &out,
+		CreatedAt:         script.CreatedAt,
+		InFields:          in,
+		OutFields:         out,
 		Owner:             script.OwnerID,
-		FileId:            &script.FileID,
-		ScriptDescription: &script.Desc,
-		ScriptId:          &id,
-		ScriptName:        &script.Name,
-		Visibility:        (*Visibility)(&script.Visibility),
+		FileId:            script.FileID,
+		ScriptDescription: script.Desc,
+		ScriptId:          id,
+		ScriptName:        script.Name,
+		Visibility:        Visibility(script.Visibility),
 	}
 }
 
 func ScriptToDTOHttp(script Script) app.ScriptDTO {
-	in := make([]app.FieldDTO, 0, len(*script.InFields))
-	for _, field := range *script.InFields {
+	in := make([]app.FieldDTO, 0, len(script.InFields))
+	for _, field := range script.InFields {
 		in = append(in, FieldToDTOHttp(field))
 	}
-	out := make([]app.FieldDTO, 0, len(*script.OutFields))
-	for _, field := range *script.OutFields {
+	out := make([]app.FieldDTO, 0, len(script.OutFields))
+	for _, field := range script.OutFields {
 		out = append(out, FieldToDTOHttp(field))
 	}
 
 	return app.ScriptDTO{
-		ID:         int32(*script.ScriptId),
-		Name:       *script.ScriptName,
-		Desc:       *script.ScriptDescription,
-		FileID:     *script.FileId,
-		Visibility: string(*script.Visibility),
+		ID:         int32(script.ScriptId),
+		Name:       script.ScriptName,
+		Desc:       script.ScriptDescription,
+		FileID:     script.FileId,
+		Visibility: string(script.Visibility),
 		Input:      in,
 		Output:     out,
 		OwnerID:    int64(script.Owner),
-		CreatedAt:  *script.CreatedAt,
+		CreatedAt:  script.CreatedAt,
 	}
 }
 

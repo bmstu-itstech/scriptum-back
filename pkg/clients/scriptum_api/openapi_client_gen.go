@@ -895,7 +895,7 @@ func (r GetJobsSearchResponse) StatusCode() int {
 type GetJobsIdResultResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]Result
+	JSON200      *Result
 	JSON400      *Error
 	JSON401      *Error
 	JSON403      *Error
@@ -1029,8 +1029,8 @@ type PostScriptsUploadResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON201      *struct {
-		FileId  *int64  `json:"file_id,omitempty"`
-		Message *string `json:"message,omitempty"`
+		FileId  int64  `json:"file_id"`
+		Message string `json:"message"`
 	}
 	JSON400 *Error
 	JSON401 *Error
@@ -1409,7 +1409,7 @@ func ParseGetJobsIdResultResponse(rsp *http.Response) (*GetJobsIdResultResponse,
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []Result
+		var dest Result
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1442,9 +1442,6 @@ func ParseGetJobsIdResultResponse(rsp *http.Response) (*GetJobsIdResultResponse,
 			return nil, err
 		}
 		response.JSON500 = &dest
-
-	case rsp.StatusCode == 200:
-		// Content-type (application/octet-stream) unsupported
 
 	}
 
@@ -1686,8 +1683,8 @@ func ParsePostScriptsUploadResponse(rsp *http.Response) (*PostScriptsUploadRespo
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
 		var dest struct {
-			FileId  *int64  `json:"file_id,omitempty"`
-			Message *string `json:"message,omitempty"`
+			FileId  int64  `json:"file_id"`
+			Message string `json:"message"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
