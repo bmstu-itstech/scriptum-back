@@ -1,4 +1,4 @@
-include .env
+-include .env
 export
 
 TEST_DIR=.
@@ -11,7 +11,7 @@ test:
 	# @echo "Делаем моки..."
 	# mockgen -source= -destination= -package=
 	@echo "Запуск тестов..."
-	go test -v -race -coverpkg=./... -coverprofile=$(COVERAGE_TMP) $(TEST_DIR)/...
+	go test -short -v -race -coverpkg=./... -coverprofile=$(COVERAGE_TMP) $(TEST_DIR)/...
 	@echo "Обработка покрытия..."
 
 	# Добавляем условие для исключения файлов
@@ -36,11 +36,8 @@ up_services:
 	rm -rf .pgdata
 	$(COMPOSE) up -d $(SERVICES)
 
-test_services: 
-	$(COMPOSE) down -v
-	rm -rf .pgdata
-	$(COMPOSE) up -d $(SERVICES)
-	go test -v ./internal/service/
+test_all: up_services
+	go test -v -race -coverpkg=./... -coverprofile=$(COVERAGE_TMP) $(TEST_DIR)/...
 	$(COMPOSE) down -v
 	rm -rf .pgdata
 

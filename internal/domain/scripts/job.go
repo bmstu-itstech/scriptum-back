@@ -218,5 +218,5 @@ func (j *Job) Duration() (time.Duration, error) {
 	if j.state != JobFinished {
 		return 0, ErrJobIsNotFinished
 	}
-	return j.finishedAt.Sub(j.JobPrototype.createdAt), nil
+	return j.finishedAt.Sub(j.createdAt), nil
 }

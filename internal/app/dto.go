@@ -79,6 +79,13 @@ type ScriptRunDTO struct {
 	NeedToNotify bool
 }
 
+type ScriptUpdateDTO struct {
+	InFields          []FieldDTO
+	OutFields         []FieldDTO
+	ScriptName        string
+	ScriptDescription string
+}
+
 func FieldsToDTO(fields []scripts.Field) ([]FieldDTO, error) {
 	result := make([]FieldDTO, len(fields))
 	for i, field := range fields {

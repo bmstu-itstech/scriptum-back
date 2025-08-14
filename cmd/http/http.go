@@ -62,7 +62,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed connect postgres: %s", err.Error())
 	}
-	defer db.Close()
+
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Fatalf("failed close postgres: %s", err.Error())
+		}
+	}()
 
 	db.SetMaxOpenConns(25)
 	db.SetMaxIdleConns(25)
@@ -107,12 +112,14 @@ func main() {
 	}
 
 	usecase := app.NewJobRunUC(scriptRepo, jobRepo, pythonLauncher, emailNotifier, userProv, l)
-	handler.Listen(ctx, usecase.Run)
+	err = handler.Listen(ctx, usecase.Run)
+	if err != nil {
+		log.Fatalf("failed listen handler: %s", err.Error())
+	}
 
 	application := app.Application{
 		CreateScript:  app.NewScriptCreateUC(scriptRepo, userProv, fileRepo, systemManager, l),
 		DeleteScript:  app.NewScriptDeleteUC(scriptRepo, userProv, systemManager, fileRepo, l),
-		UpdateScript:  app.NewScriptUpdateUC(scriptRepo, l),
 		SearchScript:  app.NewSearchScriptsUC(scriptRepo, userProv, l),
 		StartJob:      app.NewJobStartUC(scriptRepo, fileRepo, jobRepo, dispatcher, l),
 		GetJob:        app.NewGetJobUC(jobRepo, userProv, l),

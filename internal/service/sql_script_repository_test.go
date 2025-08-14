@@ -27,6 +27,9 @@ func setUpScriptRepository() (*service.ScriptRepo, error) {
 }
 
 func testScriptRepository(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test sql script repository in short mode.")
+	}
 	r, err := setUpScriptRepository()
 	require.NoError(t, err)
 

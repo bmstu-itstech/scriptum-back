@@ -147,25 +147,21 @@ func (s *Server) PostScripts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	script := *req.Script
-	fileID := *script.FileId
-	if userID != script.Owner {
-		httpError(w, r, fmt.Errorf("permission denied"), http.StatusForbidden)
-		return
-	}
+	script := req
+	fileID := script.FileId
 
-	in := make([]app.FieldDTO, len(*script.InFields))
-	for i, field := range *script.InFields {
+	in := make([]app.FieldDTO, len(script.InFields))
+	for i, field := range script.InFields {
 		in[i] = FieldToDTOHttp(field)
 	}
-	out := make([]app.FieldDTO, len(*script.OutFields))
-	for i, field := range *script.OutFields {
+	out := make([]app.FieldDTO, len(script.OutFields))
+	for i, field := range script.OutFields {
 		out[i] = FieldToDTOHttp(field)
 	}
 	reqDto := app.ScriptCreateDTO{
 		OwnerID:           userID,
-		ScriptName:        *script.ScriptName,
-		ScriptDescription: *script.ScriptDescription,
+		ScriptName:        script.ScriptName,
+		ScriptDescription: script.ScriptDescription,
 		FileID:            fileID,
 		InFields:          in,
 		OutFields:         out,
@@ -210,7 +206,6 @@ func (s *Server) PostScriptsUpload(w http.ResponseWriter, r *http.Request) {
 		httpError(w, r, err, http.StatusBadRequest)
 		return
 	}
-	defer file.Close()
 
 	fileBytes, err := io.ReadAll(file)
 	if err != nil {
@@ -225,6 +220,11 @@ func (s *Server) PostScriptsUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileID, err := s.app.CreateFile.CreateFile(r.Context(), reqDto)
+	if err != nil {
+		httpError(w, r, err, http.StatusInternalServerError)
+		return
+	}
+	err = file.Close()
 	if err != nil {
 		httpError(w, r, err, http.StatusInternalServerError)
 		return
@@ -314,35 +314,6 @@ func (s *Server) GetScriptsId(w http.ResponseWriter, r *http.Request, id ScriptI
 	render.JSON(w, r, DTOToScriptHttp(script))
 }
 
-func (s *Server) PutScriptsId(w http.ResponseWriter, r *http.Request, id ScriptId) {
-	userID, err := jwtauth.UserIDFromContext(r.Context())
-	if err != nil {
-		httpError(w, r, err, http.StatusUnauthorized)
-		return
-	}
-	scri := Script{}
-	if err := render.Decode(r, &scri); err != nil {
-		httpError(w, r, err, http.StatusBadRequest)
-		return
-	}
-
-	err = s.app.UpdateScript.UpdateScript(r.Context(), int64(userID), ScriptToDTOHttp(scri))
-	if err != nil {
-		if errors.Is(err, fmt.Errorf("user not found")) {
-			httpError(w, r, err, http.StatusNotFound)
-			return
-		}
-		httpError(w, r, err, http.StatusInternalServerError)
-		return
-	}
-	render.Status(r, http.StatusOK)
-	render.JSON(w, r, struct {
-		Message string `json:"message"`
-	}{
-		Message: "Script updated successfully"},
-	)
-}
-
 func (s *Server) PostScriptsIdStart(w http.ResponseWriter, r *http.Request, id ScriptId) {
 	userID, err := jwtauth.UserIDFromContext(r.Context())
 	if err != nil {
@@ -359,10 +330,16 @@ func (s *Server) PostScriptsIdStart(w http.ResponseWriter, r *http.Request, id S
 	for i, val := range req.InParams {
 		in[i] = ValueToDTOHttp(val)
 	}
+
+	needToNotify := false
+	if req.NeedToNotify != nil {
+		needToNotify = *req.NeedToNotify
+	}
+
 	reqDto := app.ScriptRunDTO{
 		ScriptID:     uint32(id),
 		InParams:     in,
-		NeedToNotify: *req.NotifyByEmail,
+		NeedToNotify: needToNotify,
 	}
 	err = s.app.StartJob.StartJob(r.Context(), int64(userID), reqDto)
 	if err != nil {
@@ -384,7 +361,7 @@ func (s *Server) PostScriptsIdStart(w http.ResponseWriter, r *http.Request, id S
 func httpError(w http.ResponseWriter, r *http.Request, err error, code int) {
 	msg := err.Error()
 	render.Status(r, code)
-	render.JSON(w, r, Error{Message: &msg})
+	render.JSON(w, r, Error{Message: msg})
 }
 
 func DTOToJobHttp(job app.JobDTO) Result {
@@ -397,20 +374,20 @@ func DTOToJobHttp(job app.JobDTO) Result {
 		in[i] = DTOToValueHttp(val)
 	}
 	j := Job{
-		CreatedAt:    &job.CreatedAt,
-		Expected:     &expected,
+		CreatedAt:    job.CreatedAt,
+		Expected:     expected,
 		FinishedAt:   job.FinishedAt,
-		In:           &in,
-		JobId:        &job.JobID,
-		NeedToNotify: &job.NeedToNotify,
-		Path:         &job.Url,
-		ScriptId:     &job.ScriptID,
-		Status:       (*Status)(&job.State),
-		UserId:       &job.OwnerID,
+		In:           in,
+		JobId:        job.JobID,
+		NeedToNotify: job.NeedToNotify,
+		Path:         job.Url,
+		ScriptId:     job.ScriptID,
+		Status:       (Status(job.State)),
+		UserId:       job.OwnerID,
 	}
 	if job.JobResult == nil {
 		return Result{
-			Job: &j,
+			Job: j,
 		}
 	}
 
@@ -423,39 +400,39 @@ func DTOToJobHttp(job app.JobDTO) Result {
 		Out:          &out,
 		Code:         &c,
 		ErrorMessage: job.JobResult.ErrMsg,
-		Job:          &j,
+		Job:          j,
 	}
 }
 
 func DTOToFieldHttp(field app.FieldDTO) Field {
 	return Field{
-		Description: &field.Desc,
-		Name:        &field.Name,
-		Type:        &field.Type,
-		Unit:        &field.Unit,
+		Description: field.Desc,
+		Name:        field.Name,
+		Type:        field.Type,
+		Unit:        field.Unit,
 	}
 }
 
 func FieldToDTOHttp(field Field) app.FieldDTO {
 	return app.FieldDTO{
-		Desc: *field.Description,
-		Name: *field.Name,
-		Type: *field.Type,
-		Unit: *field.Unit,
+		Desc: field.Description,
+		Name: field.Name,
+		Type: field.Type,
+		Unit: field.Unit,
 	}
 }
 
 func DTOToValueHttp(val app.ValueDTO) Value {
 	return Value{
-		Data: &val.Data,
-		Type: &val.Type,
+		Data: val.Data,
+		Type: val.Type,
 	}
 }
 
 func ValueToDTOHttp(val Value) app.ValueDTO {
 	return app.ValueDTO{
-		Data: *val.Data,
-		Type: *val.Type,
+		Data: val.Data,
+		Type: val.Type,
 	}
 }
 
@@ -470,38 +447,38 @@ func DTOToScriptHttp(script app.ScriptDTO) Script {
 	}
 	id := (ScriptId)(script.ID)
 	return Script{
-		CreatedAt:         &script.CreatedAt,
-		InFields:          &in,
-		OutFields:         &out,
+		CreatedAt:         script.CreatedAt,
+		InFields:          in,
+		OutFields:         out,
 		Owner:             script.OwnerID,
-		FileId:            &script.FileID,
-		ScriptDescription: &script.Desc,
-		ScriptId:          &id,
-		ScriptName:        &script.Name,
-		Visibility:        (*Visibility)(&script.Visibility),
+		FileId:            script.FileID,
+		ScriptDescription: script.Desc,
+		ScriptId:          id,
+		ScriptName:        script.Name,
+		Visibility:        Visibility(script.Visibility),
 	}
 }
 
 func ScriptToDTOHttp(script Script) app.ScriptDTO {
-	in := make([]app.FieldDTO, len(*script.InFields))
-	for i, field := range *script.InFields {
-		in[i] = FieldToDTOHttp(field)
+	in := make([]app.FieldDTO, 0, len(script.InFields))
+	for _, field := range script.InFields {
+		in = append(in, FieldToDTOHttp(field))
 	}
-	out := make([]app.FieldDTO, len(*script.OutFields))
-	for i, field := range *script.OutFields {
-		out[i] = FieldToDTOHttp(field)
+	out := make([]app.FieldDTO, 0, len(script.OutFields))
+	for _, field := range script.OutFields {
+		out = append(out, FieldToDTOHttp(field))
 	}
 
 	return app.ScriptDTO{
-		ID:         int32(*script.ScriptId),
-		Name:       *script.ScriptName,
-		Desc:       *script.ScriptDescription,
-		FileID:     *script.FileId,
-		Visibility: string(*script.Visibility),
+		ID:         int32(script.ScriptId),
+		Name:       script.ScriptName,
+		Desc:       script.ScriptDescription,
+		FileID:     script.FileId,
+		Visibility: string(script.Visibility),
 		Input:      in,
 		Output:     out,
 		OwnerID:    int64(script.Owner),
-		CreatedAt:  *script.CreatedAt,
+		CreatedAt:  script.CreatedAt,
 	}
 }
 
