@@ -314,35 +314,6 @@ func (s *Server) GetScriptsId(w http.ResponseWriter, r *http.Request, id ScriptI
 	render.JSON(w, r, DTOToScriptHttp(script))
 }
 
-func (s *Server) PutScriptsId(w http.ResponseWriter, r *http.Request, id ScriptId) {
-	userID, err := jwtauth.UserIDFromContext(r.Context())
-	if err != nil {
-		httpError(w, r, err, http.StatusUnauthorized)
-		return
-	}
-	in := PutScriptsIdJSONRequestBody{}
-	if err := render.Decode(r, &in); err != nil {
-		httpError(w, r, err, http.StatusBadRequest)
-		return
-	}
-
-	err = s.app.UpdateScript.UpdateScript(r.Context(), int64(userID), id, ScriptDataToDTOHttp(in))
-	if err != nil {
-		if errors.Is(err, fmt.Errorf("user not found")) {
-			httpError(w, r, err, http.StatusNotFound)
-			return
-		}
-		httpError(w, r, err, http.StatusInternalServerError)
-		return
-	}
-	render.Status(r, http.StatusOK)
-	render.JSON(w, r, struct {
-		Message string `json:"message"`
-	}{
-		Message: "Script updated successfully"},
-	)
-}
-
 func (s *Server) PostScriptsIdStart(w http.ResponseWriter, r *http.Request, id ScriptId) {
 	userID, err := jwtauth.UserIDFromContext(r.Context())
 	if err != nil {
@@ -508,41 +479,6 @@ func ScriptToDTOHttp(script Script) app.ScriptDTO {
 		Output:     out,
 		OwnerID:    int64(script.Owner),
 		CreatedAt:  script.CreatedAt,
-	}
-}
-
-func ScriptDataToDTOHttp(data ScriptUpdateData) app.ScriptUpdateDTO {
-	var in, out []app.FieldDTO
-	if data.InFields != nil {
-		in = make([]app.FieldDTO, 0, len(*data.InFields))
-		for _, field := range *data.InFields {
-			in = append(in, FieldToDTOHttp(field))
-		}
-	} else {
-		in = nil
-	}
-	if data.OutFields != nil {
-		out = make([]app.FieldDTO, 0, len(*data.OutFields))
-		for _, field := range *data.OutFields {
-			out = append(out, FieldToDTOHttp(field))
-		}
-	} else {
-		out = nil
-	}
-
-	sName := ""
-	if data.ScriptName != nil {
-		sName = *data.ScriptName
-	}
-	sDesc := ""
-	if data.ScriptDescription != nil {
-		sDesc = *data.ScriptDescription
-	}
-	return app.ScriptUpdateDTO{
-		InFields:          in,
-		OutFields:         out,
-		ScriptName:        sName,
-		ScriptDescription: sDesc,
 	}
 }
 

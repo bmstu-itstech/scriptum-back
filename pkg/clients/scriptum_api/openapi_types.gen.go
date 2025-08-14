@@ -98,14 +98,6 @@ type ScriptRunData struct {
 	NeedToNotify *bool   `json:"need_to_notify,omitempty"`
 }
 
-// ScriptUpdateData defines model for ScriptUpdateData.
-type ScriptUpdateData struct {
-	InFields          *[]Field `json:"in_fields,omitempty"`
-	OutFields         *[]Field `json:"out_fields,omitempty"`
-	ScriptDescription *string  `json:"script_description,omitempty"`
-	ScriptName        *string  `json:"script_name,omitempty"`
-}
-
 // Status defines model for Status.
 type Status string
 
@@ -143,9 +135,6 @@ type PostScriptsJSONRequestBody = ScriptCreateData
 
 // PostScriptsUploadMultipartRequestBody defines body for PostScriptsUpload for multipart/form-data ContentType.
 type PostScriptsUploadMultipartRequestBody PostScriptsUploadMultipartBody
-
-// PutScriptsIdJSONRequestBody defines body for PutScriptsId for application/json ContentType.
-type PutScriptsIdJSONRequestBody = ScriptUpdateData
 
 // PostScriptsIdStartJSONRequestBody defines body for PostScriptsIdStart for application/json ContentType.
 type PostScriptsIdStartJSONRequestBody = ScriptRunData

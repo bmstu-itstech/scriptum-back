@@ -120,7 +120,6 @@ func main() {
 	application := app.Application{
 		CreateScript:  app.NewScriptCreateUC(scriptRepo, userProv, fileRepo, systemManager, l),
 		DeleteScript:  app.NewScriptDeleteUC(scriptRepo, userProv, systemManager, fileRepo, l),
-		UpdateScript:  app.NewScriptUpdateUC(scriptRepo, l),
 		SearchScript:  app.NewSearchScriptsUC(scriptRepo, userProv, l),
 		StartJob:      app.NewJobStartUC(scriptRepo, fileRepo, jobRepo, dispatcher, l),
 		GetJob:        app.NewGetJobUC(jobRepo, userProv, l),

@@ -150,58 +150,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-    put:
-      tags:
-      - scripts
-      summary: Update script
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          $ref: '#/components/schemas/ScriptId'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ScriptUpdateData'
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '400':
-          description: invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: forbidden (update script but for another user)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: script not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: internal error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
     delete:
       tags:
       - scripts
@@ -769,23 +717,6 @@ components:
       - in_fields
       - out_fields
       - file_id
-    ScriptUpdateData:
-      type: object
-      properties:
-        script_name:
-          type: string
-          example: "Подсчет скорости полета пули в ветренную погоду"
-        script_description:
-          type: string
-          example: "Скрипт для подсчета скорости полета пули в ветренную погоду"
-        in_fields:
-          type: array
-          items:
-            $ref: '#/components/schemas/Field'
-        out_fields:
-          type: array
-          items:
-            $ref: '#/components/schemas/Field'
     ScriptRunData:
       type: object
       properties:

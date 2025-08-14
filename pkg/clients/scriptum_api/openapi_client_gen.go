@@ -121,11 +121,6 @@ type ClientInterface interface {
 	// GetScriptsId request
 	GetScriptsId(ctx context.Context, id ScriptId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PutScriptsIdWithBody request with any body
-	PutScriptsIdWithBody(ctx context.Context, id ScriptId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	PutScriptsId(ctx context.Context, id ScriptId, body PutScriptsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// PostScriptsIdStartWithBody request with any body
 	PostScriptsIdStartWithBody(ctx context.Context, id ScriptId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -254,30 +249,6 @@ func (c *Client) DeleteScriptsId(ctx context.Context, id ScriptId, reqEditors ..
 
 func (c *Client) GetScriptsId(ctx context.Context, id ScriptId, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetScriptsIdRequest(c.Server, id)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PutScriptsIdWithBody(ctx context.Context, id ScriptId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutScriptsIdRequestWithBody(c.Server, id, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PutScriptsId(ctx context.Context, id ScriptId, body PutScriptsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutScriptsIdRequest(c.Server, id, body)
 	if err != nil {
 		return nil, err
 	}
@@ -661,53 +632,6 @@ func NewGetScriptsIdRequest(server string, id ScriptId) (*http.Request, error) {
 	return req, nil
 }
 
-// NewPutScriptsIdRequest calls the generic PutScriptsId builder with application/json body
-func NewPutScriptsIdRequest(server string, id ScriptId, body PutScriptsIdJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPutScriptsIdRequestWithBody(server, id, "application/json", bodyReader)
-}
-
-// NewPutScriptsIdRequestWithBody generates requests for PutScriptsId with any type of body
-func NewPutScriptsIdRequestWithBody(server string, id ScriptId, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/scripts/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PUT", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
 // NewPostScriptsIdStartRequest calls the generic PostScriptsIdStart builder with application/json body
 func NewPostScriptsIdStartRequest(server string, id ScriptId, body PostScriptsIdStartJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -829,11 +753,6 @@ type ClientWithResponsesInterface interface {
 
 	// GetScriptsIdWithResponse request
 	GetScriptsIdWithResponse(ctx context.Context, id ScriptId, reqEditors ...RequestEditorFn) (*GetScriptsIdResponse, error)
-
-	// PutScriptsIdWithBodyWithResponse request with any body
-	PutScriptsIdWithBodyWithResponse(ctx context.Context, id ScriptId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutScriptsIdResponse, error)
-
-	PutScriptsIdWithResponse(ctx context.Context, id ScriptId, body PutScriptsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PutScriptsIdResponse, error)
 
 	// PostScriptsIdStartWithBodyWithResponse request with any body
 	PostScriptsIdStartWithBodyWithResponse(ctx context.Context, id ScriptId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostScriptsIdStartResponse, error)
@@ -1107,33 +1026,6 @@ func (r GetScriptsIdResponse) StatusCode() int {
 	return 0
 }
 
-type PutScriptsIdResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *Error
-	JSON400      *Error
-	JSON401      *Error
-	JSON403      *Error
-	JSON404      *Error
-	JSON500      *Error
-}
-
-// Status returns HTTPResponse.Status
-func (r PutScriptsIdResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PutScriptsIdResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type PostScriptsIdStartResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -1257,23 +1149,6 @@ func (c *ClientWithResponses) GetScriptsIdWithResponse(ctx context.Context, id S
 		return nil, err
 	}
 	return ParseGetScriptsIdResponse(rsp)
-}
-
-// PutScriptsIdWithBodyWithResponse request with arbitrary body returning *PutScriptsIdResponse
-func (c *ClientWithResponses) PutScriptsIdWithBodyWithResponse(ctx context.Context, id ScriptId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutScriptsIdResponse, error) {
-	rsp, err := c.PutScriptsIdWithBody(ctx, id, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePutScriptsIdResponse(rsp)
-}
-
-func (c *ClientWithResponses) PutScriptsIdWithResponse(ctx context.Context, id ScriptId, body PutScriptsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PutScriptsIdResponse, error) {
-	rsp, err := c.PutScriptsId(ctx, id, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePutScriptsIdResponse(rsp)
 }
 
 // PostScriptsIdStartWithBodyWithResponse request with arbitrary body returning *PostScriptsIdStartResponse
@@ -1794,67 +1669,6 @@ func ParseGetScriptsIdResponse(rsp *http.Response) (*GetScriptsIdResponse, error
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest Script
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParsePutScriptsIdResponse parses an HTTP response from a PutScriptsIdWithResponse call
-func ParsePutScriptsIdResponse(rsp *http.Response) (*PutScriptsIdResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PutScriptsIdResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest Error
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

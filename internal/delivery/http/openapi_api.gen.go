@@ -44,9 +44,6 @@ type ServerInterface interface {
 	// Get script by script id
 	// (GET /scripts/{id})
 	GetScriptsId(w http.ResponseWriter, r *http.Request, id ScriptId)
-	// Update script
-	// (PUT /scripts/{id})
-	PutScriptsId(w http.ResponseWriter, r *http.Request, id ScriptId)
 	// Run script
 	// (POST /scripts/{id}/start)
 	PostScriptsIdStart(w http.ResponseWriter, r *http.Request, id ScriptId)
@@ -113,12 +110,6 @@ func (_ Unimplemented) DeleteScriptsId(w http.ResponseWriter, r *http.Request, i
 // Get script by script id
 // (GET /scripts/{id})
 func (_ Unimplemented) GetScriptsId(w http.ResponseWriter, r *http.Request, id ScriptId) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Update script
-// (PUT /scripts/{id})
-func (_ Unimplemented) PutScriptsId(w http.ResponseWriter, r *http.Request, id ScriptId) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -391,34 +382,6 @@ func (siw *ServerInterfaceWrapper) GetScriptsId(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
-// PutScriptsId operation middleware
-func (siw *ServerInterfaceWrapper) PutScriptsId(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "id" -------------
-	var id ScriptId
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, chi.URLParam(r, "id"), &id)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
-		return
-	}
-
-	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PutScriptsId(w, r, id)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r.WithContext(ctx))
-}
-
 // PostScriptsIdStart operation middleware
 func (siw *ServerInterfaceWrapper) PostScriptsIdStart(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -589,9 +552,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/scripts/{id}", wrapper.GetScriptsId)
-	})
-	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/scripts/{id}", wrapper.PutScriptsId)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/scripts/{id}/start", wrapper.PostScriptsIdStart)
