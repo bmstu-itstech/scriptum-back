@@ -8,17 +8,19 @@ import (
 )
 
 type GetJobUC struct {
-	jobR   scripts.JobRepository
-	userP  scripts.UserProvider
-	logger *slog.Logger
+	jobR    scripts.JobRepository
+	userP   scripts.UserProvider
+	scriptR scripts.ScriptRepository
+	logger  *slog.Logger
 }
 
 func NewGetJobUC(
 	jobR scripts.JobRepository,
 	userP scripts.UserProvider,
+	scriptR scripts.ScriptRepository,
 	logger *slog.Logger,
 ) GetJobUC {
-	return GetJobUC{jobR: jobR, userP: userP, logger: logger}
+	return GetJobUC{jobR: jobR, userP: userP, scriptR: scriptR, logger: logger}
 }
 
 func (u *GetJobUC) Job(ctx context.Context, userID uint32, jobID int64) (JobDTO, error) {
@@ -34,5 +36,12 @@ func (u *GetJobUC) Job(ctx context.Context, userID uint32, jobID int64) (JobDTO,
 		u.logger.Error("failed to get job", "err", scripts.ErrPermissionDenied)
 		return JobDTO{}, scripts.ErrPermissionDenied
 	}
-	return JobToDTO(*job)
+
+	script, err := u.scriptR.Script(ctx, job.ScriptID())
+	if err != nil {
+		u.logger.Error("failed to get job", "err", err)
+		return JobDTO{}, err
+	}
+
+	return JobToDTO(*job, script.Name())
 }

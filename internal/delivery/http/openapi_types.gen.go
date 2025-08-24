@@ -52,6 +52,7 @@ type Job struct {
 	NeedToNotify bool       `json:"need_to_notify"`
 	Path         FilePath   `json:"path"`
 	ScriptId     ScriptId   `json:"script_id"`
+	ScriptName   string     `json:"script_name"`
 	Status       Status     `json:"status"`
 	UserId       UserId     `json:"user_id"`
 }

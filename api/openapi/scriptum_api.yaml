@@ -537,15 +537,15 @@ components:
     UserId:
       type: integer
       format: int64
-      example: 123
+      example: 1
     ScriptId:
       type: integer
       format: int64
-      example: 345
+      example: 1
     JobId:
       type: integer
       format: int64
-      example: 567
+      example: 1
     Field:
       type: object
       properties:
@@ -620,7 +620,7 @@ components:
           example: "complex"
         data:
           type: string
-          example: "-1.6+24.04i"
+          example: "-1.6+24.04j"
       required:
       - type
       - data
@@ -637,6 +637,9 @@ components:
           $ref: '#/components/schemas/UserId'
         script_id:
           $ref: '#/components/schemas/ScriptId'
+        script_name:
+          type: string
+          example: "Скорость пули"
         in:
           type: array
           items:
@@ -662,6 +665,7 @@ components:
       - job_id
       - user_id
       - script_id
+      - script_name
       - in
       - expected
       - path
