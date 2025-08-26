@@ -42,6 +42,7 @@ type JobDTO struct {
 	JobID        int64
 	OwnerID      int64
 	ScriptID     int64
+	ScriptName   string
 	Input        []ValueDTO
 	Expected     []FieldDTO
 	Url          string
@@ -177,7 +178,7 @@ func ResultToDTO(r *scripts.Result) (*ResultDTO, error) {
 	}, nil
 }
 
-func JobToDTO(j scripts.Job) (JobDTO, error) {
+func JobToDTO(j scripts.Job, name string) (JobDTO, error) {
 	input, err := ValuesToDTO(j.Input())
 	if err != nil {
 		return JobDTO{}, err
@@ -209,6 +210,7 @@ func JobToDTO(j scripts.Job) (JobDTO, error) {
 		JobID:      int64(j.ID()),
 		OwnerID:    int64(j.OwnerID()),
 		ScriptID:   int64(j.ScriptID()),
+		ScriptName: name,
 		Input:      input,
 		Expected:   expected,
 		Url:        j.URL(),

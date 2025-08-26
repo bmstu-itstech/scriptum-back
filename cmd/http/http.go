@@ -122,11 +122,11 @@ func main() {
 		DeleteScript:  app.NewScriptDeleteUC(scriptRepo, userProv, systemManager, fileRepo, l),
 		SearchScript:  app.NewSearchScriptsUC(scriptRepo, userProv, l),
 		StartJob:      app.NewJobStartUC(scriptRepo, fileRepo, jobRepo, dispatcher, l),
-		GetJob:        app.NewGetJobUC(jobRepo, userProv, l),
-		GetJobs:       app.NewGetJobsUC(jobRepo, userProv, l),
+		GetJob:        app.NewGetJobUC(jobRepo, userProv, scriptRepo, l),
+		GetJobs:       app.NewGetJobsUC(jobRepo, userProv, scriptRepo, l),
 		GetScriptByID: app.NewGetScript(scriptRepo, l),
 		GetScripts:    app.NewGetScriptsUС(scriptRepo, userProv, l),
-		SearchJob:     app.NewSearchJobsUC(jobRepo, userProv, l),
+		SearchJob:     app.NewSearchJobsUC(jobRepo, userProv, scriptRepo, l),
 		CreateFile:    app.NewFileCreateUC(userProv, fileRepo, systemManager, l),
 	}
 

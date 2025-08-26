@@ -8,17 +8,19 @@ import (
 )
 
 type SearchJobsUC struct {
-	jobR   scripts.JobRepository
-	userP  scripts.UserProvider
-	logger *slog.Logger
+	jobR    scripts.JobRepository
+	userP   scripts.UserProvider
+	scriptR scripts.ScriptRepository
+	logger  *slog.Logger
 }
 
 func NewSearchJobsUC(
 	jobR scripts.JobRepository,
 	userP scripts.UserProvider,
+	scriptR scripts.ScriptRepository,
 	logger *slog.Logger,
 ) SearchJobsUC {
-	return SearchJobsUC{jobR: jobR, userP: userP, logger: logger}
+	return SearchJobsUC{jobR: jobR, userP: userP, scriptR: scriptR, logger: logger}
 }
 
 func (u *SearchJobsUC) Search(ctx context.Context, userID uint32, state string) ([]JobDTO, error) {
@@ -43,7 +45,13 @@ func (u *SearchJobsUC) Search(ctx context.Context, userID uint32, state string) 
 
 	dto := make([]JobDTO, 0, len(jobs))
 	for _, j := range jobs {
-		job, err := JobToDTO(j)
+		script, err := u.scriptR.Script(ctx, j.ScriptID())
+		if err != nil {
+			u.logger.Error("failed to search job", "err", err)
+			return nil, err
+		}
+
+		job, err := JobToDTO(j, script.Name())
 		if err != nil {
 			u.logger.Error("failed to search job", "err", err)
 			return nil, err

@@ -382,6 +382,7 @@ func DTOToJobHttp(job app.JobDTO) Result {
 		NeedToNotify: job.NeedToNotify,
 		Path:         job.Url,
 		ScriptId:     job.ScriptID,
+		ScriptName:   job.ScriptName,
 		Status:       (Status(job.State)),
 		UserId:       job.OwnerID,
 	}
