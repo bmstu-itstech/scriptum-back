@@ -6,9 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/app"
+	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
 	"github.com/bmstu-itstech/scriptum-back/pkg/jwtauth"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
@@ -54,14 +56,14 @@ func (s *Server) GetJobsSearch(w http.ResponseWriter, r *http.Request, params Ge
 
 	results, err := s.app.SearchJob.Search(r.Context(), uint32(userID), string(params.State))
 	if err != nil {
+		if errors.Is(err, scripts.ErrInvalidInput) {
+			httpError(w, r, err, http.StatusBadRequest)
+			return
+		}
 		httpError(w, r, err, http.StatusInternalServerError)
 		return
 	}
 
-	if len(results) == 0 {
-		httpError(w, r, fmt.Errorf("no results found"), http.StatusNotFound)
-		return
-	}
 	resultsToSend := make([]Result, len(results))
 	for i, res := range results {
 		resultsToSend[i] = DTOToJobHttp(res)
@@ -79,8 +81,12 @@ func (s *Server) GetJobsIdResult(w http.ResponseWriter, r *http.Request, id JobI
 
 	job, err := s.app.GetJob.Job(r.Context(), uint32(userID), int64(id))
 	if err != nil {
-		if errors.Is(err, fmt.Errorf("permission denied")) {
+		if errors.Is(err, scripts.ErrPermissionDenied) {
 			httpError(w, r, err, http.StatusForbidden)
+			return
+		}
+		if errors.Is(err, scripts.ErrJobNotFound) {
+			httpError(w, r, err, http.StatusNotFound)
 			return
 		}
 		httpError(w, r, err, http.StatusInternalServerError)
@@ -98,8 +104,12 @@ func (s *Server) GetJobsIdResultDownload(w http.ResponseWriter, r *http.Request,
 	}
 	job, err := s.app.GetJob.Job(r.Context(), uint32(userID), int64(id))
 	if err != nil {
-		if errors.Is(err, fmt.Errorf("permission denied")) {
+		if errors.Is(err, scripts.ErrPermissionDenied) {
 			httpError(w, r, err, http.StatusForbidden)
+			return
+		}
+		if errors.Is(err, scripts.ErrJobNotFound) {
+			httpError(w, r, err, http.StatusNotFound)
 			return
 		}
 		httpError(w, r, err, http.StatusInternalServerError)
@@ -108,6 +118,10 @@ func (s *Server) GetJobsIdResultDownload(w http.ResponseWriter, r *http.Request,
 	w.Header().Set("Content-Disposition", "attachment; filename=job_result_export.csv")
 	err = renderCSVJobResult(w, job)
 	if err != nil {
+		if errors.Is(err, scripts.ErrJobIsNotFinished) {
+			httpError(w, r, err, http.StatusBadRequest)
+			return
+		}
 		httpError(w, r, err, http.StatusInternalServerError)
 		return
 	}
@@ -148,7 +162,6 @@ func (s *Server) PostScripts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	script := req
-	fileID := script.FileId
 
 	in := make([]app.FieldDTO, len(script.InFields))
 	for i, field := range script.InFields {
@@ -162,15 +175,15 @@ func (s *Server) PostScripts(w http.ResponseWriter, r *http.Request) {
 		OwnerID:           userID,
 		ScriptName:        script.ScriptName,
 		ScriptDescription: script.ScriptDescription,
-		FileID:            fileID,
+		FileID:            script.FileId,
 		InFields:          in,
 		OutFields:         out,
 	}
 
 	scriptID, err := s.app.CreateScript.CreateScript(r.Context(), reqDto)
 	if err != nil {
-		if errors.Is(err, fmt.Errorf("user not found")) {
-			httpError(w, r, err, http.StatusNotFound)
+		if errors.Is(err, scripts.ErrInvalidInput) {
+			httpError(w, r, err, http.StatusBadRequest)
 			return
 		}
 		httpError(w, r, err, http.StatusInternalServerError)
@@ -221,6 +234,10 @@ func (s *Server) PostScriptsUpload(w http.ResponseWriter, r *http.Request) {
 
 	fileID, err := s.app.CreateFile.CreateFile(r.Context(), reqDto)
 	if err != nil {
+		if errors.Is(err, scripts.ErrFileUpload) {
+			httpError(w, r, err, http.StatusBadRequest)
+			return
+		}
 		httpError(w, r, err, http.StatusInternalServerError)
 		return
 	}
@@ -248,15 +265,7 @@ func (s *Server) GetScriptsSearch(w http.ResponseWriter, r *http.Request, params
 	}
 	scrs, err := s.app.SearchScript.Search(r.Context(), uint32(userID), params.ScriptName)
 	if err != nil {
-		if errors.Is(err, fmt.Errorf("user not found")) {
-			httpError(w, r, err, http.StatusNotFound)
-			return
-		}
 		httpError(w, r, err, http.StatusInternalServerError)
-		return
-	}
-	if len(scrs) == 0 {
-		httpError(w, r, fmt.Errorf("script not found"), http.StatusNotFound)
 		return
 	}
 	render.Status(r, http.StatusOK)
@@ -275,14 +284,15 @@ func (s *Server) DeleteScriptsId(w http.ResponseWriter, r *http.Request, id Scri
 	}
 	err = s.app.DeleteScript.DeleteScript(r.Context(), uint32(userID), uint32(id))
 	if err != nil {
-		if errors.Is(err, fmt.Errorf("user not found")) {
-			httpError(w, r, err, http.StatusNotFound)
-			return
-		}
-		if errors.Is(err, fmt.Errorf("permission denied")) {
+		if errors.Is(err, scripts.ErrPermissionDenied) {
 			httpError(w, r, err, http.StatusForbidden)
 			return
 		}
+		if errors.Is(err, scripts.ErrFileNotFound) || errors.Is(err, scripts.ErrScriptNotFound) {
+			httpError(w, r, err, http.StatusNotFound)
+			return
+		}
+
 		httpError(w, r, err, http.StatusInternalServerError)
 		return
 	}
@@ -303,7 +313,11 @@ func (s *Server) GetScriptsId(w http.ResponseWriter, r *http.Request, id ScriptI
 	}
 	script, err := s.app.GetScriptByID.Script(r.Context(), int64(userID), int32(id))
 	if err != nil {
-		if errors.Is(err, fmt.Errorf("user not found")) {
+		if errors.Is(err, scripts.ErrPermissionDenied) {
+			httpError(w, r, err, http.StatusForbidden)
+			return
+		}
+		if errors.Is(err, scripts.ErrScriptNotFound) {
 			httpError(w, r, err, http.StatusNotFound)
 			return
 		}
@@ -343,7 +357,16 @@ func (s *Server) PostScriptsIdStart(w http.ResponseWriter, r *http.Request, id S
 	}
 	err = s.app.StartJob.StartJob(r.Context(), int64(userID), reqDto)
 	if err != nil {
-		if errors.Is(err, fmt.Errorf("user not found")) {
+		if errors.Is(err, scripts.ErrInvalidInput) {
+			log.Println("dfvndkn")
+			httpError(w, r, err, http.StatusBadRequest)
+			return
+		}
+		if errors.Is(err, scripts.ErrPermissionDenied) {
+			httpError(w, r, err, http.StatusForbidden)
+			return
+		}
+		if errors.Is(err, scripts.ErrScriptNotFound) || errors.Is(err, scripts.ErrFileNotFound) {
 			httpError(w, r, err, http.StatusNotFound)
 			return
 		}
@@ -485,7 +508,7 @@ func ScriptToDTOHttp(script Script) app.ScriptDTO {
 
 func renderCSVJobResult(w http.ResponseWriter, job app.JobDTO) error {
 	if job.JobResult == nil {
-		return fmt.Errorf("no results to render")
+		return scripts.ErrJobIsNotFinished
 	}
 
 	w.Header().Set("Content-Type", "text/csv")

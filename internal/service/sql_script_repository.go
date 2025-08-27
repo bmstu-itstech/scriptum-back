@@ -180,7 +180,7 @@ func (r *ScriptRepo) Script(ctx context.Context, id scripts.ScriptID) (scripts.S
 	err := r.db.GetContext(ctx, &scriptRaw, getScriptQuery, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return scripts.Script{}, nil
+			return scripts.Script{}, scripts.ErrScriptNotFound
 		}
 
 		return scripts.Script{}, err

@@ -56,7 +56,11 @@ func (s *SystemManager) Save(_ context.Context, name string, content io.Reader) 
 }
 
 func (s *SystemManager) Delete(_ context.Context, path scripts.URL) error {
-	return os.Remove(path)
+	err := os.Remove(path)
+	if err != nil {
+		return fmt.Errorf("%w: %s (%w)", scripts.ErrFileNotFound, path, err)
+	}
+	return nil
 }
 
 func generateFilename(dir, originalName string) string {
