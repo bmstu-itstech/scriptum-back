@@ -2,6 +2,7 @@ package scripts
 
 import (
 	"fmt"
+	"unicode/utf8"
 )
 
 type FileID int64
@@ -26,10 +27,10 @@ func NewFile(id FileID, url string) (*File, error) {
 		return nil, fmt.Errorf("%w: file url must not be empty", ErrInvalidInput)
 	}
 
-	if len(url) > FileURLMaxLen {
+	if utf8.RuneCountInString(url) > FileURLMaxLen {
 		return nil, fmt.Errorf(
 			"%w: invalid File: expected len(url) <= %d, got len(url) = %d",
-			ErrInvalidInput, FileURLMaxLen, len(url),
+			ErrInvalidInput, FileURLMaxLen, utf8.RuneCountInString(url),
 		)
 	}
 
