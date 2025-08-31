@@ -44,6 +44,7 @@ type authorizationError struct {
 }
 
 func httpError(w http.ResponseWriter, r *http.Request, err error, code int) {
-	w.WriteHeader(code)
-	render.JSON(w, r, authorizationError{Message: err.Error()})
+	msg := err.Error()
+	render.Status(r, code)
+	render.JSON(w, r, authorizationError{Message: msg})
 }
