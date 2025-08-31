@@ -2,12 +2,11 @@ package scripts
 
 import (
 	"fmt"
-	"unicode/utf8"
 )
 
-const FieldNameMaxLen = 32
-const FieldDescriptionMaxLen = 256
-const FieldUnitMaxLen = 16
+const FieldNameMaxLen = 80
+const FieldDescriptionMaxLen = 512
+const FieldUnitMaxLen = 40
 
 type Field struct {
 	typ_ ValueType
@@ -27,17 +26,17 @@ func NewField(typ ValueType, name string, desc string, unit string) (*Field, err
 		return nil, fmt.Errorf("%w: invalid Field: expected not empty name len", ErrInvalidInput)
 	}
 
-	if utf8.RuneCountInString(name) > FieldNameMaxLen {
+	if len(name) > FieldNameMaxLen {
 		return nil, fmt.Errorf(
 			"%w: invalid Field: expected len(name) <= %d, got len(name) = %d",
-			ErrInvalidInput, FieldNameMaxLen, utf8.RuneCountInString(name),
+			ErrInvalidInput, FieldNameMaxLen, len(name),
 		)
 	}
 
-	if utf8.RuneCountInString(desc) > FieldDescriptionMaxLen {
+	if len(desc) > FieldDescriptionMaxLen {
 		return nil, fmt.Errorf(
 			"%w: invalid Field: expected len(desc) <= %d, got len(desc) = %d",
-			ErrInvalidInput, FieldDescriptionMaxLen, utf8.RuneCountInString(desc),
+			ErrInvalidInput, FieldDescriptionMaxLen, len(desc),
 		)
 	}
 
@@ -45,10 +44,10 @@ func NewField(typ ValueType, name string, desc string, unit string) (*Field, err
 		return nil, fmt.Errorf("%w: invalid Field: expected not empty unit", ErrInvalidInput)
 	}
 
-	if utf8.RuneCountInString(unit) > FieldUnitMaxLen {
+	if len(unit) > FieldUnitMaxLen {
 		return nil, fmt.Errorf(
 			"%w: invalid Field: expected len(unit) <= %d, got len(unit) = %d",
-			ErrInvalidInput, FieldUnitMaxLen, utf8.RuneCountInString(unit),
+			ErrInvalidInput, FieldUnitMaxLen, len(unit),
 		)
 	}
 

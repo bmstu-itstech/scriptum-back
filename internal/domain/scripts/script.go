@@ -3,11 +3,10 @@ package scripts
 import (
 	"fmt"
 	"time"
-	"unicode/utf8"
 )
 
-const ScriptNameMaxLen = 64
-const ScriptDescriptionMaxLen = 256
+const ScriptNameMaxLen = 160
+const ScriptDescriptionMaxLen = 640
 
 type ScriptID int32
 
@@ -67,17 +66,17 @@ func NewScriptPrototype(
 		return nil, fmt.Errorf("%w: invalid Script: expected not empty name", ErrInvalidInput)
 	}
 
-	if utf8.RuneCountInString(name) > ScriptNameMaxLen {
+	if len(name) > ScriptNameMaxLen {
 		return nil, fmt.Errorf(
 			"%w: invalid Script: expected len(name) <= %d, got len(name) = %d",
-			ErrInvalidInput, ScriptNameMaxLen, utf8.RuneCountInString(name),
+			ErrInvalidInput, ScriptNameMaxLen, len(name),
 		)
 	}
 
-	if utf8.RuneCountInString(desc) > ScriptDescriptionMaxLen {
+	if len(desc) > ScriptDescriptionMaxLen {
 		return nil, fmt.Errorf(
 			"%w: invalid Script: expected len(desc) < %d, got len(desc) = %d",
-			ErrInvalidInput, ScriptDescriptionMaxLen, utf8.RuneCountInString(desc),
+			ErrInvalidInput, ScriptDescriptionMaxLen, len(desc),
 		)
 	}
 

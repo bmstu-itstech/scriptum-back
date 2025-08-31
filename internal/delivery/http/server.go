@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/app"
@@ -358,7 +357,6 @@ func (s *Server) PostScriptsIdStart(w http.ResponseWriter, r *http.Request, id S
 	err = s.app.StartJob.StartJob(r.Context(), int64(userID), reqDto)
 	if err != nil {
 		if errors.Is(err, scripts.ErrInvalidInput) {
-			log.Println("dfvndkn")
 			httpError(w, r, err, http.StatusBadRequest)
 			return
 		}

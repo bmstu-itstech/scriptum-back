@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"time"
-	"unicode/utf8"
 )
 
 type JobID int64 // JobID > 0
@@ -61,10 +60,10 @@ func NewJobPrototype(ownerID UserID, scriptID ScriptID, input []Value, expected 
 		return nil, fmt.Errorf("%w: invalid URL: expected not empty URL", ErrInvalidInput)
 	}
 
-	if utf8.RuneCountInString(url) > FileURLMaxLen {
+	if len(url) > FileURLMaxLen {
 		return nil, fmt.Errorf(
 			"%w: invalid URL: expected len(url) <= %d, got len(url) = %d",
-			ErrInvalidInput, FileURLMaxLen, utf8.RuneCountInString(url),
+			ErrInvalidInput, FileURLMaxLen, len(url),
 		)
 	}
 

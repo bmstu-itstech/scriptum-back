@@ -2,12 +2,11 @@ package scripts
 
 import (
 	"fmt"
-	"unicode/utf8"
 )
 
 type FileID int64
 
-const FileURLMaxLen = 200
+const FileURLMaxLen = 300
 
 type File struct {
 	id  FileID
@@ -27,10 +26,10 @@ func NewFile(id FileID, url string) (*File, error) {
 		return nil, fmt.Errorf("%w: file url must not be empty", ErrInvalidInput)
 	}
 
-	if utf8.RuneCountInString(url) > FileURLMaxLen {
+	if len(url) > FileURLMaxLen {
 		return nil, fmt.Errorf(
 			"%w: invalid File: expected len(url) <= %d, got len(url) = %d",
-			ErrInvalidInput, FileURLMaxLen, utf8.RuneCountInString(url),
+			ErrInvalidInput, FileURLMaxLen, len(url),
 		)
 	}
 
