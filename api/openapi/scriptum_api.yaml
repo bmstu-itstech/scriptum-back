@@ -31,20 +31,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Script'
-        '400':
-          description: invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
         '401':
           description: unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: user not found
           content:
             application/json:
               schema:
@@ -90,12 +78,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        '404':
-          description: user not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
         '500':
           description: internal error
           content:
@@ -120,12 +102,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Script'
-        '400':
-          description: bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
         '401':
           description: unauthorized
           content:
@@ -273,26 +249,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Script'
-        '400':
-          description: invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
         '401':
           description: unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: forbidden (search scripts but for another user)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: user not found
           content:
             application/json:
               schema:
@@ -371,12 +329,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Result'
-        '400':
-          description: invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
         '401':
           description: unauthorized
           content:
@@ -423,12 +375,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        '404':
-          description: results not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
         '500':
           description: internal error
           content:
@@ -459,12 +405,6 @@ paths:
               schema:
                 type: string
               example: "attachment; filename=job_result_export.json"
-        '400':
-          description: invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
         '401':
           description: unauthorized
           content:
@@ -473,6 +413,12 @@ paths:
                 $ref: '#/components/schemas/Error'
         '403':
           description: forbidden (get but for another user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: job not found
           content:
             application/json:
               schema:
@@ -522,6 +468,12 @@ paths:
                 $ref: '#/components/schemas/Error'
         '403':
           description: forbidden (get but for another user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: job not found
           content:
             application/json:
               schema:

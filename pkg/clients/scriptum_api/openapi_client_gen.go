@@ -764,7 +764,6 @@ type GetJobsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]Result
-	JSON400      *Error
 	JSON401      *Error
 	JSON500      *Error
 }
@@ -791,7 +790,6 @@ type GetJobsSearchResponse struct {
 	JSON200      *[]Result
 	JSON400      *Error
 	JSON401      *Error
-	JSON404      *Error
 	JSON500      *Error
 }
 
@@ -815,9 +813,9 @@ type GetJobsIdResultResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *Result
-	JSON400      *Error
 	JSON401      *Error
 	JSON403      *Error
+	JSON404      *Error
 	JSON500      *Error
 }
 
@@ -843,6 +841,7 @@ type GetJobsIdResultDownloadResponse struct {
 	JSON400      *Error
 	JSON401      *Error
 	JSON403      *Error
+	JSON404      *Error
 	JSON500      *Error
 }
 
@@ -866,9 +865,7 @@ type GetScriptsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]Script
-	JSON400      *Error
 	JSON401      *Error
-	JSON404      *Error
 	JSON500      *Error
 }
 
@@ -897,7 +894,6 @@ type PostScriptsResponse struct {
 	}
 	JSON400 *Error
 	JSON401 *Error
-	JSON404 *Error
 	JSON500 *Error
 }
 
@@ -921,10 +917,7 @@ type GetScriptsSearchResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]Script
-	JSON400      *Error
 	JSON401      *Error
-	JSON403      *Error
-	JSON404      *Error
 	JSON500      *Error
 }
 
@@ -1003,7 +996,6 @@ type GetScriptsIdResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *Script
-	JSON400      *Error
 	JSON401      *Error
 	JSON403      *Error
 	JSON404      *Error
@@ -1189,13 +1181,6 @@ func ParseGetJobsResponse(rsp *http.Response) (*GetJobsResponse, error) {
 		}
 		response.JSON200 = &dest
 
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest Error
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -1250,13 +1235,6 @@ func ParseGetJobsSearchResponse(rsp *http.Response) (*GetJobsSearchResponse, err
 		}
 		response.JSON401 = &dest
 
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest Error
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -1290,13 +1268,6 @@ func ParseGetJobsIdResultResponse(rsp *http.Response) (*GetJobsIdResultResponse,
 		}
 		response.JSON200 = &dest
 
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest Error
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -1310,6 +1281,13 @@ func ParseGetJobsIdResultResponse(rsp *http.Response) (*GetJobsIdResultResponse,
 			return nil, err
 		}
 		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest Error
@@ -1358,6 +1336,13 @@ func ParseGetJobsIdResultDownloadResponse(rsp *http.Response) (*GetJobsIdResultD
 		}
 		response.JSON403 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest Error
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -1391,26 +1376,12 @@ func ParseGetScriptsResponse(rsp *http.Response) (*GetScriptsResponse, error) {
 		}
 		response.JSON200 = &dest
 
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest Error
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest Error
@@ -1462,13 +1433,6 @@ func ParsePostScriptsResponse(rsp *http.Response) (*PostScriptsResponse, error) 
 		}
 		response.JSON401 = &dest
 
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest Error
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -1502,33 +1466,12 @@ func ParseGetScriptsSearchResponse(rsp *http.Response) (*GetScriptsSearchRespons
 		}
 		response.JSON200 = &dest
 
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest Error
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest Error
@@ -1673,13 +1616,6 @@ func ParseGetScriptsIdResponse(rsp *http.Response) (*GetScriptsIdResponse, error
 			return nil, err
 		}
 		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest Error

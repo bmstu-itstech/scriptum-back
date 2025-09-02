@@ -1,10 +1,12 @@
 package scripts
 
-import "fmt"
+import (
+	"fmt"
+)
 
-const FieldNameMaxLen = 32
-const FieldDescriptionMaxLen = 256
-const FieldUnitMaxLen = 16
+const FieldNameMaxLen = 80
+const FieldDescriptionMaxLen = 512
+const FieldUnitMaxLen = 40
 
 type Field struct {
 	typ_ ValueType
@@ -26,14 +28,14 @@ func NewField(typ ValueType, name string, desc string, unit string) (*Field, err
 
 	if len(name) > FieldNameMaxLen {
 		return nil, fmt.Errorf(
-			"%w: invalid Field: expected len(name) < %d, got len(name) = %d",
+			"%w: invalid Field: expected len(name) <= %d, got len(name) = %d",
 			ErrInvalidInput, FieldNameMaxLen, len(name),
 		)
 	}
 
 	if len(desc) > FieldDescriptionMaxLen {
 		return nil, fmt.Errorf(
-			"%w: invalid Field: expected len(desc) < %d, got len(desc) = %d",
+			"%w: invalid Field: expected len(desc) <= %d, got len(desc) = %d",
 			ErrInvalidInput, FieldDescriptionMaxLen, len(desc),
 		)
 	}
@@ -44,7 +46,7 @@ func NewField(typ ValueType, name string, desc string, unit string) (*Field, err
 
 	if len(unit) > FieldUnitMaxLen {
 		return nil, fmt.Errorf(
-			"%w: invalid Field: expected len(unit) < %d, got len(unit) = %d",
+			"%w: invalid Field: expected len(unit) <= %d, got len(unit) = %d",
 			ErrInvalidInput, FieldUnitMaxLen, len(unit),
 		)
 	}

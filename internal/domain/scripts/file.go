@@ -6,7 +6,7 @@ import (
 
 type FileID int64
 
-const FileURLMaxLen = 200
+const FileURLMaxLen = 300
 
 type File struct {
 	id  FileID

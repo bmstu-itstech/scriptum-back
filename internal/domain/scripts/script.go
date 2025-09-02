@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-const ScriptNameMaxLen = 64
-const ScriptDescriptionMaxLen = 256
+const ScriptNameMaxLen = 160
+const ScriptDescriptionMaxLen = 640
 
 type ScriptID int32
 
@@ -40,8 +40,8 @@ func NewScriptVisibilityFromString(s string) (Visibility, error) {
 
 type ScriptPrototype struct {
 	ownerID UserID     // ownerID != 0
-	name    string     // 0 <  len(name) < ScriptNameMaxLen
-	desc    string     // 0 <= len(desc) < ScriptDescriptionMaxLen
+	name    string     // 0 <  len(name) <= ScriptNameMaxLen
+	desc    string     // 0 <= len(desc) <= ScriptDescriptionMaxLen
 	vis     Visibility // !vis.IsZero()
 	input   []Field    // len(input) > 0
 	output  []Field    // len(output) > 0
@@ -73,7 +73,7 @@ func NewScriptPrototype(
 		)
 	}
 
-	if len(desc) >= ScriptDescriptionMaxLen {
+	if len(desc) > ScriptDescriptionMaxLen {
 		return nil, fmt.Errorf(
 			"%w: invalid Script: expected len(desc) < %d, got len(desc) = %d",
 			ErrInvalidInput, ScriptDescriptionMaxLen, len(desc),
