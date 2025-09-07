@@ -77,7 +77,7 @@ func NewScriptPrototype(
 
 	if len(desc) > ScriptDescriptionMaxLen {
 		return nil, fmt.Errorf(
-			"%w: invalid Script: expected len(desc) < %d, got len(desc) = %d",
+			"%w: invalid Script: expected len(desc) <= %d, got len(desc) = %d",
 			ErrInvalidInput, ScriptDescriptionMaxLen, len(desc),
 		)
 	}

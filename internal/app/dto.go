@@ -127,16 +127,21 @@ func ScriptToDTO(script scripts.Script) (ScriptDTO, error) {
 	if err != nil {
 		return ScriptDTO{}, nil
 	}
+	extra := make([]int64, len(script.ExtraFileIDs()))
+	for i, v := range script.ExtraFileIDs() {
+		extra[i] = int64(v)
+	}
 	return ScriptDTO{
-		ID:         int32(script.ID()),
-		OwnerID:    int64(script.OwnerID()),
-		MainFileID: int64(script.MainFileID()),
-		Name:       script.Name(),
-		Desc:       script.Desc(),
-		Input:      input,
-		Output:     output,
-		Visibility: script.Visibility().String(),
-		CreatedAt:  script.CreatedAt(),
+		ID:           int32(script.ID()),
+		OwnerID:      int64(script.OwnerID()),
+		MainFileID:   int64(script.MainFileID()),
+		ExtraFileIDs: extra,
+		Name:         script.Name(),
+		Desc:         script.Desc(),
+		Input:        input,
+		Output:       output,
+		Visibility:   script.Visibility().String(),
+		CreatedAt:    script.CreatedAt(),
 	}, nil
 }
 
