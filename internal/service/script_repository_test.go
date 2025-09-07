@@ -23,7 +23,7 @@ func scriptRepository_ScriptFound(t *testing.T, repo scripts.ScriptRepository) {
 
 func scriptRepository_ScriptNotFound(t *testing.T, repo scripts.ScriptRepository) {
 	_, err := repo.Script(context.Background(), 999999)
-	require.NoError(t, err)
+	require.Error(t, err)
 }
 
 func scriptRepository_Delete(t *testing.T, repo scripts.ScriptRepository) {
@@ -36,7 +36,7 @@ func scriptRepository_Delete(t *testing.T, repo scripts.ScriptRepository) {
 
 	script, err := repo.Script(context.Background(), created.ID())
 	require.True(t, script.IsZero())
-	require.NoError(t, err)
+	require.Error(t, err)
 }
 
 func scriptRepository_Update(t *testing.T, repo scripts.ScriptRepository) {
@@ -370,7 +370,7 @@ func generateRandomScriptPrototype(t *testing.T) *scripts.ScriptPrototype {
 		[]scripts.Field{*inputP1, *inputP2},
 		[]scripts.Field{*outputP1, *outputP2},
 		file.ID(),
-		[]scripts.FileID{2, 3},
+		[]scripts.FileID{},
 	)
 	require.NoError(t, err)
 

@@ -32,7 +32,11 @@ func testFileRepository(t *testing.T) {
 	r, err := setUpFileRepository()
 	require.NoError(t, err)
 
+	s, err := setUpScriptRepository()
+	require.NoError(t, err)
+
 	fileRepository_FileNotFound(t, r)
 	fileRepository_Create(t, r)
+	scriptRepository_Create(t, s)
 	fileRepository_FileFound(t, r)
 }

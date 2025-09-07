@@ -35,7 +35,7 @@ func (f *FileRepo) File(ctx context.Context, fileID scripts.FileID) (*scripts.Fi
 		return nil, err
 	}
 	var isMain bool
-	err = f.db.GetContext(ctx, isMain, getFileStatusQuery, fileID)
+	err = f.db.GetContext(ctx, &isMain, getFileStatusQuery, fileID)
 	if err != nil {
 		return nil, err
 	}

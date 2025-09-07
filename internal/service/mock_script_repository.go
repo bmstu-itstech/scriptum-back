@@ -81,7 +81,7 @@ func (r *MockScriptRepo) Script(ctx context.Context, id scripts.ScriptID) (scrip
 
 	script, ok := r.m[id]
 	if !ok {
-		return scripts.Script{}, nil
+		return scripts.Script{}, scripts.ErrScriptNotFound
 	}
 	return script, nil
 }
