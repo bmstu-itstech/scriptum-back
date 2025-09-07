@@ -58,15 +58,15 @@ func (u *ScriptCreateUC) CreateScript(ctx context.Context, req ScriptCreateDTO) 
 		return 0, err
 	}
 
-	file, err := u.fileR.File(ctx, scripts.FileID(req.FileID))
-	if err != nil {
-		u.logger.Error("failed to save file", "err", err)
-		return 0, err
+	extraFiles := make([]scripts.FileID, len(req.ExtraFileIDs))
+	for i, id := range req.ExtraFileIDs {
+		extraFiles[i] = scripts.FileID(id)
 	}
 
 	proto, err := scripts.NewScriptPrototype(
-		scripts.UserID(req.OwnerID), req.ScriptName, req.ScriptDescription, vis, input, output, *file,
+		scripts.UserID(req.OwnerID), req.ScriptName, req.ScriptDescription, vis, input, output, scripts.FileID(req.MainFileID), extraFiles,
 	)
+
 	if err != nil {
 		u.logger.Error("failed to create script prototype", "err", err)
 		return 0, err

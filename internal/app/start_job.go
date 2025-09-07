@@ -12,6 +12,7 @@ type JobStartUC struct {
 	fileR      scripts.FileRepository
 	jobR       scripts.JobRepository
 	dispatcher scripts.Dispatcher
+	manager    scripts.FileManager
 	logger     *slog.Logger
 }
 
@@ -20,6 +21,7 @@ func NewJobStartUC(
 	fileR scripts.FileRepository,
 	jobR scripts.JobRepository,
 	dispatcher scripts.Dispatcher,
+	manager scripts.FileManager,
 	logger *slog.Logger,
 ) JobStartUC {
 	return JobStartUC{
@@ -27,6 +29,7 @@ func NewJobStartUC(
 		fileR:      fileR,
 		jobR:       jobR,
 		dispatcher: dispatcher,
+		manager:    manager,
 		logger:     logger,
 	}
 }
@@ -50,13 +53,29 @@ func (s *JobStartUC) StartJob(ctx context.Context, actorID int64, req ScriptRunD
 		return err
 	}
 
-	file, err := s.fileR.File(ctx, script.FileID())
+	mainFile, err := s.fileR.File(ctx, script.MainFileID())
 	if err != nil {
-		s.logger.Error("failed to start job", "err", err)
+		s.logger.Error("failed to get main script file", "err", err)
 		return err
 	}
 
-	proto, err := script.Assemble(scripts.UserID(actorID), input, file.URL())
+	extraFiles := make([]scripts.File, len(script.ExtraFileID()))
+	for i, fileID := range script.ExtraFileID() {
+		file, err := s.fileR.File(ctx, fileID)
+		if err != nil {
+			s.logger.Error("failed to get extra script file", "err", err)
+			return err
+		}
+		extraFiles[i] = *file
+	}
+
+	sandboxURL, err := s.manager.CreateSandbox(ctx, *mainFile, extraFiles)
+	if err != nil {
+		s.logger.Error("failed to create sandbox", "err", err)
+		return err
+	}
+
+	proto, err := script.Assemble(scripts.UserID(actorID), input, sandboxURL)
 	if err != nil {
 		s.logger.Error("failed to start job", "err", err)
 		return err
