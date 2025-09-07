@@ -59,17 +59,17 @@ func (s *JobStartUC) StartJob(ctx context.Context, actorID int64, req ScriptRunD
 		return err
 	}
 
-	extraFiles := make([]scripts.File, len(script.ExtraFileID()))
-	for i, fileID := range script.ExtraFileID() {
+	extraFiles := make([]scripts.URL, len(script.ExtraFileIDs()))
+	for i, fileID := range script.ExtraFileIDs() {
 		file, err := s.fileR.File(ctx, fileID)
 		if err != nil {
 			s.logger.Error("failed to get extra script file", "err", err)
 			return err
 		}
-		extraFiles[i] = *file
+		extraFiles[i] = file.URL()
 	}
 
-	sandboxURL, err := s.manager.CreateSandbox(ctx, *mainFile, extraFiles)
+	sandboxURL, err := s.manager.CreateSandbox(ctx, mainFile.URL(), extraFiles)
 	if err != nil {
 		s.logger.Error("failed to create sandbox", "err", err)
 		return err

@@ -16,5 +16,5 @@ type URL = string
 type FileManager interface {
 	Save(ctx context.Context, name string, reader io.Reader) (URL, error)
 	Delete(ctx context.Context, url URL) error
-	CreateSandbox(ctx context.Context, mainFile File, extraFiles []File) (URL, error)
+	CreateSandbox(ctx context.Context, mainFile URL, extraFile []URL) (URL, error)
 }

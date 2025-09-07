@@ -72,22 +72,22 @@ func (s *SystemManager) Delete(_ context.Context, path scripts.URL) error {
 	return nil
 }
 
-func (s *SystemManager) CreateSandbox(ctx context.Context, mainFile scripts.File, extraFiles []scripts.File) (scripts.URL, error) {
+func (s *SystemManager) CreateSandbox(ctx context.Context, mainFile scripts.URL, extraFiles []scripts.URL) (scripts.URL, error) {
 	dirName := generateDirname(s.directory)
 
 	if err := os.MkdirAll(dirName, 0755); err != nil {
 		return "", err
 	}
 
-	mainDst := filepath.Join(dirName, filepath.Base(mainFile.URL()))
-	if err := copyFile(mainFile.URL(), mainDst, s.maxFileSize); err != nil {
+	mainDst := filepath.Join(dirName, filepath.Base(mainFile))
+	if err := copyFile(mainFile, mainDst, s.maxFileSize); err != nil {
 		_ = os.RemoveAll(dirName)
 		return "", err
 	}
 
 	for _, f := range extraFiles {
-		dst := filepath.Join(dirName, filepath.Base(f.URL()))
-		if err := copyFile(f.URL(), dst, s.maxFileSize); err != nil {
+		dst := filepath.Join(dirName, filepath.Base(f))
+		if err := copyFile(f, dst, s.maxFileSize); err != nil {
 			_ = os.RemoveAll(dirName)
 			return "", err
 		}

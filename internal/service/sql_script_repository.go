@@ -116,7 +116,7 @@ func (r *ScriptRepo) Create(ctx context.Context, script *scripts.ScriptPrototype
 		return nil, err
 	}
 
-	if err := insertFilesTx(ctx, tx, scriptID, script.MainFileID(), script.ExtraFileID()); err != nil {
+	if err := insertFilesTx(ctx, tx, scriptID, script.MainFileID(), script.ExtraFileIDs()); err != nil {
 		return nil, err
 	}
 
@@ -165,7 +165,7 @@ func (r *ScriptRepo) Restore(ctx context.Context, script *scripts.Script) (*scri
 	if err := insertFieldsTx(ctx, tx, scriptID, script.Output(), "out"); err != nil {
 		return nil, err
 	}
-	if err := insertFilesTx(ctx, tx, scriptID, script.MainFileID(), script.ExtraFileID()); err != nil {
+	if err := insertFilesTx(ctx, tx, scriptID, script.MainFileID(), script.ExtraFileIDs()); err != nil {
 		return nil, err
 	}
 
@@ -227,9 +227,15 @@ func (r *ScriptRepo) Script(ctx context.Context, id scripts.ScriptID) (scripts.S
 
 	var mainFileID scripts.FileID
 	var extraFiles []scripts.FileID
+	var hasMain = false
 	for _, f := range files {
 		if f.IsMain {
-			mainFileID = scripts.FileID(f.FileID)
+			if !hasMain {
+				mainFileID = scripts.FileID(f.FileID)
+				hasMain = true
+			} else {
+				return scripts.Script{}, fmt.Errorf("cannot be two main files")
+			}
 		} else {
 			extraFiles = append(extraFiles, scripts.FileID(f.FileID))
 		}
@@ -367,9 +373,15 @@ func (r *ScriptRepo) buildScriptsFromRows(ctx context.Context, scriptsRows []scr
 
 		var mainFileID scripts.FileID
 		var extraFiles []scripts.FileID
+		var hasMain = false
 		for _, f := range files {
 			if f.IsMain {
-				mainFileID = scripts.FileID(f.FileID)
+				if !hasMain {
+					mainFileID = scripts.FileID(f.FileID)
+					hasMain = true
+				} else {
+					return nil, fmt.Errorf("cannot be two main files")
+				}
 			} else {
 				extraFiles = append(extraFiles, scripts.FileID(f.FileID))
 			}

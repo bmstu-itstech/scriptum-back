@@ -148,7 +148,7 @@ func (s *ScriptPrototype) MainFileID() FileID {
 	return s.mainFileID
 }
 
-func (s *ScriptPrototype) ExtraFileID() []FileID {
+func (s *ScriptPrototype) ExtraFileIDs() []FileID {
 	return s.extraFileIDs
 }
 
@@ -202,7 +202,7 @@ func RestoreScript(
 	input []Field,
 	output []Field,
 	mainFileID FileID,
-	extraFileID []FileID,
+	extraFileIDs []FileID,
 	createdAt time.Time,
 ) (*Script, error) {
 	if id == 0 {
@@ -227,7 +227,7 @@ func RestoreScript(
 			input:        input,
 			output:       output,
 			mainFileID:   mainFileID,
-			extraFileIDs: extraFileID,
+			extraFileIDs: extraFileIDs,
 		},
 		id:        ScriptID(id),
 		createdAt: createdAt,
