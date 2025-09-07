@@ -111,7 +111,7 @@ func main() {
 		log.Fatalf("failed get python launcher: %s", err.Error())
 	}
 
-	usecase := app.NewJobRunUC(scriptRepo, jobRepo, pythonLauncher, emailNotifier, userProv, l)
+	usecase := app.NewJobRunUC(scriptRepo, jobRepo, pythonLauncher, emailNotifier, userProv, systemManager, l)
 	err = handler.Listen(ctx, usecase.Run)
 	if err != nil {
 		log.Fatalf("failed listen handler: %s", err.Error())
@@ -121,7 +121,7 @@ func main() {
 		CreateScript:  app.NewScriptCreateUC(scriptRepo, userProv, fileRepo, systemManager, l),
 		DeleteScript:  app.NewScriptDeleteUC(scriptRepo, userProv, systemManager, fileRepo, l),
 		SearchScript:  app.NewSearchScriptsUC(scriptRepo, userProv, l),
-		StartJob:      app.NewJobStartUC(scriptRepo, fileRepo, jobRepo, dispatcher, l),
+		StartJob:      app.NewJobStartUC(scriptRepo, fileRepo, jobRepo, dispatcher, systemManager, l),
 		GetJob:        app.NewGetJobUC(jobRepo, userProv, scriptRepo, l),
 		GetJobs:       app.NewGetJobsUC(jobRepo, userProv, scriptRepo, l),
 		GetScriptByID: app.NewGetScript(scriptRepo, l),

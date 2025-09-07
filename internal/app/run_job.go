@@ -13,6 +13,7 @@ type JobRunUC struct {
 	runner   scripts.Runner
 	notifier scripts.Notifier
 	userP    scripts.UserProvider
+	manager  scripts.FileManager
 	logger   *slog.Logger
 }
 
@@ -22,6 +23,7 @@ func NewJobRunUC(
 	launcher scripts.Runner,
 	notifier scripts.Notifier,
 	userP scripts.UserProvider,
+	manager scripts.FileManager,
 	logger *slog.Logger,
 ) JobRunUC {
 	return JobRunUC{
@@ -30,6 +32,7 @@ func NewJobRunUC(
 		runner:   launcher,
 		notifier: notifier,
 		userP:    userP,
+		manager:  manager,
 		logger:   logger,
 	}
 }
@@ -84,6 +87,12 @@ func (l *JobRunUC) Run(ctx context.Context, req JobDTO) error {
 			l.logger.Error("failed to run job", "err", err)
 			return err
 		}
+	}
+
+	err = l.manager.Delete(ctx, req.Url)
+	if err != nil {
+		l.logger.Error("failed to delete sandbox", "err", err)
+		return err
 	}
 
 	return nil
