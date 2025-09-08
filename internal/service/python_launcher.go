@@ -36,7 +36,7 @@ func (p *PythonLauncher) CreateSandbox(ctx context.Context, mainReader scripts.F
 		return "", err
 	}
 	mainDst := filepath.Join(dirName, mainReader.Name)
-	if err := copyFromReader(mainReader.Reader, mainDst, p.maxFileSize); err != nil {
+	if err := copyFromReader(mainReader.Reader, mainDst); err != nil {
 		_ = os.RemoveAll(dirName)
 		return "", err
 	}
@@ -44,7 +44,7 @@ func (p *PythonLauncher) CreateSandbox(ctx context.Context, mainReader scripts.F
 	for _, r := range extraReaders {
 		dst := filepath.Join(dirName, r.Name)
 
-		if err := copyFromReader(r.Reader, dst, p.maxFileSize); err != nil {
+		if err := copyFromReader(r.Reader, dst); err != nil {
 			_ = os.RemoveAll(dirName)
 			return "", err
 		}
@@ -113,23 +113,20 @@ func (p *PythonLauncher) DeleteSandbox(ctx context.Context, path scripts.URL) er
 	return nil
 }
 
-func copyFromReader(reader io.Reader, dst string, maxSize int64) error {
+func copyFromReader(reader io.Reader, dst string) error {
 	out, err := os.Create(dst)
 	if err != nil {
 		return err
 	}
-	defer out.Close()
 
-	limited := io.LimitReader(reader, maxSize+1)
-	written, err := io.Copy(out, limited)
+	_, err = io.Copy(out, reader)
 	if err != nil {
 		_ = os.Remove(dst)
 		return err
 	}
 
-	if written > maxSize {
-		_ = os.Remove(dst)
-		return fmt.Errorf("%w: file size exceeds limit of %d bytes", scripts.ErrFileUpload, maxSize)
+	if err := out.Close(); err != nil {
+		return err
 	}
 
 	return nil
