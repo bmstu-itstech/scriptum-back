@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -109,7 +108,6 @@ func (l *LaunchSubscriber) Listen(ctx context.Context, callback func(context.Con
 				go func(msg *message.Message) {
 					req, err := UnmarshalJob(msg.Payload)
 					if err != nil {
-						fmt.Println(err)
 						l.watLogger.Error("Decode error", err, nil)
 						msg.Nack()
 						return

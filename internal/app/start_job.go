@@ -12,6 +12,8 @@ type JobStartUC struct {
 	fileR      scripts.FileRepository
 	jobR       scripts.JobRepository
 	dispatcher scripts.Dispatcher
+	manager    scripts.FileManager
+	launcher   scripts.Launcher
 	logger     *slog.Logger
 }
 
@@ -20,6 +22,8 @@ func NewJobStartUC(
 	fileR scripts.FileRepository,
 	jobR scripts.JobRepository,
 	dispatcher scripts.Dispatcher,
+	manager scripts.FileManager,
+	launcher scripts.Launcher,
 	logger *slog.Logger,
 ) JobStartUC {
 	return JobStartUC{
@@ -27,6 +31,8 @@ func NewJobStartUC(
 		fileR:      fileR,
 		jobR:       jobR,
 		dispatcher: dispatcher,
+		manager:    manager,
+		launcher:   launcher,
 		logger:     logger,
 	}
 }
@@ -50,20 +56,58 @@ func (s *JobStartUC) StartJob(ctx context.Context, actorID int64, req ScriptRunD
 		return err
 	}
 
-	file, err := s.fileR.File(ctx, script.FileID())
+	mainFile, err := s.fileR.File(ctx, script.MainFileID())
 	if err != nil {
-		s.logger.Error("failed to start job", "err", err)
+		s.logger.Error("failed to get main script file", "err", err)
 		return err
 	}
 
-	proto, err := script.Assemble(scripts.UserID(actorID), input, file.URL())
+	mainFileData, err := s.manager.Read(ctx, mainFile.URL())
 	if err != nil {
+		s.logger.Error("failed to create main reader")
+		return err
+	}
+
+	extraFiles := make([]scripts.FileData, len(script.ExtraFileIDs()))
+	for i, fileID := range script.ExtraFileIDs() {
+		file, err := s.fileR.File(ctx, fileID)
+		if err != nil {
+			s.logger.Error("failed to get extra script file", "err", err)
+			return err
+		}
+
+		fileData, err := s.manager.Read(ctx, file.URL())
+		if err != nil {
+			s.logger.Error("failed to create extra file reader: %s", file.URL(), err)
+			return err
+		}
+		extraFiles[i] = fileData
+	}
+
+	sandboxURL, err := s.launcher.CreateSandbox(ctx, mainFileData, extraFiles)
+	if err != nil {
+		s.logger.Error("failed to create sandbox", "err", err)
+		return err
+	}
+
+	proto, err := script.Assemble(scripts.UserID(actorID), input, sandboxURL)
+	if err != nil {
+		err_ := s.launcher.DeleteSandbox(ctx, sandboxURL)
+		if err_ != nil {
+			s.logger.Error("failed to delete sandbox after bad assembling of job", "err", err)
+			return err
+		}
 		s.logger.Error("failed to start job", "err", err)
 		return err
 	}
 
 	job, err := s.jobR.Create(ctx, proto)
 	if err != nil {
+		err_ := s.launcher.DeleteSandbox(ctx, sandboxURL)
+		if err_ != nil {
+			s.logger.Error("failed to delete sandbox after bad job creating", "err", err)
+			return err
+		}
 		s.logger.Error("failed to start job", "err", err)
 		return err
 	}

@@ -12,8 +12,17 @@ func fileRepository_Create(t *testing.T, repo scripts.FileRepository) {
 	ctx := context.Background()
 
 	url := scripts.URL("http://example.com/file1")
-
 	id, err := repo.Create(ctx, &url)
+	require.NoError(t, err)
+	require.NotZero(t, id)
+
+	url = scripts.URL("http://example.com/file2")
+	id, err = repo.Create(ctx, &url)
+	require.NoError(t, err)
+	require.NotZero(t, id)
+
+	url = scripts.URL("http://example.com/file3")
+	id, err = repo.Create(ctx, &url)
 	require.NoError(t, err)
 	require.NotZero(t, id)
 }

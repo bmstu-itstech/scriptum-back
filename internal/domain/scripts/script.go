@@ -39,13 +39,14 @@ func NewScriptVisibilityFromString(s string) (Visibility, error) {
 }
 
 type ScriptPrototype struct {
-	ownerID UserID     // ownerID != 0
-	name    string     // 0 <  len(name) <= ScriptNameMaxLen
-	desc    string     // 0 <= len(desc) <= ScriptDescriptionMaxLen
-	vis     Visibility // !vis.IsZero()
-	input   []Field    // len(input) > 0
-	output  []Field    // len(output) > 0
-	fileID  FileID     // FileID != 0
+	ownerID      UserID     // ownerID != 0
+	name         string     // 0 <  len(name) <= ScriptNameMaxLen
+	desc         string     // 0 <= len(desc) <= ScriptDescriptionMaxLen
+	vis          Visibility // !vis.IsZero()
+	input        []Field    // len(input) > 0
+	output       []Field    // len(output) > 0
+	mainFileID   FileID     // FileID != 0
+	extraFileIDs []FileID   // FileID != 0
 }
 
 func NewScriptPrototype(
@@ -55,7 +56,8 @@ func NewScriptPrototype(
 	visibility Visibility,
 	input []Field,
 	output []Field,
-	file File,
+	mainFileID FileID,
+	extraFileIDs []FileID,
 ) (*ScriptPrototype, error) {
 	if ownerID == 0 {
 		// Ошибка программиста
@@ -75,7 +77,7 @@ func NewScriptPrototype(
 
 	if len(desc) > ScriptDescriptionMaxLen {
 		return nil, fmt.Errorf(
-			"%w: invalid Script: expected len(desc) < %d, got len(desc) = %d",
+			"%w: invalid Script: expected len(desc) <= %d, got len(desc) = %d",
 			ErrInvalidInput, ScriptDescriptionMaxLen, len(desc),
 		)
 	}
@@ -94,19 +96,27 @@ func NewScriptPrototype(
 		return nil, fmt.Errorf("%w: invalid Script: expected at least one output field", ErrInvalidInput)
 	}
 
-	if file.ID() == 0 {
+	if mainFileID == 0 {
 		// Ошибка программиста
 		return nil, fmt.Errorf("empty fileID")
 	}
 
+	for _, el := range extraFileIDs {
+		if el == 0 {
+			// Ошибка программиста
+			return nil, fmt.Errorf("empty fileID")
+		}
+	}
+
 	return &ScriptPrototype{
-		ownerID: ownerID,
-		name:    name,
-		desc:    desc,
-		vis:     visibility,
-		input:   input[:],
-		output:  output[:],
-		fileID:  file.ID(),
+		ownerID:      ownerID,
+		name:         name,
+		desc:         desc,
+		vis:          visibility,
+		input:        input[:],
+		output:       output[:],
+		mainFileID:   mainFileID,
+		extraFileIDs: extraFileIDs,
 	}, nil
 }
 
@@ -134,8 +144,12 @@ func (s *ScriptPrototype) Output() []Field {
 	return s.output[:]
 }
 
-func (s *ScriptPrototype) FileID() FileID {
-	return s.fileID
+func (s *ScriptPrototype) MainFileID() FileID {
+	return s.mainFileID
+}
+
+func (s *ScriptPrototype) ExtraFileIDs() []FileID {
+	return s.extraFileIDs
 }
 
 func (s *ScriptPrototype) IsPublic() bool {
@@ -187,7 +201,8 @@ func RestoreScript(
 	vis string,
 	input []Field,
 	output []Field,
-	fileID FileID,
+	mainFileID FileID,
+	extraFileIDs []FileID,
 	createdAt time.Time,
 ) (*Script, error) {
 	if id == 0 {
@@ -203,18 +218,14 @@ func RestoreScript(
 		return nil, fmt.Errorf("invalid script.vis %s", vis)
 	}
 
+	sProto, err := NewScriptPrototype(UserID(ownerID), name, desc, svis, input, output, mainFileID, extraFileIDs)
+	if err != nil {
+		return nil, fmt.Errorf("invalid creating of script prototype")
+	}
 	return &Script{
-		ScriptPrototype: ScriptPrototype{
-			ownerID: UserID(ownerID),
-			name:    name,
-			desc:    desc,
-			vis:     svis,
-			input:   input,
-			output:  output,
-			fileID:  fileID,
-		},
-		id:        ScriptID(id),
-		createdAt: createdAt,
+		ScriptPrototype: *sProto,
+		id:              ScriptID(id),
+		createdAt:       createdAt,
 	}, nil
 }
 
@@ -236,12 +247,5 @@ func (s *Script) Assemble(by UserID, input []Value, url URL) (*JobPrototype, err
 		}
 	}
 
-	return &JobPrototype{
-		scriptID:  s.id,
-		ownerID:   by,
-		input:     input,
-		expected:  s.Output(),
-		url:       url,
-		createdAt: time.Now(),
-	}, nil
+	return NewJobPrototype(by, s.id, input, s.Output(), url)
 }

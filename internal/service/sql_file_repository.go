@@ -23,6 +23,8 @@ func NewFileRepository(db *sqlx.DB) *FileRepo {
 
 const getFileQuery = `SELECT * FROM files WHERE file_id = $1`
 
+const getFileStatusQuery = `SELECT is_main FROM script_files WHERE file_id = $1`
+
 func (f *FileRepo) File(ctx context.Context, fileID scripts.FileID) (*scripts.File, error) {
 	var fileRow FileRow
 	err := f.db.GetContext(ctx, &fileRow, getFileQuery, fileID)
@@ -32,7 +34,13 @@ func (f *FileRepo) File(ctx context.Context, fileID scripts.FileID) (*scripts.Fi
 		}
 		return nil, err
 	}
-	file, err := scripts.NewFile(fileID, fileRow.URL)
+	var isMain bool
+	err = f.db.GetContext(ctx, &isMain, getFileStatusQuery, fileID)
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := scripts.NewFile(fileID, fileRow.URL, isMain)
 	if err != nil {
 		return nil, err
 	}

@@ -9,8 +9,9 @@ type FileID int64
 const FileURLMaxLen = 300
 
 type File struct {
-	id  FileID
-	url string
+	id     FileID
+	url    string
+	isMain bool
 }
 
 func (f *File) ID() FileID {
@@ -21,7 +22,11 @@ func (f *File) URL() string {
 	return f.url
 }
 
-func NewFile(id FileID, url string) (*File, error) {
+func (f *File) IsMain() bool {
+	return f.isMain
+}
+
+func NewFile(id FileID, url string, isMain bool) (*File, error) {
 	if url == "" {
 		return nil, fmt.Errorf("%w: file url must not be empty", ErrInvalidInput)
 	}
@@ -34,7 +39,8 @@ func NewFile(id FileID, url string) (*File, error) {
 	}
 
 	return &File{
-		id:  id,
-		url: url,
+		id:     id,
+		url:    url,
+		isMain: isMain,
 	}, nil
 }

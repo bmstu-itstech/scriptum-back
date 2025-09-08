@@ -16,15 +16,16 @@ type FieldDTO struct {
 }
 
 type ScriptDTO struct {
-	ID         int32
-	OwnerID    int64
-	FileID     int64
-	Name       string
-	Desc       string
-	Input      []FieldDTO
-	Output     []FieldDTO
-	Visibility string
-	CreatedAt  time.Time
+	ID           int32
+	OwnerID      int64
+	MainFileID   int64
+	ExtraFileIDs []int64
+	Name         string
+	Desc         string
+	Input        []FieldDTO
+	Output       []FieldDTO
+	Visibility   string
+	CreatedAt    time.Time
 }
 
 type ValueDTO struct {
@@ -69,7 +70,8 @@ type ScriptCreateDTO struct {
 	OwnerID           int64
 	ScriptName        string
 	ScriptDescription string
-	FileID            int64
+	MainFileID        int64
+	ExtraFileIDs      []int64
 	InFields          []FieldDTO
 	OutFields         []FieldDTO
 }
@@ -125,16 +127,21 @@ func ScriptToDTO(script scripts.Script) (ScriptDTO, error) {
 	if err != nil {
 		return ScriptDTO{}, nil
 	}
+	extra := make([]int64, len(script.ExtraFileIDs()))
+	for i, v := range script.ExtraFileIDs() {
+		extra[i] = int64(v)
+	}
 	return ScriptDTO{
-		ID:         int32(script.ID()),
-		OwnerID:    int64(script.OwnerID()),
-		FileID:     int64(script.FileID()),
-		Name:       script.Name(),
-		Desc:       script.Desc(),
-		Input:      input,
-		Output:     output,
-		Visibility: script.Visibility().String(),
-		CreatedAt:  script.CreatedAt(),
+		ID:           int32(script.ID()),
+		OwnerID:      int64(script.OwnerID()),
+		MainFileID:   int64(script.MainFileID()),
+		ExtraFileIDs: extra,
+		Name:         script.Name(),
+		Desc:         script.Desc(),
+		Input:        input,
+		Output:       output,
+		Visibility:   script.Visibility().String(),
+		CreatedAt:    script.CreatedAt(),
 	}, nil
 }
 
@@ -149,6 +156,11 @@ func DTOToScript(s ScriptDTO) (*scripts.Script, error) {
 		return nil, err
 	}
 
+	extraFiles := make([]scripts.FileID, len(s.ExtraFileIDs))
+	for i, id := range s.ExtraFileIDs {
+		extraFiles[i] = scripts.FileID(id)
+	}
+
 	script, err := scripts.RestoreScript(
 		int64(s.ID),
 		s.OwnerID,
@@ -157,7 +169,8 @@ func DTOToScript(s ScriptDTO) (*scripts.Script, error) {
 		s.Visibility,
 		input,
 		output,
-		scripts.FileID(s.FileID),
+		scripts.FileID(s.MainFileID),
+		extraFiles,
 		s.CreatedAt,
 	)
 	return script, err

@@ -484,6 +484,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
 components:
   schemas:
     UserId:
@@ -518,9 +519,6 @@ components:
       - name
       - description
       - unit
-    FilePath:
-      type: string
-      example: "/user1/script7/main.py"
     Visibility:
       type: string
       enum: [ public, private ]
@@ -544,9 +542,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Field'
-        file_id:
+        main_file_id:
           type: integer
           format: int64
+        extra_file_ids:
+          type: array
+          items:
+            type: integer
+            format: int64
         owner:
           $ref: '#/components/schemas/UserId'
         visibility:
@@ -560,7 +563,8 @@ components:
       - script_description
       - in_fields
       - out_fields
-      - file_id
+      - main_file_id
+      - extra_file_ids
       - owner
       - visibility
       - created_at
@@ -600,8 +604,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Field"
-        path:
-          $ref: "#/components/schemas/FilePath"
         status:
           $ref: "#/components/schemas/Status"
         created_at:
@@ -664,15 +666,21 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Field'
-        file_id:
+        main_file_id:
           type: integer
           format: int64
+        extra_file_ids:
+          type: array
+          items:
+            type: integer
+            format: int64
       required:
       - script_name
       - script_description
       - in_fields
       - out_fields
-      - file_id
+      - main_file_id
+      - extra_file_ids
     ScriptRunData:
       type: object
       properties:
