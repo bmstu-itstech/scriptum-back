@@ -29,30 +29,30 @@ func NewSystemManager(dir string, maxFileSize int64) (*SystemManager, error) {
 }
 
 func (s *SystemManager) Save(_ context.Context, name string, content io.Reader) (scripts.URL, error) {
-	filename := generateFilename(s.directory, name)
+	dirName := generateDirname(s.directory)
 
-	file, err := os.Create(filename)
+	err := os.MkdirAll(dirName, 0755)
 	if err != nil {
 		return "", err
 	}
 
-	limitedReader := io.LimitReader(content, s.maxFileSize+1)
+	fileName := fmt.Sprintf("%s/%s", dirName, name)
 
-	written, err := io.Copy(file, limitedReader)
+	file, err := os.Create(fileName)
 	if err != nil {
 		return "", err
 	}
 
-	if written > s.maxFileSize {
-		_ = os.Remove(filename)
-		return "", fmt.Errorf("%w:file size exceeds limit of %d bytes", scripts.ErrFileUpload, s.maxFileSize)
+	_, err = io.Copy(file, content)
+	if err != nil {
+		return "", err
 	}
-	
+
 	if err := file.Close(); err != nil {
 		return "", err
 	}
 
-	return scripts.URL(filename), nil
+	return scripts.URL(fileName), nil
 }
 
 func (s *SystemManager) Delete(_ context.Context, path scripts.URL) error {
@@ -63,17 +63,31 @@ func (s *SystemManager) Delete(_ context.Context, path scripts.URL) error {
 	return nil
 }
 
-func generateFilename(dir, originalName string) string {
-	base := filepath.Base(originalName)
-	filename := fmt.Sprintf("%s/%s_%s", dir, uuid.New().String(), base)
+func (s *SystemManager) Read(ctx context.Context, path scripts.URL) (scripts.FileData, error) {
+	filePath := string(path)
 
-	if len(filename) > scripts.FileURLMaxLen {
-		runes := []rune(filename)
+	fileName := filepath.Base(filePath)
+	file, err := os.Open(filePath)
+	if err != nil {
+		return scripts.FileData{}, fmt.Errorf("failed to open file %s: %w", filePath, err)
+	}
+
+	return scripts.FileData{
+		Reader: file,
+		Name:   fileName,
+	}, nil
+}
+
+func generateDirname(dir string) string {
+	dirName := fmt.Sprintf("%s/%s", dir, uuid.New().String())
+
+	if len(dirName) > scripts.FileURLMaxLen {
+		runes := []rune(dirName)
 		if len(runes) > scripts.FileURLMaxLen {
 			runes = runes[:scripts.FileURLMaxLen]
 		}
-		filename = string(runes)
+		dirName = string(runes)
 	}
 
-	return filename
+	return dirName
 }

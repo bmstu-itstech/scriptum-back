@@ -39,7 +39,7 @@ func (u *ScriptDeleteUC) DeleteScript(ctx context.Context, actorID uint32, scrip
 		return err
 	}
 
-	file, err := u.fileR.File(ctx, script.FileID())
+	file, err := u.fileR.File(ctx, script.MainFileID())
 	if err != nil {
 		u.logger.Error("failed to get file", "err", err)
 		return err
@@ -56,15 +56,28 @@ func (u *ScriptDeleteUC) DeleteScript(ctx context.Context, actorID uint32, scrip
 		return err
 	}
 
-	err = u.fileR.Delete(ctx, scripts.ScriptID(script.FileID()))
+	err = u.fileR.Delete(ctx, scripts.ScriptID(script.MainFileID()))
 	if err != nil {
-		u.logger.Error("failed to delete file while deleting script", "err", err)
+		u.logger.Error("failed to delete main file while deleting script", "err", err)
 		_, err := u.scriptR.Restore(ctx, &script)
 		if err != nil {
 			u.logger.Error("failed to restore script while deleting script", "err", err)
 			return err
 		}
 		return err
+	}
+
+	for _, e := range script.ExtraFileIDs() {
+		err := u.fileR.Delete(ctx, scripts.ScriptID(e))
+		if err != nil {
+			u.logger.Error("failed to delete extra file while deleting script", "err", err)
+			_, err := u.scriptR.Restore(ctx, &script)
+			if err != nil {
+				u.logger.Error("failed to restore script while deleting script", "err", err)
+				return err
+			}
+			return err
+		}
 	}
 
 	err = u.manager.Delete(ctx, file.URL())

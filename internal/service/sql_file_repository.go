@@ -32,6 +32,7 @@ func (f *FileRepo) File(ctx context.Context, fileID scripts.FileID) (*scripts.Fi
 		}
 		return nil, err
 	}
+
 	file, err := scripts.NewFile(fileID, fileRow.URL)
 	if err != nil {
 		return nil, err

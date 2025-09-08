@@ -39,9 +39,6 @@ type Field struct {
 	Unit        string `json:"unit"`
 }
 
-// FilePath defines model for FilePath.
-type FilePath = string
-
 // Job defines model for Job.
 type Job struct {
 	CreatedAt    time.Time  `json:"created_at"`
@@ -50,7 +47,6 @@ type Job struct {
 	In           []Value    `json:"in"`
 	JobId        JobId      `json:"job_id"`
 	NeedToNotify bool       `json:"need_to_notify"`
-	Path         FilePath   `json:"path"`
 	ScriptId     ScriptId   `json:"script_id"`
 	ScriptName   string     `json:"script_name"`
 	Status       Status     `json:"status"`
@@ -71,8 +67,9 @@ type Result struct {
 // Script defines model for Script.
 type Script struct {
 	CreatedAt         time.Time  `json:"created_at"`
-	FileId            int64      `json:"file_id"`
+	ExtraFileIds      []int64    `json:"extra_file_ids"`
 	InFields          []Field    `json:"in_fields"`
+	MainFileId        int64      `json:"main_file_id"`
 	OutFields         []Field    `json:"out_fields"`
 	Owner             UserId     `json:"owner"`
 	ScriptDescription string     `json:"script_description"`
@@ -83,8 +80,9 @@ type Script struct {
 
 // ScriptCreateData defines model for ScriptCreateData.
 type ScriptCreateData struct {
-	FileId            int64   `json:"file_id"`
+	ExtraFileIds      []int64 `json:"extra_file_ids"`
 	InFields          []Field `json:"in_fields"`
+	MainFileId        int64   `json:"main_file_id"`
 	OutFields         []Field `json:"out_fields"`
 	ScriptDescription string  `json:"script_description"`
 	ScriptName        string  `json:"script_name"`

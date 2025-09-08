@@ -82,13 +82,6 @@ func (r *JobRepo) Delete(ctx context.Context, jobID scripts.JobID) error {
 
 const getJobQuery = "SELECT * FROM jobs WHERE job_id=$1"
 
-const getURLQuery = `
-	SELECT f.url
-	FROM scripts s
-	JOIN files f ON s.file_id = f.file_id
-	WHERE s.script_id = $1
-`
-
 const paramsJobQuery = `
 		SELECT p.field_id, f.field_type, p.value, f.param
 		FROM job_params jp
@@ -122,12 +115,6 @@ func (r *JobRepo) Job(ctx context.Context, jobID scripts.JobID) (*scripts.Job, e
 		result = scripts.RestoreResult(outputValues, scripts.StatusCode(*jobRow.StatusCode), jobRow.ErrorMessage)
 	}
 
-	var path string
-	err = r.db.GetContext(ctx, &path, getURLQuery, jobRow.ScriptID)
-	if err != nil {
-		return nil, err
-	}
-
 	var outFields []fieldRow
 	err = r.db.SelectContext(ctx, &outFields, getFieldsQuery, jobRow.ScriptID, "out")
 	if err != nil {
@@ -145,7 +132,7 @@ func (r *JobRepo) Job(ctx context.Context, jobID scripts.JobID) (*scripts.Job, e
 		jobRow.State,
 		inputValues,
 		outputs,
-		path,
+		"",
 		result,
 		jobRow.StartedAt,
 		jobRow.ClosedAt,
@@ -288,12 +275,6 @@ func (r *JobRepo) buildJobsFromRows(ctx context.Context, rows []JobRow) ([]scrip
 		var result *scripts.Result
 		if jr.StatusCode != nil {
 			result = scripts.RestoreResult(outputValues, scripts.StatusCode(*jr.StatusCode), jr.ErrorMessage)
-		} //
-
-		var path string
-		err = r.db.GetContext(ctx, &path, getURLQuery, jr.ScriptID)
-		if err != nil {
-			return nil, fmt.Errorf("buildJobsFromRows: GetContext: %w", err)
 		}
 
 		var outFields []fieldRow
@@ -312,7 +293,7 @@ func (r *JobRepo) buildJobsFromRows(ctx context.Context, rows []JobRow) ([]scrip
 			jr.State,
 			inputValues,
 			outputs,
-			path,
+			"",
 			result,
 			jr.StartedAt,
 			jr.ClosedAt,

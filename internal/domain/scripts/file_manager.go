@@ -14,6 +14,7 @@ var ErrFileUpload = errors.New("cannot upload file")
 type URL = string
 
 type FileManager interface {
-	Save(context.Context, string, io.Reader) (URL, error)
-	Delete(context.Context, URL) error
+	Save(ctx context.Context, name string, reader io.Reader) (URL, error)
+	Delete(ctx context.Context, url URL) error
+	Read(ctx context.Context, path URL) (FileData, error)
 }

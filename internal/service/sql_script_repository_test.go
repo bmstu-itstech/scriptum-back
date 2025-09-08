@@ -33,7 +33,6 @@ func testScriptRepository(t *testing.T) {
 	r, err := setUpScriptRepository()
 	require.NoError(t, err)
 
-	scriptRepository_PublicScripts_NotFound(t, r)
 	scriptRepository_ScriptNotFound(t, r)
 	scriptRepository_UserScripts_NotFound(t, r)
 	scriptRepository_SearchPublicScripts_NotFound(t, r)

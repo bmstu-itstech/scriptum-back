@@ -39,7 +39,15 @@ CREATE TABLE scripts (
     visibility VISIBILITY NOT NULL,
     owner_id BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    main_file_id BIGINT NOT NULL,
+    FOREIGN KEY (main_file_id) REFERENCES files(file_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE script_files (
+    script_id BIGINT NOT NULL,
     file_id BIGINT NOT NULL,
+    PRIMARY KEY (script_id, file_id),
+    FOREIGN KEY (script_id) REFERENCES scripts(script_id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (file_id) REFERENCES files(file_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
