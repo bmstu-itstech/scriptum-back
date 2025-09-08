@@ -103,7 +103,6 @@ func NewScriptPrototype(
 
 	for _, el := range extraFileIDs {
 		if el == 0 {
-			// Ошибка программиста
 			return nil, fmt.Errorf("empty fileID")
 		}
 	}
