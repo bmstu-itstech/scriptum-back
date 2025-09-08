@@ -22,8 +22,8 @@ func NewScriptRepository(db *sqlx.DB) *ScriptRepo {
 }
 
 const createScriptQuery = `
-INSERT INTO scripts (name, description, visibility, owner_id)
-VALUES (:name, :description, :visibility, :owner_id)
+INSERT INTO scripts (name, description, visibility, owner_id, main_file_id)
+VALUES (:name, :description, :visibility, :owner_id, :main_file_id)
 RETURNING script_id
 `
 
@@ -116,7 +116,7 @@ func (r *ScriptRepo) Create(ctx context.Context, script *scripts.ScriptPrototype
 		return nil, err
 	}
 
-	if err := insertFilesTx(ctx, tx, scriptID, script.MainFileID(), script.ExtraFileIDs()); err != nil {
+	if err := insertFilesTx(ctx, tx, scriptID, script.ExtraFileIDs()); err != nil {
 		return nil, err
 	}
 
@@ -165,7 +165,7 @@ func (r *ScriptRepo) Restore(ctx context.Context, script *scripts.Script) (*scri
 	if err := insertFieldsTx(ctx, tx, scriptID, script.Output(), "out"); err != nil {
 		return nil, err
 	}
-	if err := insertFilesTx(ctx, tx, scriptID, script.MainFileID(), script.ExtraFileIDs()); err != nil {
+	if err := insertFilesTx(ctx, tx, scriptID, script.ExtraFileIDs()); err != nil {
 		return nil, err
 	}
 
@@ -182,7 +182,7 @@ const getFieldsQuery = `
 		WHERE sf.script_id = $1 AND f.param = $2`
 
 const getFilesQuery = `
-	SELECT file_id, is_main
+	SELECT file_id
 	FROM script_files
 	WHERE script_id = $1`
 
@@ -225,20 +225,9 @@ func (r *ScriptRepo) Script(ctx context.Context, id scripts.ScriptID) (scripts.S
 		return scripts.Script{}, err
 	}
 
-	var mainFileID scripts.FileID
 	var extraFiles []scripts.FileID
-	var hasMain = false
 	for _, f := range files {
-		if f.IsMain {
-			if !hasMain {
-				mainFileID = scripts.FileID(f.FileID)
-				hasMain = true
-			} else {
-				return scripts.Script{}, fmt.Errorf("cannot be two main files")
-			}
-		} else {
-			extraFiles = append(extraFiles, scripts.FileID(f.FileID))
-		}
+		extraFiles = append(extraFiles, scripts.FileID(f.FileID))
 	}
 
 	script, err := scripts.RestoreScript(
@@ -249,7 +238,7 @@ func (r *ScriptRepo) Script(ctx context.Context, id scripts.ScriptID) (scripts.S
 		scriptRaw.Visibility,
 		inputs,
 		outputs,
-		mainFileID,
+		scripts.FileID(scriptRaw.MainFileID),
 		extraFiles,
 		scriptRaw.CreatedAt,
 	)
@@ -371,20 +360,9 @@ func (r *ScriptRepo) buildScriptsFromRows(ctx context.Context, scriptsRows []scr
 			return nil, err
 		}
 
-		var mainFileID scripts.FileID
 		var extraFiles []scripts.FileID
-		var hasMain = false
 		for _, f := range files {
-			if f.IsMain {
-				if !hasMain {
-					mainFileID = scripts.FileID(f.FileID)
-					hasMain = true
-				} else {
-					return nil, fmt.Errorf("cannot be two main files")
-				}
-			} else {
-				extraFiles = append(extraFiles, scripts.FileID(f.FileID))
-			}
+			extraFiles = append(extraFiles, scripts.FileID(f.FileID))
 		}
 
 		script, err := scripts.RestoreScript(
@@ -395,7 +373,7 @@ func (r *ScriptRepo) buildScriptsFromRows(ctx context.Context, scriptsRows []scr
 			sRow.Visibility,
 			inputs,
 			outputs,
-			mainFileID,
+			scripts.FileID(sRow.MainFileID),
 			extraFiles,
 			sRow.CreatedAt,
 		)
@@ -414,12 +392,12 @@ type scriptRow struct {
 	Description string    `db:"description"`
 	Visibility  string    `db:"visibility"`
 	OwnerID     int64     `db:"owner_id"`
+	MainFileID  int64     `db:"main_file_id"`
 	CreatedAt   time.Time `db:"created_at"`
 }
 
 type scriptFileRow struct {
 	FileID int64 `db:"file_id"`
-	IsMain bool  `db:"is_main"`
 }
 
 type fieldRow struct {
@@ -439,6 +417,7 @@ func convertScriptPrototipeToDB(s *scripts.ScriptPrototype) scriptRow {
 		Visibility:  s.Visibility().String(),
 		OwnerID:     int64(s.OwnerID()),
 		CreatedAt:   time.Now(),
+		MainFileID:  int64(s.MainFileID()),
 	}
 }
 
@@ -450,6 +429,7 @@ func convertScriptToDB(s *scripts.Script) scriptRow {
 		Visibility:  s.Visibility().String(),
 		OwnerID:     int64(s.OwnerID()),
 		CreatedAt:   time.Now(),
+		MainFileID:  int64(s.MainFileID()),
 	}
 }
 
@@ -517,17 +497,13 @@ func insertFieldsTx(ctx context.Context, tx *sqlx.Tx, scriptID int64, fields []s
 }
 
 const insertScriptFileQuery = `
-	INSERT INTO script_files (script_id, file_id, is_main)
-	VALUES ($1, $2, $3);
+	INSERT INTO script_files (script_id, file_id)
+	VALUES ($1, $2);
 `
 
-func insertFilesTx(ctx context.Context, tx *sqlx.Tx, scriptID int64, mainFile scripts.FileID, extraFiles []scripts.FileID) error {
-	if _, err := tx.ExecContext(ctx, insertScriptFileQuery, scriptID, int64(mainFile), true); err != nil {
-		return err
-	}
-
+func insertFilesTx(ctx context.Context, tx *sqlx.Tx, scriptID int64, extraFiles []scripts.FileID) error {
 	for _, f := range extraFiles {
-		if _, err := tx.ExecContext(ctx, insertScriptFileQuery, scriptID, int64(f), false); err != nil {
+		if _, err := tx.ExecContext(ctx, insertScriptFileQuery, scriptID, int64(f)); err != nil {
 			return err
 		}
 	}

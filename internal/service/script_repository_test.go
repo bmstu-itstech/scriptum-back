@@ -344,7 +344,7 @@ func generateRandomScriptPrototype(t *testing.T) *scripts.ScriptPrototype {
 	desc := gofakeit.Sentence(5)
 	vis := scripts.VisibilityPublic
 
-	file, err := scripts.NewFile(1, gofakeit.LetterN(20), false)
+	file, err := scripts.NewFile(1, gofakeit.LetterN(20))
 	require.NoError(t, err)
 
 	val, err := scripts.NewValueType("integer")
