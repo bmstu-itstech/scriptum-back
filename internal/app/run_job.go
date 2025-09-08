@@ -10,7 +10,7 @@ import (
 type JobRunUC struct {
 	scriptR  scripts.ScriptRepository
 	jobR     scripts.JobRepository
-	runner   scripts.Runner
+	runner   scripts.Launcher
 	notifier scripts.Notifier
 	userP    scripts.UserProvider
 	manager  scripts.FileManager
@@ -20,7 +20,7 @@ type JobRunUC struct {
 func NewJobRunUC(
 	scriptR scripts.ScriptRepository,
 	jobR scripts.JobRepository,
-	launcher scripts.Runner,
+	launcher scripts.Launcher,
 	notifier scripts.Notifier,
 	userP scripts.UserProvider,
 	manager scripts.FileManager,
@@ -89,7 +89,7 @@ func (l *JobRunUC) Run(ctx context.Context, req JobDTO) error {
 		}
 	}
 
-	err = l.manager.Delete(ctx, req.Url)
+	err = l.runner.DeleteSandbox(ctx, req.Url)
 	if err != nil {
 		l.logger.Error("failed to delete sandbox", "err", err)
 		return err

@@ -173,7 +173,8 @@ func (s *Server) PostScripts(w http.ResponseWriter, r *http.Request) {
 		OwnerID:           userID,
 		ScriptName:        script.ScriptName,
 		ScriptDescription: script.ScriptDescription,
-		MainFileID:        script.FileId,
+		MainFileID:        script.MainFileId,
+		ExtraFileIDs:      script.ExtraFileIds,
 		InFields:          in,
 		OutFields:         out,
 	}
@@ -400,7 +401,6 @@ func DTOToJobHttp(job app.JobDTO) Result {
 		In:           in,
 		JobId:        job.JobID,
 		NeedToNotify: job.NeedToNotify,
-		Path:         job.Url,
 		ScriptId:     job.ScriptID,
 		ScriptName:   job.ScriptName,
 		Status:       (Status(job.State)),
@@ -472,7 +472,8 @@ func DTOToScriptHttp(script app.ScriptDTO) Script {
 		InFields:          in,
 		OutFields:         out,
 		Owner:             script.OwnerID,
-		FileId:            script.MainFileID,
+		MainFileId:        script.MainFileID,
+		ExtraFileIds:      script.ExtraFileIDs,
 		ScriptDescription: script.Desc,
 		ScriptId:          id,
 		ScriptName:        script.Name,
@@ -491,15 +492,16 @@ func ScriptToDTOHttp(script Script) app.ScriptDTO {
 	}
 
 	return app.ScriptDTO{
-		ID:         int32(script.ScriptId),
-		Name:       script.ScriptName,
-		Desc:       script.ScriptDescription,
-		MainFileID: script.FileId,
-		Visibility: string(script.Visibility),
-		Input:      in,
-		Output:     out,
-		OwnerID:    int64(script.Owner),
-		CreatedAt:  script.CreatedAt,
+		ID:           int32(script.ScriptId),
+		Name:         script.ScriptName,
+		Desc:         script.ScriptDescription,
+		MainFileID:   script.MainFileId,
+		ExtraFileIDs: script.ExtraFileIds,
+		Visibility:   string(script.Visibility),
+		Input:        in,
+		Output:       out,
+		OwnerID:      int64(script.Owner),
+		CreatedAt:    script.CreatedAt,
 	}
 }
 

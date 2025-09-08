@@ -58,13 +58,13 @@ func (u *ScriptCreateUC) CreateScript(ctx context.Context, req ScriptCreateDTO) 
 		return 0, err
 	}
 
-	extraFiles := make([]scripts.FileID, len(req.ExtraFileIDs))
+	extraFileIDs := make([]scripts.FileID, len(req.ExtraFileIDs))
 	for i, id := range req.ExtraFileIDs {
-		extraFiles[i] = scripts.FileID(id)
+		extraFileIDs[i] = scripts.FileID(id)
 	}
 
 	proto, err := scripts.NewScriptPrototype(
-		scripts.UserID(req.OwnerID), req.ScriptName, req.ScriptDescription, vis, input, output, scripts.FileID(req.MainFileID), extraFiles,
+		scripts.UserID(req.OwnerID), req.ScriptName, req.ScriptDescription, vis, input, output, scripts.FileID(req.MainFileID), extraFileIDs,
 	)
 
 	if err != nil {

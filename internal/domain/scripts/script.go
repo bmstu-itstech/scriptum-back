@@ -218,19 +218,14 @@ func RestoreScript(
 		return nil, fmt.Errorf("invalid script.vis %s", vis)
 	}
 
+	sProto, err := NewScriptPrototype(UserID(ownerID), name, desc, svis, input, output, mainFileID, extraFileIDs)
+	if err != nil {
+		return nil, fmt.Errorf("invalid creating of script prototype")
+	}
 	return &Script{
-		ScriptPrototype: ScriptPrototype{
-			ownerID:      UserID(ownerID),
-			name:         name,
-			desc:         desc,
-			vis:          svis,
-			input:        input,
-			output:       output,
-			mainFileID:   mainFileID,
-			extraFileIDs: extraFileIDs,
-		},
-		id:        ScriptID(id),
-		createdAt: createdAt,
+		ScriptPrototype: *sProto,
+		id:              ScriptID(id),
+		createdAt:       createdAt,
 	}, nil
 }
 
@@ -252,12 +247,5 @@ func (s *Script) Assemble(by UserID, input []Value, url URL) (*JobPrototype, err
 		}
 	}
 
-	return &JobPrototype{
-		scriptID:  s.id,
-		ownerID:   by,
-		input:     input,
-		expected:  s.Output(),
-		url:       url,
-		createdAt: time.Now(),
-	}, nil
+	return NewJobPrototype(by, s.id, input, s.Output(), url)
 }

@@ -106,7 +106,11 @@ func main() {
 	if os.Getenv("PYTHON_INTERPRETER") == "" {
 		log.Fatalf("PYTHON_INTERPRETER is empty")
 	}
-	pythonLauncher, err := service.NewPythonLauncher(os.Getenv("PYTHON_INTERPRETER"))
+	pythonLauncher, err := service.NewPythonLauncher(
+		os.Getenv("PYTHON_INTERPRETER"),
+		os.Getenv("SCRIPTS_DIR"),
+		MaxFileSize,
+	)
 	if err != nil {
 		log.Fatalf("failed get python launcher: %s", err.Error())
 	}
@@ -121,7 +125,7 @@ func main() {
 		CreateScript:  app.NewScriptCreateUC(scriptRepo, userProv, fileRepo, systemManager, l),
 		DeleteScript:  app.NewScriptDeleteUC(scriptRepo, userProv, systemManager, fileRepo, l),
 		SearchScript:  app.NewSearchScriptsUC(scriptRepo, userProv, l),
-		StartJob:      app.NewJobStartUC(scriptRepo, fileRepo, jobRepo, dispatcher, systemManager, l),
+		StartJob:      app.NewJobStartUC(scriptRepo, fileRepo, jobRepo, dispatcher, systemManager, pythonLauncher, l),
 		GetJob:        app.NewGetJobUC(jobRepo, userProv, scriptRepo, l),
 		GetJobs:       app.NewGetJobsUC(jobRepo, userProv, scriptRepo, l),
 		GetScriptByID: app.NewGetScript(scriptRepo, l),

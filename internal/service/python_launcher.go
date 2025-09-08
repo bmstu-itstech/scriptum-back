@@ -3,7 +3,11 @@ package service
 import (
 	"bytes"
 	"context"
+	"fmt"
+	"io"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
@@ -11,14 +15,42 @@ import (
 
 type PythonLauncher struct {
 	interpreter string
+	directory   string
+	maxFileSize int64
 	flags       []string
 }
 
-func NewPythonLauncher(interpreter string, flags ...string) (*PythonLauncher, error) {
+func NewPythonLauncher(interpreter string, dir string, maxFileSize int64, flags ...string) (*PythonLauncher, error) {
 	return &PythonLauncher{
 		interpreter: interpreter,
+		directory:   dir,
+		maxFileSize: maxFileSize,
 		flags:       flags,
 	}, nil
+}
+
+func (p *PythonLauncher) CreateSandbox(ctx context.Context, mainReader scripts.FileData, extraReaders []scripts.FileData) (scripts.URL, error) {
+	dirName := generateDirname(p.directory)
+
+	if err := os.MkdirAll(dirName, 0755); err != nil {
+		return "", err
+	}
+	mainDst := filepath.Join(dirName, mainReader.Name)
+	if err := copyFromReader(mainReader.Reader, mainDst, p.maxFileSize); err != nil {
+		_ = os.RemoveAll(dirName)
+		return "", err
+	}
+
+	for _, r := range extraReaders {
+		dst := filepath.Join(dirName, r.Name)
+
+		if err := copyFromReader(r.Reader, dst, p.maxFileSize); err != nil {
+			_ = os.RemoveAll(dirName)
+			return "", err
+		}
+	}
+
+	return mainDst, nil
 }
 
 func (p *PythonLauncher) Run(ctx context.Context, job *scripts.Job) (scripts.Result, error) {
@@ -69,4 +101,36 @@ func (p *PythonLauncher) Run(ctx context.Context, job *scripts.Job) (scripts.Res
 	}
 
 	return *res, nil
+}
+
+func (p *PythonLauncher) DeleteSandbox(ctx context.Context, path scripts.URL) error {
+	dir := filepath.Dir(path)
+
+	err := os.RemoveAll(dir)
+	if err != nil {
+		return fmt.Errorf("%w: %s (%w)", scripts.ErrFileNotFound, path, err)
+	}
+	return nil
+}
+
+func copyFromReader(reader io.Reader, dst string, maxSize int64) error {
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	limited := io.LimitReader(reader, maxSize+1)
+	written, err := io.Copy(out, limited)
+	if err != nil {
+		_ = os.Remove(dst)
+		return err
+	}
+
+	if written > maxSize {
+		_ = os.Remove(dst)
+		return fmt.Errorf("%w: file size exceeds limit of %d bytes", scripts.ErrFileUpload, maxSize)
+	}
+
+	return nil
 }

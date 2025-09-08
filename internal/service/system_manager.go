@@ -43,16 +43,9 @@ func (s *SystemManager) Save(_ context.Context, name string, content io.Reader) 
 		return "", err
 	}
 
-	limitedReader := io.LimitReader(content, s.maxFileSize+1)
-
-	written, err := io.Copy(file, limitedReader)
+	_, err = io.Copy(file, content)
 	if err != nil {
 		return "", err
-	}
-
-	if written > s.maxFileSize {
-		_ = os.RemoveAll(dirName)
-		return "", fmt.Errorf("%w:file size exceeds limit of %d bytes", scripts.ErrFileUpload, s.maxFileSize)
 	}
 
 	if err := file.Close(); err != nil {
@@ -63,78 +56,38 @@ func (s *SystemManager) Save(_ context.Context, name string, content io.Reader) 
 }
 
 func (s *SystemManager) Delete(_ context.Context, path scripts.URL) error {
-	dir := filepath.Dir(path)
-
-	err := os.RemoveAll(dir)
+	err := os.Remove(path)
 	if err != nil {
 		return fmt.Errorf("%w: %s (%w)", scripts.ErrFileNotFound, path, err)
 	}
 	return nil
 }
 
-func (s *SystemManager) CreateSandbox(ctx context.Context, mainFile scripts.URL, extraFiles []scripts.URL) (scripts.URL, error) {
-	dirName := generateDirname(s.directory)
+func (s *SystemManager) Read(ctx context.Context, path scripts.URL) (scripts.FileData, error) {
+	filePath := string(path)
 
-	if err := os.MkdirAll(dirName, 0755); err != nil {
-		return "", err
-	}
-
-	mainDst := filepath.Join(dirName, filepath.Base(mainFile))
-	if err := copyFile(mainFile, mainDst, s.maxFileSize); err != nil {
-		_ = os.RemoveAll(dirName)
-		return "", err
-	}
-
-	for _, f := range extraFiles {
-		dst := filepath.Join(dirName, filepath.Base(f))
-		if err := copyFile(f, dst, s.maxFileSize); err != nil {
-			_ = os.RemoveAll(dirName)
-			return "", err
-		}
-	}
-
-	return mainDst, nil
-}
-
-func copyFile(src, dst string, maxSize int64) error {
-	in, err := os.Open(src)
+	fileName := filepath.Base(filePath)
+	file, err := os.Open(filePath)
 	if err != nil {
-		return err
-	}
-	defer in.Close()
-
-	out, err := os.Create(dst)
-	if err != nil {
-		return err
+		return scripts.FileData{}, fmt.Errorf("failed to open file %s: %w", filePath, err)
 	}
 
-	defer out.Close()
-
-	limited := io.LimitReader(in, maxSize+1)
-	written, err := io.Copy(out, limited)
-	if err != nil {
-		_ = os.Remove(dst)
-		return err
-	}
-
-	if written > maxSize {
-		_ = os.Remove(dst)
-		return fmt.Errorf("%w: file size exceeds limit of %d bytes", scripts.ErrFileUpload, maxSize)
-	}
-
-	return nil
+	return scripts.FileData{
+		Reader: file,
+		Name:   fileName,
+	}, nil
 }
 
 func generateDirname(dir string) string {
-	filename := fmt.Sprintf("%s/%s", dir, uuid.New().String())
+	dirName := fmt.Sprintf("%s/%s", dir, uuid.New().String())
 
-	if len(filename) > scripts.FileURLMaxLen {
-		runes := []rune(filename)
+	if len(dirName) > scripts.FileURLMaxLen {
+		runes := []rune(dirName)
 		if len(runes) > scripts.FileURLMaxLen {
 			runes = runes[:scripts.FileURLMaxLen]
 		}
-		filename = string(runes)
+		dirName = string(runes)
 	}
 
-	return filename
+	return dirName
 }
