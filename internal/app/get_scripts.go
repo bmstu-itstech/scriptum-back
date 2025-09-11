@@ -25,20 +25,20 @@ func (u *GetScriptsUC) Scripts(ctx context.Context, userID uint32) ([]ScriptDTO,
 	u.logger.Info("get scripts for user", "userID", userID)
 	user, err := u.userP.User(ctx, scripts.UserID(userID))
 	if err != nil {
-		u.logger.Error("failed to get scripts for user", "err", err)
+		u.logger.Error("failed to get scripts for user", "err", err.Error())
 		return nil, err
 	}
 
 	allScripts, err := u.scriptR.PublicScripts(ctx)
 	if err != nil {
-		u.logger.Error("failed to get scripts for user", "err", err)
+		u.logger.Error("failed to get scripts for user", "err", err.Error())
 		return nil, err
 	}
 
 	if !user.IsAdmin() {
 		userScripts, err := u.scriptR.UserScripts(ctx, scripts.UserID(userID))
 		if err != nil {
-			u.logger.Error("failed to get scripts for user", "err", err)
+			u.logger.Error("failed to get scripts for user", "err", err.Error())
 			return nil, err
 		}
 		allScripts = append(allScripts, userScripts...)
@@ -48,7 +48,7 @@ func (u *GetScriptsUC) Scripts(ctx context.Context, userID uint32) ([]ScriptDTO,
 	for _, s := range allScripts {
 		script, err := ScriptToDTO(s)
 		if err != nil {
-			u.logger.Error("failed to get scripts for user", "err", err)
+			u.logger.Error("failed to get scripts for user", "err", err.Error())
 			return nil, err
 		}
 		dto = append(dto, script)

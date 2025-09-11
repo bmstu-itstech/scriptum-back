@@ -33,13 +33,13 @@ func (u *FileCreateUC) CreateFile(ctx context.Context, req FileDTO) (int32, erro
 
 	url, err := u.manager.Save(ctx, req.Name, req.Reader)
 	if err != nil {
-		u.logger.Error("failed to save file", "err", err)
+		u.logger.Error("failed to save file", "err", err.Error())
 		return 0, err
 	}
 
 	fileID, err := u.fileR.Create(ctx, &url)
 	if err != nil {
-		u.logger.Error("failed to save (create) file", "err", err)
+		u.logger.Error("failed to save (create) file", "err", err.Error())
 		err_ := u.manager.Delete(ctx, url)
 		if err_ != nil {
 			u.logger.Error("failed to delete file after error in saving it with manager", "err", err_)
