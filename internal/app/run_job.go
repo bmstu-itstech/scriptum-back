@@ -21,8 +21,10 @@ func NewJobRunUC(
 	scriptR scripts.ScriptRepository,
 	jobR scripts.JobRepository,
 	launcher scripts.Launcher,
+	launcher scripts.Launcher,
 	notifier scripts.Notifier,
 	userP scripts.UserProvider,
+	manager scripts.FileManager,
 	manager scripts.FileManager,
 	logger *slog.Logger,
 ) JobRunUC {
@@ -32,6 +34,7 @@ func NewJobRunUC(
 		runner:   launcher,
 		notifier: notifier,
 		userP:    userP,
+		manager:  manager,
 		manager:  manager,
 		logger:   logger,
 	}
@@ -91,7 +94,7 @@ func (l *JobRunUC) Run(ctx context.Context, req JobDTO) error {
 
 	err = l.runner.DeleteSandbox(ctx, req.Url)
 	if err != nil {
-		l.logger.Error("failed to delete sandbox", "err", err.Error())
+		l.logger.Error("failed to delete sandbox", "err", err)
 		return err
 	}
 
