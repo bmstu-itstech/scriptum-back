@@ -21,10 +21,8 @@ func NewJobRunUC(
 	scriptR scripts.ScriptRepository,
 	jobR scripts.JobRepository,
 	launcher scripts.Launcher,
-	launcher scripts.Launcher,
 	notifier scripts.Notifier,
 	userP scripts.UserProvider,
-	manager scripts.FileManager,
 	manager scripts.FileManager,
 	logger *slog.Logger,
 ) JobRunUC {
@@ -34,7 +32,6 @@ func NewJobRunUC(
 		runner:   launcher,
 		notifier: notifier,
 		userP:    userP,
-		manager:  manager,
 		manager:  manager,
 		logger:   logger,
 	}
