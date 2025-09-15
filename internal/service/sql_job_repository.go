@@ -235,12 +235,14 @@ const userJobsQuery = `
 		SELECT *
 		FROM jobs
 		WHERE user_id = $1
+		ORDER BY started_at DESC
 	`
 
 const userJobsWithStateQuery = `
 		SELECT *
 		FROM jobs
 		WHERE user_id = $1 AND state = $2
+		ORDER BY started_at DESC
 	`
 
 func (r *JobRepo) UserJobs(ctx context.Context, userID scripts.UserID) ([]scripts.Job, error) {

@@ -173,13 +173,13 @@ func (r *ScriptRepo) Restore(ctx context.Context, script *scripts.Script) (*scri
 	return scr, err
 }
 
-const getScriptQuery = "SELECT * FROM scripts WHERE script_id=$1"
+const getScriptQuery = "SELECT * FROM scripts WHERE script_id=$1 "
 
 const getFieldsQuery = `
 		SELECT f.*
 		FROM fields f
 		JOIN script_fields sf ON sf.field_id = f.field_id
-		WHERE sf.script_id = $1 AND f.param = $2`
+		WHERE sf.script_id = $1 AND f.param = $2 ORDER BY created_at DESC`
 
 const getFilesQuery = `
 	SELECT file_id
@@ -260,8 +260,8 @@ func (r *ScriptRepo) Delete(ctx context.Context, id scripts.ScriptID) error {
 	return nil
 }
 
-const getUserScriptsQuery = `SELECT * FROM scripts WHERE owner_id = $1`
-const getPublicScriptsQuery = `SELECT * FROM scripts WHERE visibility = 'public'`
+const getUserScriptsQuery = `SELECT * FROM scripts WHERE owner_id = $1 ORDER BY created_at DESC`
+const getPublicScriptsQuery = `SELECT * FROM scripts WHERE visibility = 'public' ORDER BY created_at DESC`
 
 func (r *ScriptRepo) UserScripts(ctx context.Context, userID scripts.UserID) ([]scripts.Script, error) {
 	return r.getScriptsByQuery(ctx, getUserScriptsQuery, userID)
@@ -287,13 +287,13 @@ func (r *ScriptRepo) getScriptsByQuery(ctx context.Context, query string, args .
 const searchUserQuery = `
 	SELECT s.*
 	FROM scripts s
-	WHERE s.name ILIKE '%' || $1 || '%' AND s.owner_id = $2
+	WHERE s.name ILIKE '%' || $1 || '%' AND s.owner_id = $2 ORDER BY created_at DESC
 `
 
 const searchPublicQuery = `
 	SELECT s.*
 	FROM scripts s
-	WHERE s.name ILIKE '%' || $1 || '%' AND s.visibility = 'public'
+	WHERE s.name ILIKE '%' || $1 || '%' AND s.visibility = 'public' ORDER BY created_at DESC
 `
 
 func (r *ScriptRepo) SearchUserScripts(ctx context.Context, userID scripts.UserID, substr string) ([]scripts.Script, error) {
