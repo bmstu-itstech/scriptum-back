@@ -173,7 +173,7 @@ func (r *ScriptRepo) Restore(ctx context.Context, script *scripts.Script) (*scri
 	return scr, err
 }
 
-const getScriptQuery = "SELECT * FROM scripts WHERE script_id=$1 "
+const getScriptQuery = "SELECT * FROM scripts WHERE script_id=$1"
 
 const getFieldsQuery = `
 		SELECT f.*
