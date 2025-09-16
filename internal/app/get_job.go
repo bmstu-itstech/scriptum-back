@@ -28,18 +28,18 @@ func (u *GetJobUC) Job(ctx context.Context, userID uint32, jobID int64) (JobDTO,
 
 	job, err := u.jobR.Job(ctx, scripts.JobID(jobID))
 	if err != nil {
-		u.logger.Error("failed to get job", "err", err)
+		u.logger.Error("failed to get job", "err", err.Error())
 		return JobDTO{}, err
 	}
 
 	if job.OwnerID() != scripts.UserID(userID) {
-		u.logger.Error("failed to get job", "err", scripts.ErrPermissionDenied)
+		u.logger.Error("failed to get job", "err", scripts.ErrPermissionDenied.Error())
 		return JobDTO{}, scripts.ErrPermissionDenied
 	}
 
 	script, err := u.scriptR.Script(ctx, job.ScriptID())
 	if err != nil {
-		u.logger.Error("failed to get job", "err", err)
+		u.logger.Error("failed to get job", "err", err.Error())
 		return JobDTO{}, err
 	}
 

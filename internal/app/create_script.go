@@ -35,7 +35,7 @@ func (u *ScriptCreateUC) CreateScript(ctx context.Context, req ScriptCreateDTO) 
 	u.logger.Info("create script", "req", req)
 	user, err := u.userP.User(ctx, scripts.UserID(req.OwnerID))
 	if err != nil {
-		u.logger.Error("failed to get user", "err", err)
+		u.logger.Error("failed to get user", "err", err.Error())
 		return 0, err
 	}
 
@@ -48,13 +48,13 @@ func (u *ScriptCreateUC) CreateScript(ctx context.Context, req ScriptCreateDTO) 
 
 	input, err := DTOToFields(req.InFields)
 	if err != nil {
-		u.logger.Error("failed to convert input fields", "err", err)
+		u.logger.Error("failed to convert input fields", "err", err.Error())
 		return 0, err
 	}
 
 	output, err := DTOToFields(req.OutFields)
 	if err != nil {
-		u.logger.Error("failed to convert output fields", "err", err)
+		u.logger.Error("failed to convert output fields", "err", err.Error())
 		return 0, err
 	}
 
@@ -68,13 +68,13 @@ func (u *ScriptCreateUC) CreateScript(ctx context.Context, req ScriptCreateDTO) 
 	)
 
 	if err != nil {
-		u.logger.Error("failed to create script prototype", "err", err)
+		u.logger.Error("failed to create script prototype", "err", err.Error())
 		return 0, err
 	}
 
 	script, err := u.scriptR.Create(ctx, proto)
 	if err != nil {
-		u.logger.Error("failed to create script", "err", err)
+		u.logger.Error("failed to create script", "err", err.Error())
 		return 0, err
 	}
 

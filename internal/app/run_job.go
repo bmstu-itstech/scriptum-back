@@ -41,50 +41,50 @@ func (l *JobRunUC) Run(ctx context.Context, req JobDTO) error {
 	l.logger.Info("running job", "req", req)
 	job, err := DTOToJob(req)
 	if err != nil {
-		l.logger.Error("failed to run job", "err", err)
+		l.logger.Error("failed to run job", "err", err.Error())
 		return err
 	}
 
 	err = job.Run()
 	if err != nil {
-		l.logger.Error("failed to run job", "err", err)
+		l.logger.Error("failed to run job", "err", err.Error())
 		return err
 	}
 
 	err = l.jobR.Update(ctx, job)
 	if err != nil {
-		l.logger.Error("failed to run job", "err", err)
+		l.logger.Error("failed to run job", "err", err.Error())
 		return err
 	}
 
 	res, err := l.runner.Run(ctx, job)
 	if err != nil {
-		l.logger.Error("failed to run job", "err", err)
+		l.logger.Error("failed to run job", "err", err.Error())
 		return err
 	}
 
 	err = job.Finish(res)
 	if err != nil {
-		l.logger.Error("failed to run job", "err", err)
+		l.logger.Error("failed to run job", "err", err.Error())
 		return err
 	}
 
 	err = l.jobR.Update(ctx, job)
 	if err != nil {
-		l.logger.Error("failed to run job", "err", err)
+		l.logger.Error("failed to run job", "err", err.Error())
 		return err
 	}
 
 	user, err := l.userP.User(ctx, job.OwnerID())
 	if err != nil {
-		l.logger.Error("failed to run job", "err", err)
+		l.logger.Error("failed to run job", "err", err.Error())
 		return err
 	}
 
 	if req.NeedToNotify {
 		err = l.notifier.Notify(ctx, job, user.Email())
 		if err != nil {
-			l.logger.Error("failed to run job", "err", err)
+			l.logger.Error("failed to run job", "err", err.Error())
 			return err
 		}
 	}

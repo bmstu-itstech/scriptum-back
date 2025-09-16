@@ -54,7 +54,8 @@ func (p *PythonLauncher) CreateSandbox(ctx context.Context, mainReader scripts.F
 }
 
 func (p *PythonLauncher) Run(ctx context.Context, job *scripts.Job) (scripts.Result, error) {
-	args := []string{job.URL()}
+	targetDir := filepath.Dir(job.URL())
+	args := []string{filepath.Base(job.URL())}
 	values := job.Input()
 	rawValues := make([]string, len(values))
 	for i, v := range values {
@@ -66,6 +67,7 @@ func (p *PythonLauncher) Run(ctx context.Context, job *scripts.Job) (scripts.Res
 	var exitCode int
 
 	cmd := exec.CommandContext(ctx, p.interpreter, args...)
+	cmd.Dir = targetDir
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
