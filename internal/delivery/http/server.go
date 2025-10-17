@@ -173,6 +173,7 @@ func (s *Server) PostScripts(w http.ResponseWriter, r *http.Request) {
 		OwnerID:           userID,
 		ScriptName:        script.ScriptName,
 		ScriptDescription: script.ScriptDescription,
+		PythonVersion:     script.PythonVersion,
 		MainFileID:        script.MainFileId,
 		ExtraFileIDs:      script.ExtraFileIds,
 		InFields:          in,

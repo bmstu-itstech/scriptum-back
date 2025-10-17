@@ -550,6 +550,9 @@ components:
           items:
             type: integer
             format: int64
+        python_version:
+          type: string
+          example: "3.1.1"
         owner:
           $ref: '#/components/schemas/UserId'
         visibility:
@@ -674,6 +677,9 @@ components:
           items:
             type: integer
             format: int64
+        python_version:
+          type: string
+          example: "3.1.1"
       required:
       - script_name
       - script_description
@@ -681,6 +687,7 @@ components:
       - out_fields
       - main_file_id
       - extra_file_ids
+      - python_version
     ScriptRunData:
       type: object
       properties:
