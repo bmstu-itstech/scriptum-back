@@ -47,12 +47,16 @@ func scriptRepository_Update(t *testing.T, repo scripts.ScriptRepository) {
 	newName := gofakeit.LetterN(10)
 	newDesc := gofakeit.Sentence(6)
 
+	py, err := scripts.NewPythonVersion("3.1.1")
+	require.NoError(t, err)
+
 	updatedScript, err := scripts.RestoreScript(
 		int64(created.ID()),
 		int64(created.OwnerID()),
 		newName,
 		newDesc,
 		created.Visibility().String(),
+		py.String(),
 		created.Input(),
 		created.Output(),
 		1,
@@ -123,8 +127,11 @@ func scriptRepository_UserScripts_Found(t *testing.T, repo scripts.ScriptReposit
 	outputP, err := scripts.NewField(*val, gofakeit.LetterN(10), gofakeit.LetterN(10), gofakeit.LetterN(10))
 	require.NoError(t, err)
 
+	py, err := scripts.NewPythonVersion("3.8")
+	require.NoError(t, err)
+
 	for i := 0; i < 3; i++ {
-		proto, err := scripts.NewScriptPrototype(ownerID, gofakeit.LetterN(10), gofakeit.Sentence(5), scripts.VisibilityPrivate, []scripts.Field{*inputP}, []scripts.Field{*outputP}, 1, []scripts.FileID{2, 3})
+		proto, err := scripts.NewScriptPrototype(ownerID, gofakeit.LetterN(10), gofakeit.Sentence(5), scripts.VisibilityPrivate, *py, []scripts.Field{*inputP}, []scripts.Field{*outputP}, 1, []scripts.FileID{2, 3})
 		require.NoError(t, err)
 		_, err = repo.Create(ctx, proto)
 		require.NoError(t, err)
@@ -158,8 +165,11 @@ func scriptRepository_PublicScripts_Found(t *testing.T, repo scripts.ScriptRepos
 	outputP, err := scripts.NewField(*val, gofakeit.LetterN(10), gofakeit.LetterN(10), gofakeit.LetterN(10))
 	require.NoError(t, err)
 
+	py, err := scripts.NewPythonVersion("3.1.1")
+	require.NoError(t, err)
+
 	for i := 0; i < 3; i++ {
-		proto, err := scripts.NewScriptPrototype(scripts.UserID(gofakeit.IntRange(1, 1000)), gofakeit.LetterN(10), gofakeit.Sentence(5), scripts.VisibilityPublic, []scripts.Field{*inputP}, []scripts.Field{*outputP}, 1, []scripts.FileID{2, 3})
+		proto, err := scripts.NewScriptPrototype(scripts.UserID(gofakeit.IntRange(1, 1000)), gofakeit.LetterN(10), gofakeit.Sentence(5), scripts.VisibilityPublic, *py, []scripts.Field{*inputP}, []scripts.Field{*outputP}, 1, []scripts.FileID{2, 3})
 		require.NoError(t, err)
 		_, err = repo.Create(ctx, proto)
 		require.NoError(t, err)
@@ -197,7 +207,10 @@ func scriptRepository_SearchPublicScripts_Found(t *testing.T, repo scripts.Scrip
 	desc := gofakeit.Sentence(5)
 	vis := scripts.VisibilityPublic
 
-	proto, err := scripts.NewScriptPrototype(ownerID, name, desc, vis, []scripts.Field{*inputP}, []scripts.Field{*outputP}, 1, []scripts.FileID{2, 3})
+	py, err := scripts.NewPythonVersion("3.1.1")
+	require.NoError(t, err)
+
+	proto, err := scripts.NewScriptPrototype(ownerID, name, desc, vis, *py, []scripts.Field{*inputP}, []scripts.Field{*outputP}, 1, []scripts.FileID{2, 3})
 	require.NoError(t, err)
 
 	_, err = repo.Create(ctx, proto)
@@ -235,7 +248,10 @@ func scriptRepository_SearchUserScripts_Found(t *testing.T, repo scripts.ScriptR
 	desc := gofakeit.Sentence(5)
 	vis := scripts.VisibilityPrivate
 
-	proto, err := scripts.NewScriptPrototype(ownerID, name, desc, vis, []scripts.Field{*inputP}, []scripts.Field{*outputP}, 1, []scripts.FileID{2, 3})
+	py, err := scripts.NewPythonVersion("3.1.1")
+	require.NoError(t, err)
+
+	proto, err := scripts.NewScriptPrototype(ownerID, name, desc, vis, *py, []scripts.Field{*inputP}, []scripts.Field{*outputP}, 1, []scripts.FileID{2, 3})
 	require.NoError(t, err)
 
 	_, err = repo.Create(ctx, proto)
@@ -270,9 +286,12 @@ func scriptRepository_MixedUserPublicScripts(t *testing.T, repo scripts.ScriptRe
 	outputP, err := scripts.NewField(*val, gofakeit.LetterN(10), gofakeit.LetterN(10), gofakeit.LetterN(10))
 	require.NoError(t, err)
 
-	privProto, err := scripts.NewScriptPrototype(ownerID, "PrivateScript", "desc", scripts.VisibilityPrivate, []scripts.Field{*inputP}, []scripts.Field{*outputP}, 1, []scripts.FileID{2, 3})
+	py, err := scripts.NewPythonVersion("3.1.1")
 	require.NoError(t, err)
-	pubProto, err := scripts.NewScriptPrototype(ownerID, "PublicScript", "desc", scripts.VisibilityPublic, []scripts.Field{*inputP}, []scripts.Field{*outputP}, 1, []scripts.FileID{2, 3})
+
+	privProto, err := scripts.NewScriptPrototype(ownerID, "PrivateScript", "desc", scripts.VisibilityPrivate, *py, []scripts.Field{*inputP}, []scripts.Field{*outputP}, 1, []scripts.FileID{2, 3})
+	require.NoError(t, err)
+	pubProto, err := scripts.NewScriptPrototype(ownerID, "PublicScript", "desc", scripts.VisibilityPublic, *py, []scripts.Field{*inputP}, []scripts.Field{*outputP}, 1, []scripts.FileID{2, 3})
 	require.NoError(t, err)
 
 	_, err = repo.Create(ctx, privProto)
@@ -309,9 +328,12 @@ func scriptRepository_MixedSearchUserAndPublic(t *testing.T, repo scripts.Script
 	pubName := "PublicSearchTest"
 	privName := "PrivateSearchTest"
 
-	pubProto, err := scripts.NewScriptPrototype(ownerID, pubName, "desc", scripts.VisibilityPublic, []scripts.Field{*inputP}, []scripts.Field{*outputP}, 1, []scripts.FileID{2, 3})
+	py, err := scripts.NewPythonVersion("3.1.1")
 	require.NoError(t, err)
-	privProto, err := scripts.NewScriptPrototype(ownerID, privName, "desc", scripts.VisibilityPrivate, []scripts.Field{*inputP}, []scripts.Field{*outputP}, 1, []scripts.FileID{2, 3})
+
+	pubProto, err := scripts.NewScriptPrototype(ownerID, pubName, "desc", scripts.VisibilityPublic, *py, []scripts.Field{*inputP}, []scripts.Field{*outputP}, 1, []scripts.FileID{2, 3})
+	require.NoError(t, err)
+	privProto, err := scripts.NewScriptPrototype(ownerID, privName, "desc", scripts.VisibilityPrivate, *py, []scripts.Field{*inputP}, []scripts.Field{*outputP}, 1, []scripts.FileID{2, 3})
 	require.NoError(t, err)
 
 	_, err = repo.Create(ctx, pubProto)
@@ -362,11 +384,15 @@ func generateRandomScriptPrototype(t *testing.T) *scripts.ScriptPrototype {
 	outputP2, err := scripts.NewField(*val, gofakeit.LetterN(10), gofakeit.LetterN(10), gofakeit.LetterN(10))
 	require.NoError(t, err)
 
+	py, err := scripts.NewPythonVersion("3.1.1")
+	require.NoError(t, err)
+
 	proto, err := scripts.NewScriptPrototype(
 		ownerID,
 		name,
 		desc,
 		vis,
+		*py,
 		[]scripts.Field{*inputP1, *inputP2},
 		[]scripts.Field{*outputP1, *outputP2},
 		file.ID(),

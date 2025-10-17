@@ -42,10 +42,10 @@ type JobPrototype struct {
 	createdAt     time.Time
 	expected      []Field
 	url           URL
-	pythonVersion string
+	pythonVersion PythonVersion
 }
 
-func NewJobPrototype(ownerID UserID, scriptID ScriptID, input []Value, expected []Field, url URL, pythonVersion string) (*JobPrototype, error) {
+func NewJobPrototype(ownerID UserID, scriptID ScriptID, input []Value, expected []Field, url URL, pythonVersion PythonVersion) (*JobPrototype, error) {
 	if ownerID <= 0 {
 		return nil, fmt.Errorf("%w: invalid ownerID", ErrInvalidInput)
 	}
@@ -95,7 +95,7 @@ func (p *JobPrototype) Expected() []Field {
 	return p.expected[:]
 }
 
-func (j *JobPrototype) PythonVersion() string {
+func (j *JobPrototype) PythonVersion() PythonVersion {
 	return j.pythonVersion
 }
 

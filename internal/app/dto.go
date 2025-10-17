@@ -16,16 +16,17 @@ type FieldDTO struct {
 }
 
 type ScriptDTO struct {
-	ID           int32
-	OwnerID      int64
-	MainFileID   int64
-	ExtraFileIDs []int64
-	Name         string
-	Desc         string
-	Input        []FieldDTO
-	Output       []FieldDTO
-	Visibility   string
-	CreatedAt    time.Time
+	ID            int32
+	OwnerID       int64
+	MainFileID    int64
+	ExtraFileIDs  []int64
+	Name          string
+	Desc          string
+	PythonVersion string
+	Input         []FieldDTO
+	Output        []FieldDTO
+	Visibility    string
+	CreatedAt     time.Time
 }
 
 type ValueDTO struct {
@@ -70,6 +71,7 @@ type ScriptCreateDTO struct {
 	OwnerID           int64
 	ScriptName        string
 	ScriptDescription string
+	PythonVersion     string
 	MainFileID        int64
 	ExtraFileIDs      []int64
 	InFields          []FieldDTO
@@ -133,16 +135,17 @@ func ScriptToDTO(script scripts.Script) (ScriptDTO, error) {
 		extra[i] = int64(v)
 	}
 	return ScriptDTO{
-		ID:           int32(script.ID()),
-		OwnerID:      int64(script.OwnerID()),
-		MainFileID:   int64(script.MainFileID()),
-		ExtraFileIDs: extra,
-		Name:         script.Name(),
-		Desc:         script.Desc(),
-		Input:        input,
-		Output:       output,
-		Visibility:   script.Visibility().String(),
-		CreatedAt:    script.CreatedAt(),
+		ID:            int32(script.ID()),
+		OwnerID:       int64(script.OwnerID()),
+		MainFileID:    int64(script.MainFileID()),
+		PythonVersion: script.PythonVersion().String(),
+		ExtraFileIDs:  extra,
+		Name:          script.Name(),
+		Desc:          script.Desc(),
+		Input:         input,
+		Output:        output,
+		Visibility:    script.Visibility().String(),
+		CreatedAt:     script.CreatedAt(),
 	}, nil
 }
 
@@ -168,6 +171,7 @@ func DTOToScript(s ScriptDTO) (*scripts.Script, error) {
 		s.Name,
 		s.Desc,
 		s.Visibility,
+		s.PythonVersion,
 		input,
 		output,
 		scripts.FileID(s.MainFileID),

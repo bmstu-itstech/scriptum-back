@@ -119,10 +119,7 @@ func (p *PythonLauncher) Run(ctx context.Context, job *scripts.Job) (scripts.Res
 	targetDir := filepath.Dir(job.URL())
 	args := []string{filepath.Base(job.URL())}
 
-	pythonVersion := job.PythonVersion()
-	if pythonVersion == "" {
-		pythonVersion = p.interpreter
-	}
+	pythonVersion := job.PythonVersion().String()
 
 	interpreter, err := p.getInterpreter(ctx, pythonVersion)
 	if err != nil {

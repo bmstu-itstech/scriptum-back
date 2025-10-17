@@ -22,8 +22,8 @@ func NewScriptRepository(db *sqlx.DB) *ScriptRepo {
 }
 
 const createScriptQuery = `
-INSERT INTO scripts (name, description, visibility, owner_id, main_file_id)
-VALUES (:name, :description, :visibility, :owner_id, :main_file_id)
+INSERT INTO scripts (name, description, visibility, owner_id, main_file_id, python_version)
+VALUES (:name, :description, :visibility, :owner_id, :main_file_id, :python_version)
 RETURNING script_id
 `
 
@@ -33,7 +33,8 @@ SET
     name = :name,
     description = :description,
     visibility = :visibility,
-    owner_id = :owner_id
+    owner_id = :owner_id,
+	python_version = :python_version
 WHERE script_id = :script_id
 RETURNING script_id
 `
@@ -126,8 +127,8 @@ func (r *ScriptRepo) Create(ctx context.Context, script *scripts.ScriptPrototype
 }
 
 const createScriptWithIDQuery = `
-	INSERT INTO scripts (script_id, name, description, visibility, owner_id, file_id)
-	VALUES (:script_id, :name, :description, :visibility, :owner_id, :file_id)
+	INSERT INTO scripts (script_id, name, description, visibility, python_version, owner_id, file_id)
+	VALUES (:script_id, :name, :description, :visibility, :python_version :owner_id, :file_id)
 	RETURNING script_id
 `
 
@@ -236,6 +237,7 @@ func (r *ScriptRepo) Script(ctx context.Context, id scripts.ScriptID) (scripts.S
 		scriptRaw.Name,
 		scriptRaw.Description,
 		scriptRaw.Visibility,
+		scriptRaw.PythonVersion,
 		inputs,
 		outputs,
 		scripts.FileID(scriptRaw.MainFileID),
@@ -365,12 +367,18 @@ func (r *ScriptRepo) buildScriptsFromRows(ctx context.Context, scriptsRows []scr
 			extraFiles = append(extraFiles, scripts.FileID(f.FileID))
 		}
 
+		py, err := scripts.NewPythonVersion(sRow.PythonVersion)
+		if err != nil {
+			return nil, err
+		}
+
 		script, err := scripts.RestoreScript(
 			sRow.ID,
 			sRow.OwnerID,
 			sRow.Name,
 			sRow.Description,
 			sRow.Visibility,
+			py.String(),
 			inputs,
 			outputs,
 			scripts.FileID(sRow.MainFileID),
@@ -387,13 +395,14 @@ func (r *ScriptRepo) buildScriptsFromRows(ctx context.Context, scriptsRows []scr
 }
 
 type scriptRow struct {
-	ID          int64     `db:"script_id"`
-	Name        string    `db:"name"`
-	Description string    `db:"description"`
-	Visibility  string    `db:"visibility"`
-	OwnerID     int64     `db:"owner_id"`
-	MainFileID  int64     `db:"main_file_id"`
-	CreatedAt   time.Time `db:"created_at"`
+	ID            int64     `db:"script_id"`
+	Name          string    `db:"name"`
+	Description   string    `db:"description"`
+	PythonVersion string    `db:"python_version"`
+	Visibility    string    `db:"visibility"`
+	OwnerID       int64     `db:"owner_id"`
+	MainFileID    int64     `db:"main_file_id"`
+	CreatedAt     time.Time `db:"created_at"`
 }
 
 type scriptFileRow struct {
@@ -412,24 +421,26 @@ type fieldRow struct {
 
 func convertScriptPrototipeToDB(s *scripts.ScriptPrototype) scriptRow {
 	return scriptRow{
-		Name:        s.Name(),
-		Description: s.Desc(),
-		Visibility:  s.Visibility().String(),
-		OwnerID:     int64(s.OwnerID()),
-		CreatedAt:   time.Now(),
-		MainFileID:  int64(s.MainFileID()),
+		Name:          s.Name(),
+		Description:   s.Desc(),
+		Visibility:    s.Visibility().String(),
+		PythonVersion: s.PythonVersion().String(),
+		OwnerID:       int64(s.OwnerID()),
+		CreatedAt:     time.Now(),
+		MainFileID:    int64(s.MainFileID()),
 	}
 }
 
 func convertScriptToDB(s *scripts.Script) scriptRow {
 	return scriptRow{
-		ID:          int64(s.ID()),
-		Name:        s.Name(),
-		Description: s.Desc(),
-		Visibility:  s.Visibility().String(),
-		OwnerID:     int64(s.OwnerID()),
-		CreatedAt:   time.Now(),
-		MainFileID:  int64(s.MainFileID()),
+		ID:            int64(s.ID()),
+		Name:          s.Name(),
+		Description:   s.Desc(),
+		Visibility:    s.Visibility().String(),
+		PythonVersion: s.PythonVersion().String(),
+		OwnerID:       int64(s.OwnerID()),
+		CreatedAt:     time.Now(),
+		MainFileID:    int64(s.MainFileID()),
 	}
 }
 

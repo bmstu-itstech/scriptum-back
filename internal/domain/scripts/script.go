@@ -15,6 +15,24 @@ type Visibility struct {
 	s string
 }
 
+type PythonVersion string
+
+func NewPythonVersion(p string) (*PythonVersion, error) {
+	if p == "" && !pythonVersionRegex.MatchString(p) {
+		return nil, fmt.Errorf(
+			"%w: invalid python version: expected string as %s or empty string, got %s",
+			ErrInvalidInput, pythonVersionRegex.String(), p,
+		)
+	}
+	ver := PythonVersion(p)
+
+	return &ver, nil
+}
+
+func (v PythonVersion) String() string {
+	return string(v)
+}
+
 var VisibilityPublic = Visibility{"public"}
 var VisibilityPrivate = Visibility{"private"}
 
@@ -42,14 +60,15 @@ func NewScriptVisibilityFromString(s string) (Visibility, error) {
 }
 
 type ScriptPrototype struct {
-	ownerID      UserID     // ownerID != 0
-	name         string     // 0 <  len(name) <= ScriptNameMaxLen
-	desc         string     // 0 <= len(desc) <= ScriptDescriptionMaxLen
-	vis          Visibility // !vis.IsZero()
-	input        []Field    // len(input) > 0
-	output       []Field    // len(output) > 0
-	mainFileID   FileID     // FileID != 0
-	extraFileIDs []FileID   // FileID != 0
+	ownerID       UserID     // ownerID != 0
+	name          string     // 0 <  len(name) <= ScriptNameMaxLen
+	desc          string     // 0 <= len(desc) <= ScriptDescriptionMaxLen
+	vis           Visibility // !vis.IsZero()
+	pythonVersion PythonVersion
+	input         []Field  // len(input) > 0
+	output        []Field  // len(output) > 0
+	mainFileID    FileID   // FileID != 0
+	extraFileIDs  []FileID // FileID != 0
 }
 
 func NewScriptPrototype(
@@ -57,6 +76,7 @@ func NewScriptPrototype(
 	name string,
 	desc string,
 	visibility Visibility,
+	pythonVersion PythonVersion,
 	input []Field,
 	output []Field,
 	mainFileID FileID,
@@ -111,14 +131,15 @@ func NewScriptPrototype(
 	}
 
 	return &ScriptPrototype{
-		ownerID:      ownerID,
-		name:         name,
-		desc:         desc,
-		vis:          visibility,
-		input:        input[:],
-		output:       output[:],
-		mainFileID:   mainFileID,
-		extraFileIDs: extraFileIDs,
+		ownerID:       ownerID,
+		name:          name,
+		desc:          desc,
+		vis:           visibility,
+		pythonVersion: pythonVersion,
+		input:         input[:],
+		output:        output[:],
+		mainFileID:    mainFileID,
+		extraFileIDs:  extraFileIDs,
 	}, nil
 }
 
@@ -136,6 +157,10 @@ func (s *ScriptPrototype) Desc() string {
 
 func (s *ScriptPrototype) Visibility() Visibility {
 	return s.vis
+}
+
+func (s *ScriptPrototype) PythonVersion() PythonVersion {
+	return s.pythonVersion
 }
 
 func (s *ScriptPrototype) Input() []Field {
@@ -201,6 +226,7 @@ func RestoreScript(
 	name string,
 	desc string,
 	vis string,
+	pythonVersion string,
 	input []Field,
 	output []Field,
 	mainFileID FileID,
@@ -220,7 +246,12 @@ func RestoreScript(
 		return nil, fmt.Errorf("invalid script.vis %s", vis)
 	}
 
-	sProto, err := NewScriptPrototype(UserID(ownerID), name, desc, svis, input, output, mainFileID, extraFileIDs)
+	py, err := NewPythonVersion(pythonVersion)
+	if err != nil {
+		return nil, fmt.Errorf("invalid script.pythonVersion %s %w", pythonVersion, err)
+	}
+
+	sProto, err := NewScriptPrototype(UserID(ownerID), name, desc, svis, *py, input, output, mainFileID, extraFileIDs)
 	if err != nil {
 		return nil, fmt.Errorf("invalid creating of script prototype")
 	}
@@ -248,13 +279,21 @@ func (s *Script) Assemble(by UserID, input []Value, url URL, pythonVersion strin
 			)
 		}
 	}
+	var py PythonVersion
 
-	if pythonVersion != "" && !pythonVersionRegex.MatchString(pythonVersion) {
-		return nil, fmt.Errorf(
-			"%w: failed to assemble job: expected python version as %s or empty string, got %s",
-			ErrInvalidInput, pythonVersionRegex.String(), pythonVersion,
-		)
+	if pythonVersion != "" {
+		tmp, err := NewPythonVersion(pythonVersion)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"%w: failed to assemble job: invalid python version %s",
+				ErrInvalidInput, pythonVersion,
+			)
+		}
+		py = *tmp
+	} else {
+		py = s.pythonVersion
 	}
 
-	return NewJobPrototype(by, s.id, input, s.Output(), url, pythonVersion)
+	return NewJobPrototype(by, s.id, input, s.Output(), url, py)
+
 }
