@@ -349,10 +349,16 @@ func (s *Server) PostScriptsIdStart(w http.ResponseWriter, r *http.Request, id S
 		needToNotify = *req.NeedToNotify
 	}
 
+	pythonVerison := ""
+	if req.PythonVersion != nil {
+		pythonVerison = *req.PythonVersion
+	}
+
 	reqDto := app.ScriptRunDTO{
-		ScriptID:     uint32(id),
-		InParams:     in,
-		NeedToNotify: needToNotify,
+		ScriptID:      uint32(id),
+		InParams:      in,
+		PythonVersion: pythonVerison,
+		NeedToNotify:  needToNotify,
 	}
 	err = s.app.StartJob.StartJob(r.Context(), int64(userID), reqDto)
 	if err != nil {

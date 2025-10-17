@@ -86,7 +86,14 @@ func (p *PythonLauncher) CreateSandbox(ctx context.Context, mainReader scripts.F
 	}
 
 	venv := filepath.Join(dirName, "venv")
-	cmd := exec.CommandContext(ctx, p.interpreter, "-m", "venv", venv)
+
+	interpreter, err := p.getInterpreter(ctx, p.interpreter)
+	if err != nil {
+		_ = os.RemoveAll(dirName)
+		return "", err
+	}
+
+	cmd := exec.CommandContext(ctx, interpreter, "-m", "venv", venv)
 	cmd.Dir = dirName
 	if err := cmd.Run(); err != nil {
 		_ = os.RemoveAll(dirName)

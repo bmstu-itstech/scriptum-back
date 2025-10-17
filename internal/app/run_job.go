@@ -63,6 +63,8 @@ func (l *JobRunUC) Run(ctx context.Context, req JobDTO) error {
 		return err
 	}
 
+	l.logger.Info("job finished", "res", res)
+
 	err = job.Finish(res)
 	if err != nil {
 		l.logger.Error("failed to run job", "err", err.Error())
