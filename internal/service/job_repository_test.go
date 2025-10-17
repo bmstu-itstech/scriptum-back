@@ -142,7 +142,7 @@ func jobRepository_UserJobs_Found(t *testing.T, repo scripts.JobRepository) {
 		outputP1, err := scripts.NewField(*val, gofakeit.LetterN(10), gofakeit.LetterN(10), gofakeit.LetterN(10))
 		require.NoError(t, err)
 
-		proto, err := scripts.NewJobPrototype(ownerID, scriptID, input, []scripts.Field{*outputP1}, "example")
+		proto, err := scripts.NewJobPrototype(ownerID, scriptID, input, []scripts.Field{*outputP1}, "example", "")
 		require.NoError(t, err)
 
 		_, err = repo.Create(ctx, proto)
@@ -176,7 +176,7 @@ func jobRepository_UserJobsWithState_Found(t *testing.T, repo scripts.JobReposit
 		if i%2 == 0 {
 			protoOwner = scripts.UserID(ownerID + 1)
 		}
-		proto, err := scripts.NewJobPrototype(protoOwner, proto.ScriptID(), proto.Input(), proto.Expected(), proto.URL())
+		proto, err := scripts.NewJobPrototype(protoOwner, proto.ScriptID(), proto.Input(), proto.Expected(), proto.URL(), "")
 		require.NoError(t, err)
 
 		job, err := repo.Create(ctx, proto)
@@ -208,7 +208,7 @@ func jobRepository_UserJobsWithState_NotFound(t *testing.T, repo scripts.JobRepo
 
 	for i := 0; i < 3; i++ {
 		proto := generateRandomJobPrototype(t)
-		proto, err := scripts.NewJobPrototype(ownerID, proto.ScriptID(), proto.Input(), proto.Expected(), proto.URL())
+		proto, err := scripts.NewJobPrototype(ownerID, proto.ScriptID(), proto.Input(), proto.Expected(), proto.URL(), "")
 		require.NoError(t, err)
 
 		_, err = repo.Create(ctx, proto)
@@ -232,7 +232,7 @@ func jobRepository_MixedUserJobs(t *testing.T, repo scripts.JobRepository) {
 		}
 
 		proto := generateRandomJobPrototype(t)
-		proto, err := scripts.NewJobPrototype(owner, proto.ScriptID(), proto.Input(), proto.Expected(), proto.URL())
+		proto, err := scripts.NewJobPrototype(owner, proto.ScriptID(), proto.Input(), proto.Expected(), proto.URL(), "")
 		require.NoError(t, err)
 
 		_, err = repo.Create(ctx, proto)
@@ -270,7 +270,7 @@ func jobRepository_MixedUserJobsWithState(t *testing.T, repo scripts.JobReposito
 		}
 
 		proto := generateRandomJobPrototype(t)
-		proto, err := scripts.NewJobPrototype(owner, proto.ScriptID(), proto.Input(), proto.Expected(), proto.URL())
+		proto, err := scripts.NewJobPrototype(owner, proto.ScriptID(), proto.Input(), proto.Expected(), proto.URL(), "")
 		require.NoError(t, err)
 
 		job, err := repo.Create(ctx, proto)
@@ -320,7 +320,7 @@ func generateRandomJobPrototype(t *testing.T) *scripts.JobPrototype {
 	outputP1, err := scripts.NewField(*val, gofakeit.LetterN(10), gofakeit.LetterN(10), gofakeit.LetterN(10))
 	require.NoError(t, err)
 
-	proto, err := scripts.NewJobPrototype(ownerID, scriptID, input, []scripts.Field{*outputP1}, "example")
+	proto, err := scripts.NewJobPrototype(ownerID, scriptID, input, []scripts.Field{*outputP1}, "example", "")
 	require.NoError(t, err)
 
 	return proto

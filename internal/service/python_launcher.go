@@ -29,6 +29,41 @@ func NewPythonLauncher(interpreter string, dir string, maxFileSize int64, flags 
 	}, nil
 }
 
+func (p *PythonLauncher) getInterpreter(ctx context.Context, pythonVersion string) (scripts.URL, error) {
+	checkCmd := exec.CommandContext(ctx, "pyenv", "versions", "--bare")
+	output, err := checkCmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	found := false
+	for _, v := range strings.Fields(string(output)) {
+		if v == pythonVersion || strings.HasPrefix(v, pythonVersion) {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		installCmd := exec.CommandContext(ctx, "pyenv", "install", "-s", pythonVersion)
+		installCmd.Stdout = os.Stdout
+		installCmd.Stderr = os.Stderr
+		if err := installCmd.Run(); err != nil {
+			return "", err
+		}
+	}
+
+	whichCmd := exec.CommandContext(ctx, "pyenv", "which", "python")
+	whichCmd.Env = append(os.Environ(), "PYENV_VERSION="+pythonVersion)
+
+	pathBytes, err := whichCmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	return scripts.URL(strings.TrimSpace(string(pathBytes))), nil
+}
+
 func (p *PythonLauncher) CreateSandbox(ctx context.Context, mainReader scripts.FileData, extraReaders []scripts.FileData) (scripts.URL, error) {
 	dirName := generateDirname(p.directory)
 
@@ -50,12 +85,43 @@ func (p *PythonLauncher) CreateSandbox(ctx context.Context, mainReader scripts.F
 		}
 	}
 
+	venv := filepath.Join(dirName, "venv")
+	cmd := exec.CommandContext(ctx, p.interpreter, "-m", "venv", venv)
+	cmd.Dir = dirName
+	if err := cmd.Run(); err != nil {
+		_ = os.RemoveAll(dirName)
+		return "", err
+	}
+
+	reqPath := filepath.Join(dirName, "requirements.txt")
+
+	if _, err := os.Stat(reqPath); err == nil {
+		pipPath := filepath.Join(venv, "bin", "pip")
+		installCmd := exec.CommandContext(ctx, pipPath, "install", "-r", "requirements.txt")
+		installCmd.Dir = dirName
+		if err := installCmd.Run(); err != nil {
+			_ = os.RemoveAll(dirName)
+			return "", err
+		}
+	}
+
 	return mainDst, nil
 }
 
 func (p *PythonLauncher) Run(ctx context.Context, job *scripts.Job) (scripts.Result, error) {
 	targetDir := filepath.Dir(job.URL())
 	args := []string{filepath.Base(job.URL())}
+
+	pythonVersion := job.PythonVersion()
+	if pythonVersion == "" {
+		pythonVersion = p.interpreter
+	}
+
+	interpreter, err := p.getInterpreter(ctx, pythonVersion)
+	if err != nil {
+		return scripts.Result{}, err
+	}
+
 	values := job.Input()
 	rawValues := make([]string, len(values))
 	for i, v := range values {
@@ -66,12 +132,12 @@ func (p *PythonLauncher) Run(ctx context.Context, job *scripts.Job) (scripts.Res
 	var stdout, stderr bytes.Buffer
 	var exitCode int
 
-	cmd := exec.CommandContext(ctx, p.interpreter, args...)
+	cmd := exec.CommandContext(ctx, interpreter, args...)
 	cmd.Dir = targetDir
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	err := cmd.Run()
+	err = cmd.Run()
 	if exitErr, ok := err.(*exec.ExitError); ok {
 		exitCode = exitErr.ExitCode()
 	} else if err == nil {

@@ -36,15 +36,16 @@ func NewJobStateFromString(s string) (JobState, error) {
 }
 
 type JobPrototype struct {
-	ownerID   UserID
-	scriptID  ScriptID
-	input     []Value
-	createdAt time.Time
-	expected  []Field
-	url       URL
+	ownerID       UserID
+	scriptID      ScriptID
+	input         []Value
+	createdAt     time.Time
+	expected      []Field
+	url           URL
+	pythonVersion string
 }
 
-func NewJobPrototype(ownerID UserID, scriptID ScriptID, input []Value, expected []Field, url URL) (*JobPrototype, error) {
+func NewJobPrototype(ownerID UserID, scriptID ScriptID, input []Value, expected []Field, url URL, pythonVersion string) (*JobPrototype, error) {
 	if ownerID <= 0 {
 		return nil, fmt.Errorf("%w: invalid ownerID", ErrInvalidInput)
 	}
@@ -68,12 +69,13 @@ func NewJobPrototype(ownerID UserID, scriptID ScriptID, input []Value, expected 
 	}
 
 	return &JobPrototype{
-		ownerID:   ownerID,
-		scriptID:  scriptID,
-		input:     input,
-		expected:  expected,
-		url:       url,
-		createdAt: time.Now(),
+		ownerID:       ownerID,
+		scriptID:      scriptID,
+		input:         input,
+		expected:      expected,
+		url:           url,
+		createdAt:     time.Now(),
+		pythonVersion: pythonVersion,
 	}, nil
 }
 
@@ -91,6 +93,10 @@ func (p *JobPrototype) Input() []Value {
 
 func (p *JobPrototype) Expected() []Field {
 	return p.expected[:]
+}
+
+func (j *JobPrototype) PythonVersion() string {
+	return j.pythonVersion
 }
 
 func (p *JobPrototype) URL() URL {

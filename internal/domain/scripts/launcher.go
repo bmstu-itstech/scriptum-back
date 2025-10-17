@@ -6,8 +6,8 @@ import (
 )
 
 type FileData struct {
-    Reader io.Reader
-    Name   string
+	Reader io.Reader
+	Name   string
 }
 
 type Launcher interface {

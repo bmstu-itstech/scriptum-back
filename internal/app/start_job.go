@@ -90,7 +90,7 @@ func (s *JobStartUC) StartJob(ctx context.Context, actorID int64, req ScriptRunD
 		return err
 	}
 
-	proto, err := script.Assemble(scripts.UserID(actorID), input, sandboxURL)
+	proto, err := script.Assemble(scripts.UserID(actorID), input, sandboxURL, req.PythonVersion)
 	if err != nil {
 		err_ := s.launcher.DeleteSandbox(ctx, sandboxURL)
 		if err_ != nil {

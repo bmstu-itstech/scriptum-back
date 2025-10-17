@@ -691,6 +691,9 @@ components:
         need_to_notify:
           type: boolean
           default: false
+        python_version:
+          type: string
+          default: ""
       required:
       - in_params
 

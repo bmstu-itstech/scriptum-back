@@ -77,9 +77,10 @@ type ScriptCreateDTO struct {
 }
 
 type ScriptRunDTO struct {
-	ScriptID     uint32
-	InParams     []ValueDTO
-	NeedToNotify bool
+	ScriptID      uint32
+	InParams      []ValueDTO
+	PythonVersion string
+	NeedToNotify  bool
 }
 
 type ScriptUpdateDTO struct {

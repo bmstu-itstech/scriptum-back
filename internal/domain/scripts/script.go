@@ -2,6 +2,7 @@ package scripts
 
 import (
 	"fmt"
+	"regexp"
 	"time"
 )
 
@@ -16,6 +17,8 @@ type Visibility struct {
 
 var VisibilityPublic = Visibility{"public"}
 var VisibilityPrivate = Visibility{"private"}
+
+var pythonVersionRegex = regexp.MustCompile(`^\d+(\.\d+){1,2}$`)
 
 func (v Visibility) String() string {
 	return v.s
@@ -228,7 +231,7 @@ func RestoreScript(
 	}, nil
 }
 
-func (s *Script) Assemble(by UserID, input []Value, url URL) (*JobPrototype, error) {
+func (s *Script) Assemble(by UserID, input []Value, url URL, pythonVersion string) (*JobPrototype, error) {
 	if len(s.input) != len(input) {
 		return nil, fmt.Errorf(
 			"%w: failed to assemble job: expected %d input values, got %d",
@@ -246,5 +249,12 @@ func (s *Script) Assemble(by UserID, input []Value, url URL) (*JobPrototype, err
 		}
 	}
 
-	return NewJobPrototype(by, s.id, input, s.Output(), url)
+	if pythonVersion != "" && !pythonVersionRegex.MatchString(pythonVersion) {
+		return nil, fmt.Errorf(
+			"%w: failed to assemble job: expected python version as %s or empty string, got %s",
+			ErrInvalidInput, pythonVersionRegex.String(), pythonVersion,
+		)
+	}
+
+	return NewJobPrototype(by, s.id, input, s.Output(), url, pythonVersion)
 }
