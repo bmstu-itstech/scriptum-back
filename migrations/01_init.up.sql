@@ -55,54 +55,30 @@ CREATE TABLE IF NOT EXISTS scripts (
     owner_id BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     main_file_id BIGINT NOT NULL,
-    FOREIGN KEY (main_file_id) REFERENCES files(file_id) ON
-    DELETE
-        CASCADE ON
-    UPDATE
-        CASCADE
+    FOREIGN KEY (main_file_id) REFERENCES files(file_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS script_files (
     script_id BIGINT NOT NULL,
     file_id BIGINT NOT NULL,
     PRIMARY KEY (script_id, file_id),
-    FOREIGN KEY (script_id) REFERENCES scripts(script_id) ON
-    DELETE
-        CASCADE ON
-    UPDATE
-        CASCADE,
-        FOREIGN KEY (file_id) REFERENCES files(file_id) ON
-    DELETE
-        CASCADE ON
-    UPDATE
-        CASCADE
+    FOREIGN KEY (script_id) REFERENCES scripts(script_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (file_id) REFERENCES files(file_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS script_fields (
     script_id BIGINT NOT NULL,
     field_id BIGINT NOT NULL,
     PRIMARY KEY (script_id, field_id),
-    FOREIGN KEY (script_id) REFERENCES scripts(script_id) ON
-    DELETE
-        CASCADE ON
-    UPDATE
-        CASCADE,
-        FOREIGN KEY (field_id) REFERENCES fields(field_id) ON
-    DELETE
-        CASCADE ON
-    UPDATE
-        CASCADE
+    FOREIGN KEY (script_id) REFERENCES scripts(script_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (field_id) REFERENCES fields(field_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS parameters (
     parameter_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     field_id BIGINT NOT NULL,
     value TEXT NOT NULL CHECK (LENGTH(value) <= 100),
-    FOREIGN KEY (field_id) REFERENCES fields(field_id) ON
-    DELETE
-        CASCADE ON
-    UPDATE
-        CASCADE
+    FOREIGN KEY (field_id) REFERENCES fields(field_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS jobs (
@@ -114,25 +90,13 @@ CREATE TABLE IF NOT EXISTS jobs (
     state JOB_STATE NOT NULL DEFAULT 'pending',
     error_message TEXT,
     script_id BIGINT NOT NULL,
-    FOREIGN KEY (script_id) REFERENCES scripts(script_id) ON
-    DELETE
-        CASCADE ON
-    UPDATE
-        CASCADE
+    FOREIGN KEY (script_id) REFERENCES scripts(script_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS job_params (
     job_id BIGINT NOT NULL,
     parameter_id BIGINT NOT NULL,
     PRIMARY KEY (job_id, parameter_id),
-    FOREIGN KEY (job_id) REFERENCES jobs(job_id) ON
-    DELETE
-        CASCADE ON
-    UPDATE
-        CASCADE,
-        FOREIGN KEY (parameter_id) REFERENCES parameters(parameter_id) ON
-    DELETE
-        CASCADE ON
-    UPDATE
-        CASCADE
+    FOREIGN KEY (job_id) REFERENCES jobs(job_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (parameter_id) REFERENCES parameters(parameter_id) ON DELETE CASCADE ON UPDATE CASCADE
 );

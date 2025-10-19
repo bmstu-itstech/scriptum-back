@@ -128,7 +128,7 @@ func (r *ScriptRepo) Create(ctx context.Context, script *scripts.ScriptPrototype
 
 const createScriptWithIDQuery = `
 	INSERT INTO scripts (script_id, name, description, visibility, python_version, owner_id, file_id)
-	VALUES (:script_id, :name, :description, :visibility, :python_version :owner_id, :file_id)
+	VALUES (:script_id, :name, :description, :visibility, :python_version, :owner_id, :file_id)
 	RETURNING script_id
 `
 
