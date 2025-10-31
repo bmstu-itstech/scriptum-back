@@ -72,6 +72,7 @@ type Script struct {
 	MainFileId        int64      `json:"main_file_id"`
 	OutFields         []Field    `json:"out_fields"`
 	Owner             UserId     `json:"owner"`
+	PythonVersion     string     `json:"python_version"`
 	ScriptDescription string     `json:"script_description"`
 	ScriptId          ScriptId   `json:"script_id"`
 	ScriptName        string     `json:"script_name"`
@@ -84,6 +85,7 @@ type ScriptCreateData struct {
 	InFields          []Field `json:"in_fields"`
 	MainFileId        int64   `json:"main_file_id"`
 	OutFields         []Field `json:"out_fields"`
+	PythonVersion     string  `json:"python_version"`
 	ScriptDescription string  `json:"script_description"`
 	ScriptName        string  `json:"script_name"`
 }

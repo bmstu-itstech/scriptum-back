@@ -11,7 +11,7 @@ type FileData struct {
 }
 
 type Launcher interface {
-	CreateSandbox(ctx context.Context, mainReader FileData, extraReaders []FileData) (URL, error)
+	CreateSandbox(ctx context.Context, mainReader FileData, extraReaders []FileData, pythonVersion PythonVersion) (URL, error)
 	Run(context.Context, *Job) (Result, error)
 	DeleteSandbox(ctx context.Context, path URL) error
 }

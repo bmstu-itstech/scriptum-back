@@ -350,16 +350,10 @@ func (s *Server) PostScriptsIdStart(w http.ResponseWriter, r *http.Request, id S
 		needToNotify = *req.NeedToNotify
 	}
 
-	pythonVerison := ""
-	if req.PythonVersion != nil {
-		pythonVerison = *req.PythonVersion
-	}
-
 	reqDto := app.ScriptRunDTO{
-		ScriptID:      uint32(id),
-		InParams:      in,
-		PythonVersion: pythonVerison,
-		NeedToNotify:  needToNotify,
+		ScriptID:     uint32(id),
+		InParams:     in,
+		NeedToNotify: needToNotify,
 	}
 	err = s.app.StartJob.StartJob(r.Context(), int64(userID), reqDto)
 	if err != nil {
@@ -473,6 +467,7 @@ func DTOToScriptHttp(script app.ScriptDTO) Script {
 	for i, field := range script.Output {
 		out[i] = DTOToFieldHttp(field)
 	}
+
 	id := (ScriptId)(script.ID)
 	return Script{
 		CreatedAt:         script.CreatedAt,
@@ -481,6 +476,7 @@ func DTOToScriptHttp(script app.ScriptDTO) Script {
 		Owner:             script.OwnerID,
 		MainFileId:        script.MainFileID,
 		ExtraFileIds:      script.ExtraFileIDs,
+		PythonVersion:     script.PythonVersion,
 		ScriptDescription: script.Desc,
 		ScriptId:          id,
 		ScriptName:        script.Name,

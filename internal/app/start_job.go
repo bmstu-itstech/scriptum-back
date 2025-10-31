@@ -84,13 +84,13 @@ func (s *JobStartUC) StartJob(ctx context.Context, actorID int64, req ScriptRunD
 		extraFiles[i] = fileData
 	}
 
-	sandboxURL, err := s.launcher.CreateSandbox(ctx, mainFileData, extraFiles)
+	sandboxURL, err := s.launcher.CreateSandbox(ctx, mainFileData, extraFiles, script.PythonVersion())
 	if err != nil {
 		s.logger.Error("failed to create sandbox", "err", err.Error())
 		return err
 	}
 
-	proto, err := script.Assemble(scripts.UserID(actorID), input, sandboxURL, req.PythonVersion)
+	proto, err := script.Assemble(scripts.UserID(actorID), input, sandboxURL)
 	if err != nil {
 		err_ := s.launcher.DeleteSandbox(ctx, sandboxURL)
 		if err_ != nil {

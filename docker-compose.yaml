@@ -5,7 +5,7 @@ services:
     environment:
       - DATABASE_URI=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=${POSTGRES_SSLMODE}
     ports:
-      - "8000:8000"
+      - "7999:8080"
     networks:
       web-sc:
         aliases:
@@ -13,6 +13,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - ${SCRIPTS_DIR}:/scripts_data/${SCRIPTS_DIR}
 
   db:
     image: postgres:15.3-alpine3.18

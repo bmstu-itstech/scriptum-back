@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -18,6 +19,8 @@ type PythonLauncher struct {
 	directory   string
 	maxFileSize int64
 	flags       []string
+
+	interpreterToRun string
 }
 
 func NewPythonLauncher(interpreter string, dir string, maxFileSize int64, flags ...string) (*PythonLauncher, error) {
@@ -26,6 +29,8 @@ func NewPythonLauncher(interpreter string, dir string, maxFileSize int64, flags 
 		directory:   dir,
 		maxFileSize: maxFileSize,
 		flags:       flags,
+
+		interpreterToRun: interpreter,
 	}, nil
 }
 
@@ -33,7 +38,7 @@ func (p *PythonLauncher) getInterpreter(ctx context.Context, pythonVersion strin
 	checkCmd := exec.CommandContext(ctx, "pyenv", "versions", "--bare")
 	output, err := checkCmd.Output()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("can't get pyenv versions: %w", err)
 	}
 
 	found := false
@@ -49,31 +54,31 @@ func (p *PythonLauncher) getInterpreter(ctx context.Context, pythonVersion strin
 		installCmd.Stdout = os.Stdout
 		installCmd.Stderr = os.Stderr
 		if err := installCmd.Run(); err != nil {
-			return "", err
+			return "", fmt.Errorf("can't install python version: %w", err)
 		}
 	}
 
-	whichCmd := exec.CommandContext(ctx, "pyenv", "which", "python")
+	whichCmd := exec.CommandContext(ctx, "pyenv", "which", "python3")
 	whichCmd.Env = append(os.Environ(), "PYENV_VERSION="+pythonVersion)
 
 	pathBytes, err := whichCmd.Output()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("can't get python interpreter: %w", err)
 	}
 
 	return scripts.URL(strings.TrimSpace(string(pathBytes))), nil
 }
 
-func (p *PythonLauncher) CreateSandbox(ctx context.Context, mainReader scripts.FileData, extraReaders []scripts.FileData) (scripts.URL, error) {
+func (p *PythonLauncher) CreateSandbox(ctx context.Context, mainReader scripts.FileData, extraReaders []scripts.FileData, pythonVersion scripts.PythonVersion) (scripts.URL, error) {
 	dirName := generateDirname(p.directory)
 
 	if err := os.MkdirAll(dirName, 0755); err != nil {
-		return "", err
+		return "", fmt.Errorf("can't create sandbox directory: %w", err)
 	}
 	mainDst := filepath.Join(dirName, mainReader.Name)
 	if err := copyFromReader(mainReader.Reader, mainDst); err != nil {
 		_ = os.RemoveAll(dirName)
-		return "", err
+		return "", fmt.Errorf("can't copy main file: %w", err)
 	}
 
 	for _, r := range extraReaders {
@@ -81,50 +86,93 @@ func (p *PythonLauncher) CreateSandbox(ctx context.Context, mainReader scripts.F
 
 		if err := copyFromReader(r.Reader, dst); err != nil {
 			_ = os.RemoveAll(dirName)
-			return "", err
+			return "", fmt.Errorf("can't copy extra file: %w", err)
 		}
 	}
 
-	venv := filepath.Join(dirName, "venv")
+	// venv := filepath.Join(dirName, "venv")
+	// log.Println("CreateSandbox dirName", dirName)
+	// log.Println("CreateSandbox venv", venv)
 
-	interpreter, err := p.getInterpreter(ctx, p.interpreter)
+	interpreter, err := p.getInterpreter(ctx, pythonVersion.String())
 	if err != nil {
 		_ = os.RemoveAll(dirName)
-		return "", err
+		return "", fmt.Errorf("can't get interpreter: %w", err)
 	}
+	p.interpreterToRun = interpreter
+	log.Println("CreateSandbox interpreter", interpreter)
+
+	// cmd := exec.CommandContext(ctx, interpreter, "-m", "venv", venv)
+	// cmd.Dir = dirName
+	// log.Println("command: ", interpreter, "-m", "venv", venv)
+	// if err := cmd.Run(); err != nil {
+	// 	_ = os.RemoveAll(dirName)
+	// 	return "", fmt.Errorf("can't create virtual environment: %w", err)
+	// }
+
+	// reqPath := filepath.Join(dirName, "requirements.txt")
+
+	// if _, err := os.Stat(reqPath); err == nil {
+	// 	log.Println("requirements.txt found")
+	// 	pipPath := filepath.Join(venv, "bin", "pip")
+	// 	installCmd := exec.CommandContext(ctx, pipPath, "install", "-r", "requirements.txt")
+	// 	installCmd.Dir = dirName
+	// 	if err := installCmd.Run(); err != nil {
+	// 		log.Println("requirements.txt found, but can't install")
+	// 		_ = os.RemoveAll(dirName)
+	// 		return "", fmt.Errorf("can't install requirements: %w", err)
+	// 	}
+	// 	log.Println("requirements installed")
+	// }
+
+	return mainDst, nil
+}
+
+func (p *PythonLauncher) installVenv(ctx context.Context, dirName string) error {
+	venv := filepath.Join(dirName, "venv")
+	log.Println("installVenv dirName", dirName)
+	log.Println("installVenv", venv)
+
+	interpreter := p.interpreterToRun
+	log.Println("installVenv interpreter", interpreter)
 
 	cmd := exec.CommandContext(ctx, interpreter, "-m", "venv", venv)
 	cmd.Dir = dirName
+	log.Println(interpreter, "-m", "venv", venv)
 	if err := cmd.Run(); err != nil {
 		_ = os.RemoveAll(dirName)
-		return "", err
+		return fmt.Errorf("can't create virtual environment: %w", err)
 	}
 
 	reqPath := filepath.Join(dirName, "requirements.txt")
 
 	if _, err := os.Stat(reqPath); err == nil {
+		log.Println("requirements.txt found")
 		pipPath := filepath.Join(venv, "bin", "pip")
 		installCmd := exec.CommandContext(ctx, pipPath, "install", "-r", "requirements.txt")
 		installCmd.Dir = dirName
 		if err := installCmd.Run(); err != nil {
+			log.Println("requirements.txt found, but can't install", err)
 			_ = os.RemoveAll(dirName)
-			return "", err
+			return fmt.Errorf("can't install requirements: %w", err)
 		}
+		log.Println("requirements installed")
 	}
-
-	return mainDst, nil
+	return nil
 }
 
 func (p *PythonLauncher) Run(ctx context.Context, job *scripts.Job) (scripts.Result, error) {
 	targetDir := filepath.Dir(job.URL())
-	args := []string{filepath.Base(job.URL())}
 
-	pythonVersion := job.PythonVersion().String()
-
-	interpreter, err := p.getInterpreter(ctx, pythonVersion)
+	err := p.installVenv(ctx, targetDir)
 	if err != nil {
+		_ = os.RemoveAll(targetDir)
 		return scripts.Result{}, err
 	}
+
+	args := []string{filepath.Base(job.URL())}
+	interpreter := filepath.Join(targetDir, "venv", "bin", "python")
+	log.Println("Run interpreter", interpreter)
 
 	values := job.Input()
 	rawValues := make([]string, len(values))
@@ -158,6 +206,7 @@ func (p *PythonLauncher) Run(ctx context.Context, job *scripts.Job) (scripts.Res
 	for i, token := range out {
 		outVals[i], err = scripts.NewValue(expected[i].ValueType().String(), token)
 		if err != nil {
+			_ = os.RemoveAll(targetDir)
 			return scripts.Result{}, err
 		}
 	}
@@ -166,6 +215,7 @@ func (p *PythonLauncher) Run(ctx context.Context, job *scripts.Job) (scripts.Res
 	if exitCode == 0 {
 		res, err = scripts.NewSuccessResult(outVals)
 		if err != nil {
+			_ = os.RemoveAll(targetDir)
 			return scripts.Result{}, err
 		}
 	} else {

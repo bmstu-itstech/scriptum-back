@@ -18,7 +18,7 @@ type Visibility struct {
 type PythonVersion string
 
 func NewPythonVersion(p string) (*PythonVersion, error) {
-	if p == "" && !pythonVersionRegex.MatchString(p) {
+	if p != "" && !pythonVersionRegex.MatchString(p) {
 		return nil, fmt.Errorf(
 			"%w: invalid python version: expected string as %s or empty string, got %s",
 			ErrInvalidInput, pythonVersionRegex.String(), p,
@@ -262,7 +262,7 @@ func RestoreScript(
 	}, nil
 }
 
-func (s *Script) Assemble(by UserID, input []Value, url URL, pythonVersion string) (*JobPrototype, error) {
+func (s *Script) Assemble(by UserID, input []Value, url URL) (*JobPrototype, error) {
 	if len(s.input) != len(input) {
 		return nil, fmt.Errorf(
 			"%w: failed to assemble job: expected %d input values, got %d",
@@ -279,21 +279,6 @@ func (s *Script) Assemble(by UserID, input []Value, url URL, pythonVersion strin
 			)
 		}
 	}
-	var py PythonVersion
 
-	if pythonVersion != "" {
-		tmp, err := NewPythonVersion(pythonVersion)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"%w: failed to assemble job: invalid python version %s",
-				ErrInvalidInput, pythonVersion,
-			)
-		}
-		py = *tmp
-	} else {
-		py = s.pythonVersion
-	}
-
-	return NewJobPrototype(by, s.id, input, s.Output(), url, py)
-
+	return NewJobPrototype(by, s.id, input, s.Output(), url, s.pythonVersion)
 }

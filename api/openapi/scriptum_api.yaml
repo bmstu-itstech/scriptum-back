@@ -568,6 +568,7 @@ components:
       - out_fields
       - main_file_id
       - extra_file_ids
+      - python_version
       - owner
       - visibility
       - created_at
@@ -698,9 +699,6 @@ components:
         need_to_notify:
           type: boolean
           default: false
-        python_version:
-          type: string
-          default: ""
       required:
       - in_params
 
