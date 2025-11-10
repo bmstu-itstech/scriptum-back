@@ -33,7 +33,9 @@ func NewScriptCreateUC(
 
 func (u *ScriptCreateUC) CreateScript(ctx context.Context, req ScriptCreateDTO) (int32, error) {
 	u.logger.Info("create script", "req", req)
+	u.logger.Debug("create script debug", "req", req, "ctx", ctx)
 	user, err := u.userP.User(ctx, scripts.UserID(req.OwnerID))
+	u.logger.Debug("user provider user", "user", user, "err", err.Error())
 	if err != nil {
 		u.logger.Error("failed to get user", "err", err.Error())
 		return 0, err
@@ -45,14 +47,17 @@ func (u *ScriptCreateUC) CreateScript(ctx context.Context, req ScriptCreateDTO) 
 	} else {
 		vis = scripts.VisibilityPrivate
 	}
+	u.logger.Debug("user is admin", "isAdmin", vis)
 
 	input, err := DTOToFields(req.InFields)
+	u.logger.Debug("input fields", "input", input, "err", err.Error())
 	if err != nil {
 		u.logger.Error("failed to convert input fields", "err", err.Error())
 		return 0, err
 	}
 
 	output, err := DTOToFields(req.OutFields)
+	u.logger.Debug("output fields", "output", output, "err", err.Error())
 	if err != nil {
 		u.logger.Error("failed to convert output fields", "err", err.Error())
 		return 0, err
@@ -62,7 +67,9 @@ func (u *ScriptCreateUC) CreateScript(ctx context.Context, req ScriptCreateDTO) 
 	for i, id := range req.ExtraFileIDs {
 		extraFileIDs[i] = scripts.FileID(id)
 	}
+	u.logger.Debug("extra file ids", "extraFileIDs", extraFileIDs)
 
+	u.logger.Debug("script prototype creating")
 	proto, err := scripts.NewScriptPrototype(
 		scripts.UserID(req.OwnerID),
 		req.ScriptName,
@@ -74,13 +81,16 @@ func (u *ScriptCreateUC) CreateScript(ctx context.Context, req ScriptCreateDTO) 
 		scripts.FileID(req.MainFileID),
 		extraFileIDs,
 	)
+	u.logger.Debug("script prototype", "proto", proto, "err", err.Error())
 
 	if err != nil {
 		u.logger.Error("failed to create script prototype", "err", err.Error())
 		return 0, err
 	}
 
+	u.logger.Debug("script repository creating")
 	script, err := u.scriptR.Create(ctx, proto)
+	u.logger.Debug("script repository", "script", script, "err", err.Error())
 	if err != nil {
 		u.logger.Error("failed to create script", "err", err.Error())
 		return 0, err

@@ -22,7 +22,7 @@ func setUpFileRepository() (*service.FileRepo, error) {
 		return nil, err
 	}
 
-	return service.NewFileRepository(db), err
+	return service.NewFileRepository(db, nil), err
 }
 
 func testFileRepository(t *testing.T) {

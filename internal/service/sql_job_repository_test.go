@@ -23,7 +23,7 @@ func setUpJobRepository() (*service.JobRepo, error) {
 		return nil, err
 	}
 
-	return service.NewJobRepository(db), err
+	return service.NewJobRepository(db, nil), err
 }
 
 func testJobRepository(t *testing.T) {

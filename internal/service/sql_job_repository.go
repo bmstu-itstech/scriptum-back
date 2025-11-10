@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/scripts"
@@ -13,11 +14,13 @@ import (
 
 type JobRepo struct {
 	db *sqlx.DB
+	l  *slog.Logger
 }
 
-func NewJobRepository(db *sqlx.DB) *JobRepo {
+func NewJobRepository(db *sqlx.DB, l *slog.Logger) *JobRepo {
 	return &JobRepo{
 		db: db,
+		l:  l,
 	}
 }
 
@@ -28,52 +31,75 @@ const createJobQuery = `
 `
 
 func (r *JobRepo) Create(ctx context.Context, job *scripts.JobPrototype) (*scripts.Job, error) {
+	r.l.Info("create job", "job", *job)
+	r.l.Debug("begining transaction")
 	tx, err := r.db.BeginTxx(ctx, nil)
+	r.l.Debug("transaction started", "err", err.Error())
 	if err != nil {
+		r.l.Error("failed to start transaction", "err", err.Error())
 		return nil, err
 	}
 	defer func() {
+		r.l.Debug("transaction finished", "err", err.Error())
 		if err != nil {
+			r.l.Error("failed to commit transaction", "err", err.Error())
 			_ = tx.Rollback()
 		} else {
 			err = tx.Commit()
+			r.l.Debug("transaction committed", "err", err.Error())
 		}
 	}()
 
 	var jobID int64
 
-	named, args, err := sqlx.Named(createJobQuery, convertJobPrototipeToDB(job))
+	r.l.Debug("creating job", "job", *job)
+	named, args, err := sqlx.Named(createJobQuery, convertJobPrototypeToDB(job))
+	r.l.Debug("named query", "named", named, "args", args, "err", err.Error())
 	if err != nil {
 		return nil, err
 	}
 	query := tx.Rebind(named)
 
+	r.l.Debug("executing query", "query", query, "args", args)
 	err = tx.QueryRowContext(ctx, query, args...).Scan(&jobID)
+	r.l.Debug("query executed", "err", err.Error())
 	if err != nil {
+		r.l.Error("failed to execute query", "err", err.Error())
 		return nil, err
 	}
 
+	r.l.Debug("inserting values", "jobID", jobID, "scriptID", job.ScriptID(), "input", job.Input())
 	if err := insertValuesTx(ctx, tx, jobID, int64(job.ScriptID()), job.Input(), "in"); err != nil {
+		r.l.Error("failed to insert values", "err", err.Error())
 		return nil, err
 	}
 
+	r.l.Debug("job created", "jobID", jobID)
 	return job.Build(scripts.JobID(jobID))
 }
 
 const deleteJobQuery = `DELETE FROM jobs WHERE job_id = $1`
 
 func (r *JobRepo) Delete(ctx context.Context, jobID scripts.JobID) error {
+	r.l.Info("delete job", "jobID", jobID)
+	r.l.Debug("deleting job", "ctx", ctx)
 	result, err := r.db.ExecContext(ctx, deleteJobQuery, jobID)
+	r.l.Debug("deleted job", "result", result, "err", err.Error())
 	if err != nil {
+		r.l.Error("failed to delete job", "err", err.Error())
 		return err
 	}
 
+	r.l.Debug("rows affected")
 	rowsAffected, err := result.RowsAffected()
+	r.l.Debug("rows affected", "rowsAffected", rowsAffected, "err", err.Error())
 	if err != nil {
 		return err
 	}
 
+	r.l.Debug("check if no rows affected", "is", rowsAffected == 0)
 	if rowsAffected == 0 {
+		r.l.Error("failed to delete job", "jobID", jobID, "err", err.Error())
 		return fmt.Errorf("%w Delete: cannot delete job with id: %d", scripts.ErrJobNotFound, jobID)
 	}
 
@@ -92,39 +118,59 @@ const paramsJobQuery = `
 	`
 
 func (r *JobRepo) Job(ctx context.Context, jobID scripts.JobID) (*scripts.Job, error) {
+	r.l.Info("get job", "jobID", jobID)
 	var jobRow JobRow
+	r.l.Debug("getting job", "ctx", ctx)
 	err := r.db.GetContext(ctx, &jobRow, getJobQuery, jobID)
+	r.l.Debug("got job", "jobRow", jobRow, "err", err.Error())
 	if err != nil {
+		r.l.Error("failed to get job", "err", err.Error())
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("%w Job: cannot extract job with id: %d", scripts.ErrJobNotFound, jobID)
 		}
 		return nil, err
 	}
 	var paramRows []ValueRow
+	r.l.Debug("getting job params", "ctx", ctx)
 	if err := r.db.SelectContext(ctx, &paramRows, paramsJobQuery, jobID); err != nil {
+		r.l.Error("failed to get job params", "err", err.Error())
 		return nil, err
 	}
+	r.l.Debug("got job params", "paramRows", paramRows)
 
+	r.l.Debug("getting job values", "ctx", ctx)
 	inputValues, outputValues, err := getJobValues(ctx, r.db, jobRow.ID)
+	r.l.Debug("got job values", "inputValues", inputValues, "outputValues", outputValues, "err", err.Error())
 	if err != nil {
+		r.l.Error("failed to get job values", "err", err.Error())
 		return nil, err
 	}
 
+	r.l.Debug("restoring job", "jobRow", jobRow)
 	var result *scripts.Result
+	r.l.Debug("needed to restore", "jobRow.StatusCode != nil", jobRow.StatusCode != nil, "jobRow.ClosedAt != nil", jobRow.ClosedAt != nil)
 	if jobRow.StatusCode != nil && jobRow.ClosedAt != nil {
+		r.l.Debug("restoring result")
 		result = scripts.RestoreResult(outputValues, scripts.StatusCode(*jobRow.StatusCode), jobRow.ErrorMessage)
 	}
 
+	r.l.Debug("getting output fields", "ctx", ctx)
 	var outFields []fieldRow
 	err = r.db.SelectContext(ctx, &outFields, getFieldsQuery, jobRow.ScriptID, "out")
+	r.l.Debug("got output fields", "outFields", outFields, "err", err.Error())
 	if err != nil {
+		r.l.Error("failed to get output fields", "err", err.Error())
 		return nil, err
 	}
+	r.l.Debug("converting output fields", "outFields", outFields)
 	outputs, err := convertFieldRowsToDomain(outFields)
+	r.l.Debug("converted output fields", "outputs", outputs, "err", err.Error())
 	if err != nil {
+		r.l.Error("failed to convert output fields", "err", err.Error())
 		return nil, err
 	}
 
+	r.l.Debug("restoring job", "jobRow", jobRow)
 	job, err := scripts.RestoreJob(
 		jobRow.ID,
 		jobRow.OwnerID,
@@ -137,10 +183,13 @@ func (r *JobRepo) Job(ctx context.Context, jobID scripts.JobID) (*scripts.Job, e
 		jobRow.StartedAt,
 		jobRow.ClosedAt,
 	)
+	r.l.Debug("restored job", "job", *job, "err", err.Error())
 	if err != nil {
+		r.l.Error("failed to restore job", "err", err.Error())
 		return nil, err
 	}
 
+	r.l.Debug("returning job", "job", *job)
 	return job, nil
 }
 
@@ -166,61 +215,97 @@ WHERE jp.parameter_id = p.parameter_id
 `
 
 func (r *JobRepo) Update(ctx context.Context, job *scripts.Job) (err error) {
+	r.l.Debug("updating job", "job", *job)
+
+	r.l.Debug("beginning transaction")
 	tx, err := r.db.BeginTxx(ctx, nil)
+	r.l.Debug("transaction started", "err", err.Error())
 	if err != nil {
+		r.l.Error("failed to start transaction", "err", err.Error())
 		return err
 	}
 	defer func() {
+		r.l.Debug("transaction finished", "err", err.Error())
 		if err != nil {
+			r.l.Error("failed to commit transaction", "err", err.Error())
 			_ = tx.Rollback()
 		} else {
+			r.l.Debug("transaction committed")
 			err = tx.Commit()
 		}
 	}()
 
+	r.l.Debug("converting job to db row", "job", *job)
 	row := convertJobWithResToDB(job)
+	r.l.Debug("converted job to db row", "row", row)
 
+	r.l.Debug("updating job", "job", *job)
 	res, err := tx.NamedExecContext(ctx, updateJobQuery, row)
+	r.l.Debug("updated job", "res", res, "err", err.Error())
 	if err != nil {
+		r.l.Error("failed to update job", "err", err.Error())
 		return err
 	}
 
+	r.l.Debug("checking rows affected")
 	rowsAffected, err := res.RowsAffected()
+	r.l.Debug("rows affected", "rowsAffected", rowsAffected, "err", err.Error())
 	if err != nil {
+		r.l.Error("failed to check rows affected", "err", err.Error())
 		return err
 	}
+	r.l.Debug("сhecking if no rows affected", "is", rowsAffected == 0)
 	if rowsAffected == 0 {
+		r.l.Error("failed to update job", "jobID", job.ID(), "err", err.Error())
 		return fmt.Errorf("%w Update: cannot update job with id: %d", scripts.ErrJobNotFound, job.ID())
 	}
 
+	r.l.Debug("deleting fields", "jobID", job.ID(), "field", "in")
 	_, err = tx.ExecContext(ctx, deleteFieldsQuery, job.ID(), "in")
+	r.l.Debug("deleted fields", "err", err.Error())
 	if err != nil {
+		r.l.Error("failed to delete fields", "err", err.Error())
 		return err
 	}
 
+	r.l.Debug("inserting fields", "jobID", job.ID(), "field", "in")
 	if err := insertValuesTx(ctx, tx, int64(job.ID()), int64(job.ScriptID()), job.Input(), "in"); err != nil {
+		r.l.Error("failed to insert fields", "err", err.Error())
 		return err
 	}
+	r.l.Debug("inserted fields", "err", err.Error())
 
+	r.l.Debug("gettingjob result")
 	jobRes, err := job.Result()
+	r.l.Debug("job result", "jobRes", jobRes, "err", err.Error())
 	if err != nil {
 		if errors.Is(err, scripts.ErrJobIsNotFinished) {
+			r.l.Info("job is not finished")
 			return nil
 		}
+		r.l.Error("failed to get job result", "err", err.Error())
 		return err
 	}
 
+	r.l.Debug("job result", "jobRes", jobRes)
 	if jobRes == nil {
+		r.l.Info("job result is nil")
 		return nil
 	}
+	r.l.Debug("deleting fields", "jobID", job.ID(), "field", "out")
 	_, err = tx.ExecContext(ctx, deleteFieldsQuery, job.ID(), "out")
+	r.l.Debug("deleted fields", "err", err.Error())
 	if err != nil {
+		r.l.Error("failed to delete fields", "err", err.Error())
 		return err
 	}
 
+	r.l.Debug("inserting fields", "jobID", job.ID(), "field", "out")
 	if err := insertValuesTx(ctx, tx, int64(job.ID()), int64(job.ScriptID()), jobRes.Output(), "out"); err != nil {
+		r.l.Error("failed to insert fields", "err", err.Error())
 		return err
 	}
+	r.l.Debug("inserted fields", "err", err.Error())
 
 	return nil
 }
@@ -246,48 +331,69 @@ const userJobsWithStateQuery = `
 	`
 
 func (r *JobRepo) UserJobs(ctx context.Context, userID scripts.UserID) ([]scripts.Job, error) {
-
+	r.l.Debug("getting user jobs", "userID", userID, "ctx", ctx)
 	var jobRows []JobRow
+	r.l.Debug("user jobs query", "userID", userID, "ctx", ctx)
 	if err := r.db.SelectContext(ctx, &jobRows, userJobsQuery, userID); err != nil {
+		r.l.Error("failed to get user jobs", "err", err.Error())
 		return nil, fmt.Errorf("UserJobs: %w", err)
 	}
+	r.l.Debug("user jobs", "jobRows count", len(jobRows))
 
 	return r.buildJobsFromRows(ctx, jobRows)
 }
 
 func (r *JobRepo) UserJobsWithState(ctx context.Context, userID scripts.UserID, jobState scripts.JobState) ([]scripts.Job, error) {
-
+	r.l.Debug("getting user jobs with state", "userID", userID, "jobState", jobState, "ctx", ctx)
 	var jobRows []JobRow
+	r.l.Debug("user jobs with state query")
 	if err := r.db.SelectContext(ctx, &jobRows, userJobsWithStateQuery, userID, jobState.String()); err != nil {
+		r.l.Error("failed to get user jobs with state", "err", err.Error())
 		return nil, err
 	}
 
+	r.l.Debug("user jobs with state", "jobRows count", len(jobRows))
 	return r.buildJobsFromRows(ctx, jobRows)
 }
 
 func (r *JobRepo) buildJobsFromRows(ctx context.Context, rows []JobRow) ([]scripts.Job, error) {
+	r.l.Debug("building jobs from rows", "rows count", len(rows), "ctx", ctx)
 	var jobs []scripts.Job
 
 	for _, jr := range rows {
+		r.l.Debug("building job from row", "row", jr)
 		inputValues, outputValues, err := getJobValues(ctx, r.db, jr.ID)
+		r.l.Debug("got job values", "err", err.Error())
 		if err != nil {
+			r.l.Error("failed to get job values", "err", err.Error())
 			return nil, fmt.Errorf("buildJobsFromRows: getJobValues: %w", err)
 		}
 
 		var result *scripts.Result
+		r.l.Debug("creating result", "result", *result)
+		r.l.Debug("is needed to restore", "is", jr.StatusCode != nil)
 		if jr.StatusCode != nil {
 			result = scripts.RestoreResult(outputValues, scripts.StatusCode(*jr.StatusCode), jr.ErrorMessage)
+			r.l.Debug("creating result", "result", *result)
 		}
 
 		var outFields []fieldRow
+		r.l.Debug("getting fields", "ctx", ctx)
 		err = r.db.SelectContext(ctx, &outFields, getFieldsQuery, jr.ScriptID, "out")
+		r.l.Debug("got fields", "err", err.Error())
 		if err != nil {
+			r.l.Error("failed to get fields", "err", err.Error())
 			return nil, fmt.Errorf("buildJobsFromRows: SelectContext: %w", err)
 		}
+
+		r.l.Debug("converting fields to domain", "fields", outFields)
 		outputs, err := convertFieldRowsToDomain(outFields)
+		r.l.Debug("converted fields to domain", "err", err.Error())
 		if err != nil {
+			r.l.Error("failed to convert fields to domain", "err", err.Error())
 			return nil, fmt.Errorf("buildJobsFromRows: convertFieldRowsToDomain: %w", err)
 		}
+		r.l.Debug("restoring job", "jobID", jr.ID)
 		job, err := scripts.RestoreJob(
 			jr.ID,
 			jr.OwnerID,
@@ -300,12 +406,15 @@ func (r *JobRepo) buildJobsFromRows(ctx context.Context, rows []JobRow) ([]scrip
 			jr.StartedAt,
 			jr.ClosedAt,
 		)
+		r.l.Debug("restored job", "job", *job)
 		if err != nil {
+			r.l.Error("failed to restore job", "err", err.Error())
 			return nil, fmt.Errorf("buildJobsFromRows: RestoreJob: %w", err)
 		}
 		jobs = append(jobs, *job)
 	}
 
+	r.l.Debug("returning jobs", "jobs count", len(jobs))
 	return jobs, nil
 }
 
@@ -383,7 +492,7 @@ type JobRow struct {
 	ErrorMessage *string    `db:"error_message"`
 }
 
-func convertJobPrototipeToDB(j *scripts.JobPrototype) JobRow {
+func convertJobPrototypeToDB(j *scripts.JobPrototype) JobRow {
 	return JobRow{
 		OwnerID:   int64(j.OwnerID()),
 		ScriptID:  int64(j.ScriptID()),

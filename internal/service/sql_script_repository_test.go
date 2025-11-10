@@ -23,7 +23,7 @@ func setUpScriptRepository() (*service.ScriptRepo, error) {
 		return nil, err
 	}
 
-	return service.NewScriptRepository(db), err
+	return service.NewScriptRepository(db, nil), err
 }
 
 func testScriptRepository(t *testing.T) {

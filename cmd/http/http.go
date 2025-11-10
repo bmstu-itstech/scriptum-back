@@ -73,14 +73,14 @@ func main() {
 	db.SetMaxIdleConns(25)
 	db.SetConnMaxLifetime(5 * time.Minute)
 
-	jobRepo := service.NewJobRepository(db)
-	scriptRepo := service.NewScriptRepository(db)
-	fileRepo := service.NewFileRepository(db)
+	jobRepo := service.NewJobRepository(db, l)
+	scriptRepo := service.NewScriptRepository(db, l)
+	fileRepo := service.NewFileRepository(db, l)
 	var MaxFileSize int64 = 4 << 10
 	if os.Getenv("SCRIPTS_DIR") == "" {
 		log.Fatalf("SCRIPTS_DIR is empty")
 	}
-	systemManager, err := service.NewSystemManager(os.Getenv("SCRIPTS_DIR"), MaxFileSize)
+	systemManager, err := service.NewSystemManager(os.Getenv("SCRIPTS_DIR"), MaxFileSize, l)
 	if err != nil {
 		log.Fatalf("failed get system manager: %s", err.Error())
 	}
@@ -88,7 +88,7 @@ func main() {
 	logger := sl.NewWatermillLoggerAdapter(l)
 	pubsub := gochannel.NewGoChannel(gochannel.Config{}, logger)
 
-	dispatcher, err := service.NewLauncher(pubsub)
+	dispatcher, err := service.NewLauncher(pubsub, l)
 	if err != nil {
 		log.Fatalf("failed get launcher: %s", err.Error())
 	}
@@ -128,7 +128,7 @@ func main() {
 		StartJob:      app.NewJobStartUC(scriptRepo, fileRepo, jobRepo, dispatcher, systemManager, pythonLauncher, l),
 		GetJob:        app.NewGetJobUC(jobRepo, userProv, scriptRepo, l),
 		GetJobs:       app.NewGetJobsUC(jobRepo, userProv, scriptRepo, l),
-		GetScriptByID: app.NewGetScript(scriptRepo, l),
+		GetScriptByID: app.NewGetScriptUC(scriptRepo, l),
 		GetScripts:    app.NewGetScriptsUС(scriptRepo, userProv, l),
 		SearchJob:     app.NewSearchJobsUC(jobRepo, userProv, scriptRepo, l),
 		CreateFile:    app.NewFileCreateUC(userProv, fileRepo, systemManager, l),

@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -25,11 +27,16 @@ type WJob struct {
 
 type LaunchPublisher struct {
 	publisher message.Publisher
+	l         *slog.Logger
 }
 
-func NewLauncher(publisher message.Publisher) (*LaunchPublisher, error) {
+func NewLauncher(publisher message.Publisher, l *slog.Logger) (*LaunchPublisher, error) {
+	if l == nil {
+		return nil, fmt.Errorf("logger is nil")
+	}
 	return &LaunchPublisher{
 		publisher: publisher,
+		l:         l,
 	}, nil
 }
 
@@ -73,12 +80,17 @@ func marshalJob(job scripts.Job, needToNotify bool) ([]byte, error) {
 }
 
 func (d *LaunchPublisher) Start(ctx context.Context, request *scripts.Job, needToNotify bool) error {
+	d.l.Info("starting job", "job", request.ID(), "needToNotify", needToNotify)
 	payload, err := marshalJob(*request, needToNotify)
+	d.l.Debug("created payload", "err", err.Error())
 	if err == nil {
+		d.l.Debug("publishing message", "payload", string(payload))
 		msg := message.NewMessage(uuid.NewString(), payload)
 		err = d.publisher.Publish("script-start", msg)
+		d.l.Debug("published message", "err", err.Error())
 	}
 
+	d.l.Debug("started job")
 	return err
 }
 
