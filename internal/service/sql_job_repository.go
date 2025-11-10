@@ -34,19 +34,19 @@ func (r *JobRepo) Create(ctx context.Context, job *scripts.JobPrototype) (*scrip
 	r.l.Info("create job", "job", *job)
 	r.l.Debug("begining transaction")
 	tx, err := r.db.BeginTxx(ctx, nil)
-	r.l.Debug("transaction started", "err", err.Error())
+	r.l.Debug("transaction started", "err", err)
 	if err != nil {
 		r.l.Error("failed to start transaction", "err", err.Error())
 		return nil, err
 	}
 	defer func() {
-		r.l.Debug("transaction finished", "err", err.Error())
+		r.l.Debug("transaction finished", "err", err)
 		if err != nil {
 			r.l.Error("failed to commit transaction", "err", err.Error())
 			_ = tx.Rollback()
 		} else {
 			err = tx.Commit()
-			r.l.Debug("transaction committed", "err", err.Error())
+			r.l.Debug("transaction committed", "err", err)
 		}
 	}()
 
@@ -54,7 +54,7 @@ func (r *JobRepo) Create(ctx context.Context, job *scripts.JobPrototype) (*scrip
 
 	r.l.Debug("creating job", "job", *job)
 	named, args, err := sqlx.Named(createJobQuery, convertJobPrototypeToDB(job))
-	r.l.Debug("named query", "named", named, "args", args, "err", err.Error())
+	r.l.Debug("named query", "named", named, "args", args, "err", err)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (r *JobRepo) Create(ctx context.Context, job *scripts.JobPrototype) (*scrip
 
 	r.l.Debug("executing query", "query", query, "args", args)
 	err = tx.QueryRowContext(ctx, query, args...).Scan(&jobID)
-	r.l.Debug("query executed", "err", err.Error())
+	r.l.Debug("query executed", "err", err)
 	if err != nil {
 		r.l.Error("failed to execute query", "err", err.Error())
 		return nil, err
@@ -84,7 +84,7 @@ func (r *JobRepo) Delete(ctx context.Context, jobID scripts.JobID) error {
 	r.l.Info("delete job", "jobID", jobID)
 	r.l.Debug("deleting job", "ctx", ctx)
 	result, err := r.db.ExecContext(ctx, deleteJobQuery, jobID)
-	r.l.Debug("deleted job", "result", result, "err", err.Error())
+	r.l.Debug("deleted job", "result", result, "err", err)
 	if err != nil {
 		r.l.Error("failed to delete job", "err", err.Error())
 		return err
@@ -92,14 +92,14 @@ func (r *JobRepo) Delete(ctx context.Context, jobID scripts.JobID) error {
 
 	r.l.Debug("rows affected")
 	rowsAffected, err := result.RowsAffected()
-	r.l.Debug("rows affected", "rowsAffected", rowsAffected, "err", err.Error())
+	r.l.Debug("rows affected", "rowsAffected", rowsAffected, "err", err)
 	if err != nil {
 		return err
 	}
 
 	r.l.Debug("check if no rows affected", "is", rowsAffected == 0)
 	if rowsAffected == 0 {
-		r.l.Error("failed to delete job", "jobID", jobID, "err", err.Error())
+		r.l.Error("failed to delete job", "jobID", jobID)
 		return fmt.Errorf("%w Delete: cannot delete job with id: %d", scripts.ErrJobNotFound, jobID)
 	}
 
@@ -122,7 +122,7 @@ func (r *JobRepo) Job(ctx context.Context, jobID scripts.JobID) (*scripts.Job, e
 	var jobRow JobRow
 	r.l.Debug("getting job", "ctx", ctx)
 	err := r.db.GetContext(ctx, &jobRow, getJobQuery, jobID)
-	r.l.Debug("got job", "jobRow", jobRow, "err", err.Error())
+	r.l.Debug("got job", "jobRow", jobRow, "err", err)
 	if err != nil {
 		r.l.Error("failed to get job", "err", err.Error())
 		if errors.Is(err, sql.ErrNoRows) {
@@ -140,7 +140,7 @@ func (r *JobRepo) Job(ctx context.Context, jobID scripts.JobID) (*scripts.Job, e
 
 	r.l.Debug("getting job values", "ctx", ctx)
 	inputValues, outputValues, err := getJobValues(ctx, r.db, jobRow.ID)
-	r.l.Debug("got job values", "inputValues", inputValues, "outputValues", outputValues, "err", err.Error())
+	r.l.Debug("got job values", "inputValues", inputValues, "outputValues", outputValues, "err", err)
 	if err != nil {
 		r.l.Error("failed to get job values", "err", err.Error())
 		return nil, err
@@ -157,14 +157,14 @@ func (r *JobRepo) Job(ctx context.Context, jobID scripts.JobID) (*scripts.Job, e
 	r.l.Debug("getting output fields", "ctx", ctx)
 	var outFields []fieldRow
 	err = r.db.SelectContext(ctx, &outFields, getFieldsQuery, jobRow.ScriptID, "out")
-	r.l.Debug("got output fields", "outFields", outFields, "err", err.Error())
+	r.l.Debug("got output fields", "outFields", outFields, "err", err)
 	if err != nil {
 		r.l.Error("failed to get output fields", "err", err.Error())
 		return nil, err
 	}
 	r.l.Debug("converting output fields", "outFields", outFields)
 	outputs, err := convertFieldRowsToDomain(outFields)
-	r.l.Debug("converted output fields", "outputs", outputs, "err", err.Error())
+	r.l.Debug("converted output fields", "outputs", outputs, "err", err)
 	if err != nil {
 		r.l.Error("failed to convert output fields", "err", err.Error())
 		return nil, err
@@ -183,7 +183,7 @@ func (r *JobRepo) Job(ctx context.Context, jobID scripts.JobID) (*scripts.Job, e
 		jobRow.StartedAt,
 		jobRow.ClosedAt,
 	)
-	r.l.Debug("restored job", "job", *job, "err", err.Error())
+	r.l.Debug("restored job", "job", *job, "err", err)
 	if err != nil {
 		r.l.Error("failed to restore job", "err", err.Error())
 		return nil, err
@@ -219,13 +219,13 @@ func (r *JobRepo) Update(ctx context.Context, job *scripts.Job) (err error) {
 
 	r.l.Debug("beginning transaction")
 	tx, err := r.db.BeginTxx(ctx, nil)
-	r.l.Debug("transaction started", "err", err.Error())
+	r.l.Debug("transaction started", "err", err)
 	if err != nil {
 		r.l.Error("failed to start transaction", "err", err.Error())
 		return err
 	}
 	defer func() {
-		r.l.Debug("transaction finished", "err", err.Error())
+		r.l.Debug("transaction finished", "err", err)
 		if err != nil {
 			r.l.Error("failed to commit transaction", "err", err.Error())
 			_ = tx.Rollback()
@@ -241,7 +241,7 @@ func (r *JobRepo) Update(ctx context.Context, job *scripts.Job) (err error) {
 
 	r.l.Debug("updating job", "job", *job)
 	res, err := tx.NamedExecContext(ctx, updateJobQuery, row)
-	r.l.Debug("updated job", "res", res, "err", err.Error())
+	r.l.Debug("updated job", "res", res, "err", err)
 	if err != nil {
 		r.l.Error("failed to update job", "err", err.Error())
 		return err
@@ -249,7 +249,7 @@ func (r *JobRepo) Update(ctx context.Context, job *scripts.Job) (err error) {
 
 	r.l.Debug("checking rows affected")
 	rowsAffected, err := res.RowsAffected()
-	r.l.Debug("rows affected", "rowsAffected", rowsAffected, "err", err.Error())
+	r.l.Debug("rows affected", "rowsAffected", rowsAffected, "err", err)
 	if err != nil {
 		r.l.Error("failed to check rows affected", "err", err.Error())
 		return err
@@ -262,7 +262,7 @@ func (r *JobRepo) Update(ctx context.Context, job *scripts.Job) (err error) {
 
 	r.l.Debug("deleting fields", "jobID", job.ID(), "field", "in")
 	_, err = tx.ExecContext(ctx, deleteFieldsQuery, job.ID(), "in")
-	r.l.Debug("deleted fields", "err", err.Error())
+	r.l.Debug("deleted fields", "err", err)
 	if err != nil {
 		r.l.Error("failed to delete fields", "err", err.Error())
 		return err
@@ -273,11 +273,11 @@ func (r *JobRepo) Update(ctx context.Context, job *scripts.Job) (err error) {
 		r.l.Error("failed to insert fields", "err", err.Error())
 		return err
 	}
-	r.l.Debug("inserted fields", "err", err.Error())
+	r.l.Debug("inserted fields", "err", err)
 
 	r.l.Debug("gettingjob result")
 	jobRes, err := job.Result()
-	r.l.Debug("job result", "jobRes", jobRes, "err", err.Error())
+	r.l.Debug("job result", "jobRes", jobRes, "err", err)
 	if err != nil {
 		if errors.Is(err, scripts.ErrJobIsNotFinished) {
 			r.l.Info("job is not finished")
@@ -294,7 +294,7 @@ func (r *JobRepo) Update(ctx context.Context, job *scripts.Job) (err error) {
 	}
 	r.l.Debug("deleting fields", "jobID", job.ID(), "field", "out")
 	_, err = tx.ExecContext(ctx, deleteFieldsQuery, job.ID(), "out")
-	r.l.Debug("deleted fields", "err", err.Error())
+	r.l.Debug("deleted fields", "err", err)
 	if err != nil {
 		r.l.Error("failed to delete fields", "err", err.Error())
 		return err
@@ -305,7 +305,7 @@ func (r *JobRepo) Update(ctx context.Context, job *scripts.Job) (err error) {
 		r.l.Error("failed to insert fields", "err", err.Error())
 		return err
 	}
-	r.l.Debug("inserted fields", "err", err.Error())
+	r.l.Debug("inserted fields", "err", err)
 
 	return nil
 }
@@ -363,14 +363,14 @@ func (r *JobRepo) buildJobsFromRows(ctx context.Context, rows []JobRow) ([]scrip
 	for _, jr := range rows {
 		r.l.Debug("building job from row", "row", jr)
 		inputValues, outputValues, err := getJobValues(ctx, r.db, jr.ID)
-		r.l.Debug("got job values", "err", err.Error())
+		r.l.Debug("got job values", "err", err)
 		if err != nil {
 			r.l.Error("failed to get job values", "err", err.Error())
 			return nil, fmt.Errorf("buildJobsFromRows: getJobValues: %w", err)
 		}
 
 		var result *scripts.Result
-		r.l.Debug("creating result", "result", *result)
+		r.l.Debug("creating result")
 		r.l.Debug("is needed to restore", "is", jr.StatusCode != nil)
 		if jr.StatusCode != nil {
 			result = scripts.RestoreResult(outputValues, scripts.StatusCode(*jr.StatusCode), jr.ErrorMessage)
@@ -380,7 +380,7 @@ func (r *JobRepo) buildJobsFromRows(ctx context.Context, rows []JobRow) ([]scrip
 		var outFields []fieldRow
 		r.l.Debug("getting fields", "ctx", ctx)
 		err = r.db.SelectContext(ctx, &outFields, getFieldsQuery, jr.ScriptID, "out")
-		r.l.Debug("got fields", "err", err.Error())
+		r.l.Debug("got fields", "err", err)
 		if err != nil {
 			r.l.Error("failed to get fields", "err", err.Error())
 			return nil, fmt.Errorf("buildJobsFromRows: SelectContext: %w", err)
@@ -388,7 +388,7 @@ func (r *JobRepo) buildJobsFromRows(ctx context.Context, rows []JobRow) ([]scrip
 
 		r.l.Debug("converting fields to domain", "fields", outFields)
 		outputs, err := convertFieldRowsToDomain(outFields)
-		r.l.Debug("converted fields to domain", "err", err.Error())
+		r.l.Debug("converted fields to domain", "err", err)
 		if err != nil {
 			r.l.Error("failed to convert fields to domain", "err", err.Error())
 			return nil, fmt.Errorf("buildJobsFromRows: convertFieldRowsToDomain: %w", err)

@@ -51,13 +51,13 @@ func (r *ScriptRepo) Update(ctx context.Context, script *scripts.Script) error {
 		return err
 	}
 	defer func() {
-		r.l.Debug("transaction finished", "err", err.Error())
+		r.l.Debug("transaction finished", "err", err)
 		if err != nil {
 			r.l.Error("failed to commit transaction", "err", err.Error())
 			_ = tx.Rollback()
 		} else {
 			err = tx.Commit()
-			r.l.Debug("transaction committed", "err", err.Error())
+			r.l.Debug("transaction committed", "err", err)
 		}
 	}()
 
@@ -88,7 +88,7 @@ func (r *ScriptRepo) Update(ctx context.Context, script *scripts.Script) error {
 
 	r.l.Debug("deleting script fields", "script id", script.ID())
 	_, err = tx.ExecContext(ctx, `DELETE FROM script_fields WHERE script_id = $1`, script.ID())
-	r.l.Debug("deleted script fields", "err", err.Error())
+	r.l.Debug("deleted script fields", "err", err)
 	if err != nil {
 		r.l.Error("failed to delete script fields", "err", err.Error())
 		return err
@@ -99,13 +99,13 @@ func (r *ScriptRepo) Update(ctx context.Context, script *scripts.Script) error {
 		r.l.Error("failed to insert script fields", "err", err.Error())
 		return err
 	}
-	r.l.Debug("inserted script input", "err", err.Error())
+	r.l.Debug("inserted script input", "err", err)
 	r.l.Debug("inserting script output", "script id", script.ID())
 	if err = insertFieldsTx(ctx, tx, int64(script.ID()), script.Output(), "out"); err != nil {
 		r.l.Error("failed to insert script output", "err", err.Error())
 		return err
 	}
-	r.l.Debug("inserted script output", "err", err.Error())
+	r.l.Debug("inserted script output", "err", err)
 
 	r.l.Debug("script updated")
 	return nil
@@ -114,19 +114,19 @@ func (r *ScriptRepo) Update(ctx context.Context, script *scripts.Script) error {
 func (r *ScriptRepo) Create(ctx context.Context, script *scripts.ScriptPrototype) (*scripts.Script, error) {
 	r.l.Debug("creating script")
 	tx, err := r.db.BeginTxx(ctx, nil)
-	r.l.Debug("transaction started", "err", err.Error())
+	r.l.Debug("transaction started", "err", err)
 	if err != nil {
 		r.l.Error("failed to start transaction", "err", err.Error())
 		return nil, err
 	}
 	defer func() {
-		r.l.Debug("transaction finished", "err", err.Error())
+		r.l.Debug("transaction finished", "err", err)
 		if err != nil {
 			r.l.Error("transaction failed", "err", err.Error())
 			_ = tx.Rollback()
 		} else {
 			err = tx.Commit()
-			r.l.Debug("transaction committed", "err", err.Error())
+			r.l.Debug("transaction committed", "err", err)
 		}
 	}()
 
@@ -134,7 +134,7 @@ func (r *ScriptRepo) Create(ctx context.Context, script *scripts.ScriptPrototype
 
 	r.l.Debug("to named query")
 	named, args, err := sqlx.Named(createScriptQuery, convertScriptPrototipeToDB(script))
-	r.l.Debug("named query", "err", err.Error())
+	r.l.Debug("named query", "err", err)
 	if err != nil {
 		r.l.Error("failed to create named query", "err", err.Error())
 		return nil, err
@@ -143,7 +143,7 @@ func (r *ScriptRepo) Create(ctx context.Context, script *scripts.ScriptPrototype
 
 	r.l.Debug("getting script id", "ctx", ctx)
 	err = tx.QueryRowContext(ctx, query, args...).Scan(&scriptID)
-	r.l.Debug("script id", "scriptID", scriptID, "err", err.Error())
+	r.l.Debug("script id", "scriptID", scriptID, "err", err)
 	if err != nil {
 		r.l.Error("failed to get script id", "err", err.Error())
 		return nil, err
@@ -168,7 +168,7 @@ func (r *ScriptRepo) Create(ctx context.Context, script *scripts.ScriptPrototype
 	}
 
 	scr, err := script.Build(scripts.ScriptID(scriptID))
-	r.l.Debug("script created", "err", err.Error(), "script", *scr)
+	r.l.Debug("script created", "err", err, "script", *scr)
 
 	return scr, err
 }
@@ -181,20 +181,20 @@ const createScriptWithIDQuery = `
 
 func (r *ScriptRepo) Restore(ctx context.Context, script *scripts.Script) (*scripts.Script, error) {
 	tx, err := r.db.BeginTxx(ctx, nil)
-	r.l.Debug("transaction started", "err", err.Error())
+	r.l.Debug("transaction started", "err", err)
 	if err != nil {
 		r.l.Error("failed to start transaction", "err", err.Error())
 		return nil, err
 	}
 
 	defer func() {
-		r.l.Debug("transaction committed", "err", err.Error())
+		r.l.Debug("transaction committed", "err", err)
 		if err != nil {
 			r.l.Error("failed to commit transaction", "err", err.Error())
 			_ = tx.Rollback()
 		} else {
 			err = tx.Commit()
-			r.l.Info("transaction committed", "err", err.Error())
+			r.l.Info("transaction committed", "err", err)
 		}
 	}()
 
@@ -211,7 +211,7 @@ func (r *ScriptRepo) Restore(ctx context.Context, script *scripts.Script) (*scri
 	var scriptID int64
 	r.l.Debug("getting script id")
 	err = tx.QueryRowContext(ctx, named, args...).Scan(&scriptID)
-	r.l.Debug("script id", "err", err.Error(), "scriptID", scriptID)
+	r.l.Debug("script id", "err", err, "scriptID", scriptID)
 	if err != nil {
 		r.l.Error("failed to get script id", "err", err.Error())
 		return nil, err
@@ -234,7 +234,7 @@ func (r *ScriptRepo) Restore(ctx context.Context, script *scripts.Script) (*scri
 	}
 
 	scr, err := script.Build(scripts.ScriptID(scriptID))
-	r.l.Debug("script built", "err", err.Error(), "script", *scr)
+	r.l.Debug("script built", "err", err, "script", *scr)
 	return scr, err
 }
 
@@ -257,9 +257,9 @@ func (r *ScriptRepo) Script(ctx context.Context, id scripts.ScriptID) (scripts.S
 
 	r.l.Debug("getting script from database", "id", id)
 	err := r.db.GetContext(ctx, &scriptRaw, getScriptQuery, id)
-	r.l.Debug("script from database", "err", err.Error(), "script", scriptRaw)
+	r.l.Debug("script from database", "err", err, "script", scriptRaw)
 	if err != nil {
-		r.l.Debug("script not found", "err", err.Error())
+		r.l.Debug("script not found", "err", err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return scripts.Script{}, scripts.ErrScriptNotFound
 		}
@@ -270,7 +270,7 @@ func (r *ScriptRepo) Script(ctx context.Context, id scripts.ScriptID) (scripts.S
 	var inFields []fieldRow
 	r.l.Debug("getting input fields", "id", id)
 	err = r.db.SelectContext(ctx, &inFields, getFieldsQuery, id, "in")
-	r.l.Debug("input fields", "err", err.Error(), "fields", inFields)
+	r.l.Debug("input fields", "err", err, "fields", inFields)
 	if err != nil {
 		r.l.Error("failed to get input fields", "err", err.Error())
 		return scripts.Script{}, err
@@ -279,7 +279,7 @@ func (r *ScriptRepo) Script(ctx context.Context, id scripts.ScriptID) (scripts.S
 	var outFields []fieldRow
 	r.l.Debug("getting output fields", "id", id)
 	err = r.db.SelectContext(ctx, &outFields, getFieldsQuery, id, "out")
-	r.l.Debug("output fields", "err", err.Error(), "fields", outFields)
+	r.l.Debug("output fields", "err", err, "fields", outFields)
 	if err != nil {
 		r.l.Error("failed to get output fields", "err", err.Error())
 		return scripts.Script{}, err
@@ -405,7 +405,7 @@ func (r *ScriptRepo) SearchPublicScripts(ctx context.Context, substr string) ([]
 func (r *ScriptRepo) searchScriptsByUser(ctx context.Context, substr string, userID scripts.UserID) ([]scripts.Script, error) {
 	r.l.Debug("searching scripts by user", "userID", userID, "substr", substr, "ctx", ctx)
 	var scriptsRows []scriptRow
-	r.l.Debug("executing query", "query", searchUserQuery, "args", substr, userID)
+	r.l.Debug("executing query", "query", searchUserQuery, "args", substr)
 	err := r.db.SelectContext(ctx, &scriptsRows, searchUserQuery, substr, userID)
 	if err != nil {
 		r.l.Error("failed to execute query", "err", err.Error())
@@ -443,7 +443,7 @@ func (r *ScriptRepo) buildScriptsFromRows(ctx context.Context, scriptsRows []scr
 	scriptsResult := make([]scripts.Script, 0, len(scriptsRows))
 	for _, sRow := range scriptsRows {
 		var inFields []fieldRow
-		r.l.Debug("executing query", "query", getFieldsQuery, "args", sRow.ID, "in")
+		r.l.Debug("executing query", "query", getFieldsQuery, "args", sRow.ID)
 		err := r.db.SelectContext(ctx, &inFields, getFieldsQuery, sRow.ID, "in")
 		if err != nil {
 			r.l.Error("failed to execute query", "err", err.Error())
@@ -451,7 +451,7 @@ func (r *ScriptRepo) buildScriptsFromRows(ctx context.Context, scriptsRows []scr
 		}
 
 		var outFields []fieldRow
-		r.l.Debug("executing query", "query", getFieldsQuery, "args", sRow.ID, "out")
+		r.l.Debug("executing query", "query", getFieldsQuery, "args", sRow.ID)
 		err = r.db.SelectContext(ctx, &outFields, getFieldsQuery, sRow.ID, "out")
 		if err != nil {
 			r.l.Error("failed to execute query", "err", err.Error())
@@ -507,7 +507,7 @@ func (r *ScriptRepo) buildScriptsFromRows(ctx context.Context, scriptsRows []scr
 			extraFiles,
 			sRow.CreatedAt,
 		)
-		r.l.Debug("restored script", "script", *script, "err", err.Error())
+		r.l.Debug("restored script", "err", err)
 		if err != nil {
 			r.l.Error("failed to restore script", "err", err.Error())
 			return nil, err

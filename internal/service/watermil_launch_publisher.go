@@ -82,12 +82,12 @@ func marshalJob(job scripts.Job, needToNotify bool) ([]byte, error) {
 func (d *LaunchPublisher) Start(ctx context.Context, request *scripts.Job, needToNotify bool) error {
 	d.l.Info("starting job", "job", request.ID(), "needToNotify", needToNotify)
 	payload, err := marshalJob(*request, needToNotify)
-	d.l.Debug("created payload", "err", err.Error())
+	d.l.Debug("created payload", "err", err)
 	if err == nil {
 		d.l.Debug("publishing message", "payload", string(payload))
 		msg := message.NewMessage(uuid.NewString(), payload)
 		err = d.publisher.Publish("script-start", msg)
-		d.l.Debug("published message", "err", err.Error())
+		d.l.Debug("published message", "err", err)
 	}
 
 	d.l.Debug("started job")

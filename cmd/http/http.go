@@ -21,7 +21,8 @@ import (
 )
 
 func main() {
-	l := logs.NewLogger("prod")
+	l := logs.NewLogger("dev")
+	log.Println("ok")
 	ctx := context.Background()
 
 	if os.Getenv("EMAIL_PORT") == "" {

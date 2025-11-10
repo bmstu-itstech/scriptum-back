@@ -29,7 +29,7 @@ func (u *GetJobUC) Job(ctx context.Context, userID uint32, jobID int64) (JobDTO,
 
 	u.logger.Debug("get job from repository", "jobID", jobID)
 	job, err := u.jobR.Job(ctx, scripts.JobID(jobID))
-	u.logger.Debug("got job", "job", *job, "err", err.Error())
+	u.logger.Debug("got job", "job", *job, "err", err)
 	if err != nil {
 		u.logger.Error("failed to get job", "err", err.Error())
 		return JobDTO{}, err
@@ -45,7 +45,7 @@ func (u *GetJobUC) Job(ctx context.Context, userID uint32, jobID int64) (JobDTO,
 
 	u.logger.Debug("get script from repository", "job", *job)
 	script, err := u.scriptR.Script(ctx, job.ScriptID())
-	u.logger.Debug("got script", "script", script, "err", err.Error())
+	u.logger.Debug("got script", "script", script, "err", err)
 	if err != nil {
 		u.logger.Error("failed to get job", "err", err.Error())
 		return JobDTO{}, err

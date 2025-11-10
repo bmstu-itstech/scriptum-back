@@ -33,20 +33,20 @@ func (f *FileRepo) File(ctx context.Context, fileID scripts.FileID) (*scripts.Fi
 	if err != nil {
 		f.l.Error("get file", "err", err.Error())
 		if errors.Is(err, sql.ErrNoRows) {
-
+			f.l.Error("get file no rows", "err", err.Error())
 			return nil, fmt.Errorf("%w File: cannot extract file with id: %d", scripts.ErrFileNotFound, fileID)
 		}
 		return nil, err
 	}
 
-	f.l.Debug("get file", "fileID", fileID, "fileRow", fileRow)
+	f.l.Debug("create file", "fileID", fileID, "fileRow", fileRow)
 	file, err := scripts.NewFile(fileID, fileRow.URL)
 	if err != nil {
 		f.l.Error("get file", "err", err.Error())
 		return nil, err
 	}
 
-	f.l.Info("get file", "fileID", fileID, "file", *file)
+	f.l.Info("created file", "fileID", fileID, "file", *file)
 	return file, nil
 }
 
@@ -87,7 +87,7 @@ func (f *FileRepo) Restore(ctx context.Context, file *scripts.File) (scripts.Fil
 	}
 	f.l.Debug("check if file id matches got id", "is", fileID == int64(file.ID()))
 	if fileID != int64(file.ID()) {
-		f.l.Error("restore file", "err", err.Error())
+		f.l.Error("restore file")
 		return 0, fmt.Errorf("%w Restore: cannot restore file with id: %d: file ids do not match", scripts.ErrFileNotFound, file.ID())
 	}
 
@@ -108,7 +108,7 @@ func (f *FileRepo) Delete(ctx context.Context, fileID scripts.ScriptID) error {
 
 	f.l.Debug("check if file was deleted")
 	rowsAffected, err := result.RowsAffected()
-	f.l.Debug("check if file was deleted", "rowsAffected", rowsAffected, "err", err.Error())
+	f.l.Debug("check if file was deleted", "rowsAffected", rowsAffected, "err", err)
 	if err != nil {
 		f.l.Error("failed to check if file was deleted", "err", err.Error())
 		return err
@@ -116,7 +116,7 @@ func (f *FileRepo) Delete(ctx context.Context, fileID scripts.ScriptID) error {
 
 	f.l.Debug("check if no rows affected", "is", rowsAffected == 0)
 	if rowsAffected == 0 {
-		f.l.Error("failed to delete file", "file id", fileID, "err", err.Error())
+		f.l.Error("failed to delete file", "file id", fileID)
 		return fmt.Errorf("%w Delete: cannot delete file with id: %d", scripts.ErrFileNotFound, fileID)
 	}
 

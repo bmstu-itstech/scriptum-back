@@ -41,7 +41,7 @@ func (l *JobRunUC) Run(ctx context.Context, req JobDTO) error {
 	l.logger.Info("running job", "req", req)
 	l.logger.Debug("converting dto to job", "req", req, "ctx", ctx)
 	job, err := DTOToJob(req)
-	l.logger.Debug("converted job", "job", job, "err", err.Error())
+	l.logger.Debug("converted job", "job", job, "err", err)
 	if err != nil {
 		l.logger.Error("failed to run job", "err", err.Error())
 		return err
@@ -49,7 +49,7 @@ func (l *JobRunUC) Run(ctx context.Context, req JobDTO) error {
 
 	l.logger.Debug("running job", "job", job)
 	err = job.Run()
-	l.logger.Debug("job finished", "err", err.Error())
+	l.logger.Debug("job finished", "err", err)
 	if err != nil {
 		l.logger.Error("failed to run job", "err", err.Error())
 		return err
@@ -57,7 +57,7 @@ func (l *JobRunUC) Run(ctx context.Context, req JobDTO) error {
 
 	l.logger.Debug("updating job to \"running\"", "job", job)
 	err = l.jobR.Update(ctx, job)
-	l.logger.Debug("updated job", "err", err.Error())
+	l.logger.Debug("updated job", "err", err)
 	if err != nil {
 		l.logger.Error("failed to run job", "err", err.Error())
 		return err
@@ -65,7 +65,7 @@ func (l *JobRunUC) Run(ctx context.Context, req JobDTO) error {
 
 	l.logger.Debug("running job with Runner", "job", job)
 	res, err := l.runner.Run(ctx, job)
-	l.logger.Debug("runner finished", "res", res, "err", err.Error())
+	l.logger.Debug("runner finished", "res", res, "err", err)
 	if err != nil {
 		l.logger.Error("failed to run job", "err", err.Error())
 		return err
@@ -75,7 +75,7 @@ func (l *JobRunUC) Run(ctx context.Context, req JobDTO) error {
 
 	l.logger.Debug("finishing job", "job", job)
 	err = job.Finish(res)
-	l.logger.Debug("job finished", "err", err.Error())
+	l.logger.Debug("job finished", "err", err)
 	if err != nil {
 		l.logger.Error("failed to run job", "err", err.Error())
 		return err
@@ -83,7 +83,7 @@ func (l *JobRunUC) Run(ctx context.Context, req JobDTO) error {
 
 	l.logger.Debug("updating job to \"finished\"", "job", job)
 	err = l.jobR.Update(ctx, job)
-	l.logger.Debug("updated job", "err", err.Error())
+	l.logger.Debug("updated job", "err", err)
 	if err != nil {
 		l.logger.Error("failed to run job", "err", err.Error())
 		return err
@@ -91,7 +91,7 @@ func (l *JobRunUC) Run(ctx context.Context, req JobDTO) error {
 
 	l.logger.Debug("getting user", "job", job)
 	user, err := l.userP.User(ctx, job.OwnerID())
-	l.logger.Debug("got user", "user", user, "err", err.Error())
+	l.logger.Debug("got user", "user", user, "err", err)
 	if err != nil {
 		l.logger.Error("failed to run job", "err", err.Error())
 		return err
@@ -101,7 +101,7 @@ func (l *JobRunUC) Run(ctx context.Context, req JobDTO) error {
 	if req.NeedToNotify {
 		l.logger.Debug("notifying user", "user mail", user.Email(), "job", job)
 		err = l.notifier.Notify(ctx, job, user.Email())
-		l.logger.Debug("notified user", "err", err.Error())
+		l.logger.Debug("notified user", "err", err)
 		if err != nil {
 			l.logger.Error("failed to run job", "err", err.Error())
 			return err
@@ -110,7 +110,7 @@ func (l *JobRunUC) Run(ctx context.Context, req JobDTO) error {
 
 	l.logger.Debug("deleting sandbox", "url", req.Url)
 	err = l.runner.DeleteSandbox(ctx, req.Url)
-	l.logger.Debug("deleted sandbox", "err", err.Error())
+	l.logger.Debug("deleted sandbox", "err", err)
 	if err != nil {
 		l.logger.Error("failed to delete sandbox", "err", err.Error())
 		return err

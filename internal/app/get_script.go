@@ -22,7 +22,7 @@ func NewGetScriptUC(scriptR scripts.ScriptRepository, logger *slog.Logger) GetSc
 func (u *GetScriptUC) Script(ctx context.Context, actorID int64, scriptID int32) (ScriptDTO, error) {
 	u.logger.Info("get script", "scriptID", scriptID)
 	s, err := u.scriptR.Script(ctx, scripts.ScriptID(scriptID))
-	u.logger.Info("got script", "script", s, "err", err.Error())
+	u.logger.Info("got script", "script", s, "err", err)
 
 	if err != nil {
 		u.logger.Error("failed to get script", "err", err.Error())

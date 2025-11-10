@@ -25,7 +25,8 @@ func (u *GetScriptsUC) Scripts(ctx context.Context, userID uint32) ([]ScriptDTO,
 	u.logger.Info("get scripts for user", "userID", userID)
 	u.logger.Debug("get user", "userID", userID)
 	user, err := u.userP.User(ctx, scripts.UserID(userID))
-	u.logger.Debug("got user", "user", user, "err", err.Error())
+	u.logger.Debug("got user", "user", *user, "err", err)
+
 	if err != nil {
 		u.logger.Error("failed to get scripts for user", "err", err.Error())
 		return nil, err
@@ -33,7 +34,7 @@ func (u *GetScriptsUC) Scripts(ctx context.Context, userID uint32) ([]ScriptDTO,
 
 	u.logger.Debug("get public scripts", "userID", userID)
 	allScripts, err := u.scriptR.PublicScripts(ctx)
-	u.logger.Debug("got scripts", "public scripts count", len(allScripts), "err", err.Error())
+	u.logger.Debug("got scripts", "public scripts count", len(allScripts), "err", err)
 	if err != nil {
 		u.logger.Error("failed to get scripts for user", "err", err.Error())
 		return nil, err
@@ -44,7 +45,7 @@ func (u *GetScriptsUC) Scripts(ctx context.Context, userID uint32) ([]ScriptDTO,
 		u.logger.Debug("user is not admin")
 		u.logger.Debug("get user scripts", "userID", userID)
 		userScripts, err := u.scriptR.UserScripts(ctx, scripts.UserID(userID))
-		u.logger.Debug("got scripts", "user scripts count", len(userScripts), "err", err.Error())
+		u.logger.Debug("got scripts", "user scripts count", len(userScripts), "err", err)
 		if err != nil {
 			u.logger.Error("failed to get scripts for user", "err", err.Error())
 			return nil, err
@@ -55,9 +56,9 @@ func (u *GetScriptsUC) Scripts(ctx context.Context, userID uint32) ([]ScriptDTO,
 
 	dto := make([]ScriptDTO, 0, len(allScripts))
 	for _, s := range allScripts {
-		u.logger.Debug("convert script to dto", "script", s)
+		u.logger.Debug("convert script to dto")
 		script, err := ScriptToDTO(s)
-		u.logger.Debug("got dto", "dto", script, "err", err.Error())
+		u.logger.Debug("got dto", "dto", script, "err", err)
 		if err != nil {
 			u.logger.Error("failed to get scripts for user", "err", err.Error())
 			return nil, err

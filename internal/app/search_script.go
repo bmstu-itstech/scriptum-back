@@ -26,7 +26,7 @@ func (u *SearchScriptsUC) Search(ctx context.Context, userID uint32, substr stri
 
 	u.logger.Debug("getting user", "userID", userID, "ctx", ctx)
 	user, err := u.userP.User(ctx, scripts.UserID(userID))
-	u.logger.Debug("got user", "user", user, "err", err.Error())
+	u.logger.Debug("got user", "user", user, "err", err)
 	if err != nil {
 		u.logger.Error("failed to search script", "err", err.Error())
 		return nil, err
@@ -34,7 +34,7 @@ func (u *SearchScriptsUC) Search(ctx context.Context, userID uint32, substr stri
 
 	u.logger.Debug("searching public scripts", "substr", substr)
 	allScripts, err := u.scriptR.SearchPublicScripts(ctx, substr)
-	u.logger.Debug("got scripts", "scripts count", len(allScripts), "err", err.Error())
+	u.logger.Debug("got scripts", "scripts count", len(allScripts), "err", err)
 	if err != nil {
 		u.logger.Error("failed to search script", "err", err.Error())
 		return nil, err
@@ -44,7 +44,7 @@ func (u *SearchScriptsUC) Search(ctx context.Context, userID uint32, substr stri
 	if !user.IsAdmin() {
 		u.logger.Debug("searching user scripts", "substr", substr)
 		userScripts, err := u.scriptR.SearchUserScripts(ctx, scripts.UserID(userID), substr)
-		u.logger.Debug("got scripts", "scripts count", len(userScripts), "err", err.Error())
+		u.logger.Debug("got scripts", "scripts count", len(userScripts), "err", err)
 		if err != nil {
 			u.logger.Error("failed to search script", "err", err.Error())
 			return nil, err
@@ -57,7 +57,7 @@ func (u *SearchScriptsUC) Search(ctx context.Context, userID uint32, substr stri
 	for _, s := range allScripts {
 		u.logger.Debug("converting script to DTO", "script", s)
 		script, err := ScriptToDTO(s)
-		u.logger.Debug("got DTO", "script", script, "err", err.Error())
+		u.logger.Debug("got DTO", "script", script, "err", err)
 		if err != nil {
 			u.logger.Error("failed to search script", "err", err.Error())
 			return nil, err

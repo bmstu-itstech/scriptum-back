@@ -37,7 +37,7 @@ func (s *SystemManager) Save(_ context.Context, name string, content io.Reader) 
 
 	s.l.Debug("creating dir")
 	err := os.MkdirAll(dirName, 0755)
-	s.l.Debug("created dir", "err", err.Error())
+	s.l.Debug("created dir", "err", err)
 	if err != nil {
 		s.l.Error("failed to create dir", "err", err.Error())
 		return "", err
@@ -47,7 +47,7 @@ func (s *SystemManager) Save(_ context.Context, name string, content io.Reader) 
 
 	s.l.Debug("creating file")
 	file, err := os.Create(fileName)
-	s.l.Debug("created file", "err", err.Error())
+	s.l.Debug("created file", "err", err)
 	if err != nil {
 		s.l.Error("failed to create file", "err", err.Error())
 		return "", err
@@ -55,7 +55,7 @@ func (s *SystemManager) Save(_ context.Context, name string, content io.Reader) 
 
 	s.l.Debug("copying file")
 	_, err = io.Copy(file, content)
-	s.l.Debug("copied file", "err", err.Error())
+	s.l.Debug("copied file", "err", err)
 	if err != nil {
 		s.l.Error("failed to copy file", "err", err.Error())
 		return "", err
@@ -75,7 +75,7 @@ func (s *SystemManager) Delete(_ context.Context, path scripts.URL) error {
 	s.l.Info("deleting file", "path", path)
 	s.l.Debug("deleting file", "path", path)
 	err := os.Remove(path)
-	s.l.Debug("deleted file", "err", err.Error())
+	s.l.Debug("deleted file", "err", err)
 	if err != nil {
 		s.l.Error("failed to delete file", "err", err.Error())
 		return fmt.Errorf("%w: %s (%w)", scripts.ErrFileNotFound, path, err)
@@ -91,7 +91,7 @@ func (s *SystemManager) Read(ctx context.Context, path scripts.URL) (scripts.Fil
 	fileName := filepath.Base(filePath)
 	s.l.Debug("reading file", "filePath", filePath)
 	file, err := os.Open(filePath)
-	s.l.Debug("read file", "err", err.Error())
+	s.l.Debug("read file", "err", err)
 	if err != nil {
 		s.l.Error("failed to read file", "err", err.Error())
 		return scripts.FileData{}, fmt.Errorf("failed to open file %s: %w", filePath, err)

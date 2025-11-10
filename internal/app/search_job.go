@@ -27,7 +27,7 @@ func (u *SearchJobsUC) Search(ctx context.Context, userID uint32, state string) 
 	u.logger.Info("searching jobs", "userID", userID)
 	u.logger.Debug("get user", "userID", userID, "state", state)
 	_, err := u.userP.User(ctx, scripts.UserID(userID))
-	u.logger.Debug("got user", "err", err.Error())
+	u.logger.Debug("got user", "err", err)
 	if err != nil {
 		u.logger.Error("failed to search job", "err", err.Error())
 		return nil, err
@@ -42,7 +42,7 @@ func (u *SearchJobsUC) Search(ctx context.Context, userID uint32, state string) 
 
 	u.logger.Debug("searching jobs with state", "userID", userID, "state", jobState)
 	jobs, err := u.jobR.UserJobsWithState(ctx, scripts.UserID(userID), jobState)
-	u.logger.Debug("got jobs", "jobs count", len(jobs), "err", err.Error())
+	u.logger.Debug("got jobs", "jobs count", len(jobs), "err", err)
 	if err != nil {
 		u.logger.Error("failed to search job", "err", err.Error())
 		return nil, err
@@ -53,7 +53,7 @@ func (u *SearchJobsUC) Search(ctx context.Context, userID uint32, state string) 
 	for _, j := range jobs {
 		u.logger.Debug("getting script", "scriptID", j.ScriptID())
 		script, err := u.scriptR.Script(ctx, j.ScriptID())
-		u.logger.Debug("got script", "err", err.Error())
+		u.logger.Debug("got script", "err", err)
 		if err != nil {
 			u.logger.Error("failed to search job", "err", err.Error())
 			return nil, err
@@ -61,7 +61,7 @@ func (u *SearchJobsUC) Search(ctx context.Context, userID uint32, state string) 
 
 		u.logger.Debug("converting job to DTO", "jobID", j.ID())
 		job, err := JobToDTO(j, script.Name())
-		u.logger.Debug("got job DTO", "err", err.Error())
+		u.logger.Debug("got job DTO", "err", err)
 		if err != nil {
 			u.logger.Error("failed to search job", "err", err.Error())
 			return nil, err
