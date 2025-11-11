@@ -13,8 +13,26 @@ FROM alpine:latest
 
 WORKDIR /root/
 
-COPY --from=builder /app/app .
+RUN apk add --no-cache \
+    bash \
+    git \
+    curl \
+    build-base \
+    libffi-dev \
+    openssl-dev \
+    bzip2-dev \
+    readline-dev \
+    sqlite-dev \
+    zlib-dev \
+    xz-dev
 
-EXPOSE 8000
+RUN git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+
+ENV PYENV_ROOT="/root/.pyenv"
+ENV PATH="$PYENV_ROOT/bin:$PATH"
+
+RUN echo 'eval "$(pyenv init -)"' >> ~/.bashrc
+
+COPY --from=builder /app/app .
 
 CMD ["./app"]
