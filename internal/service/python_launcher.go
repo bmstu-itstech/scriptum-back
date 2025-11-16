@@ -185,15 +185,17 @@ func (p *PythonLauncher) Run(ctx context.Context, job *scripts.Job) (scripts.Res
 	}
 	args = append(args, rawValues...)
 
+	venvPython := filepath.Join(targetDir, "venv", "bin", "python")
+
 	p.l.Debug("Running Python script",
-		"interpreter", interpreter,
+		"interpreter", venvPython,
 		"args", args,
 		"dir", targetDir)
 
 	var stdout, stderr bytes.Buffer
 	var exitCode int
 
-	cmd := exec.CommandContext(ctx, interpreter, args...)
+	cmd := exec.CommandContext(ctx, venvPython, args...)
 	cmd.Dir = targetDir
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
