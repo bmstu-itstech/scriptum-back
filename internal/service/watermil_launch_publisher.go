@@ -14,12 +14,13 @@ import (
 )
 
 type WJob struct {
-	JobID    scripts.JobID    `json:"job_id"`
-	OwnerID  scripts.UserID   `json:"owner_id"`
-	ScriptID scripts.ScriptID `json:"script_id"`
-	Input    []JSONValue      `json:"in"`
-	Expected []JSONField      `json:"exp"`
-	URL      string           `json:"url"`
+	JobID         scripts.JobID    `json:"job_id"`
+	OwnerID       scripts.UserID   `json:"owner_id"`
+	ScriptID      scripts.ScriptID `json:"script_id"`
+	Input         []JSONValue      `json:"in"`
+	Expected      []JSONField      `json:"exp"`
+	URL           string           `json:"url"`
+	PythonVersion string           `json:"python_version"`
 
 	NeedToNotify bool      `json:"need_to_notify"`
 	CreatedAt    time.Time `json:"started_at"`
@@ -68,14 +69,15 @@ func marshalJob(job scripts.Job, needToNotify bool) ([]byte, error) {
 	}
 
 	return json.Marshal(WJob{
-		JobID:        job.ID(),
-		OwnerID:      job.OwnerID(),
-		ScriptID:     job.ScriptID(),
-		Input:        rawInputs,
-		Expected:     rawExp,
-		URL:          job.URL(),
-		CreatedAt:    job.CreatedAt(),
-		NeedToNotify: needToNotify,
+		JobID:         job.ID(),
+		OwnerID:       job.OwnerID(),
+		ScriptID:      job.ScriptID(),
+		Input:         rawInputs,
+		Expected:      rawExp,
+		URL:           job.URL(),
+		CreatedAt:     job.CreatedAt(),
+		NeedToNotify:  needToNotify,
+		PythonVersion: job.PythonVersion().String(),
 	})
 }
 

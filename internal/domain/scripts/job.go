@@ -42,7 +42,7 @@ type JobPrototype struct {
 	createdAt     time.Time
 	expected      []Field
 	url           URL
-	pythonVersion PythonVersion
+	pythonVersion *PythonVersion
 }
 
 func NewJobPrototype(ownerID UserID, scriptID ScriptID, input []Value, expected []Field, url URL, pythonVersion PythonVersion) (*JobPrototype, error) {
@@ -75,7 +75,7 @@ func NewJobPrototype(ownerID UserID, scriptID ScriptID, input []Value, expected 
 		expected:      expected,
 		url:           url,
 		createdAt:     time.Now(),
-		pythonVersion: pythonVersion,
+		pythonVersion: &pythonVersion,
 	}, nil
 }
 
@@ -95,7 +95,7 @@ func (p *JobPrototype) Expected() []Field {
 	return p.expected[:]
 }
 
-func (j *JobPrototype) PythonVersion() PythonVersion {
+func (j *JobPrototype) PythonVersion() *PythonVersion {
 	return j.pythonVersion
 }
 
@@ -140,6 +140,7 @@ func RestoreJob(
 	result *Result,
 	createdAt time.Time,
 	finishedAt *time.Time,
+	pythonVersion *PythonVersion,
 ) (*Job, error) {
 	if id == 0 {
 		return nil, fmt.Errorf("job.id is empty")
@@ -155,12 +156,13 @@ func RestoreJob(
 
 	return &Job{
 		JobPrototype: JobPrototype{
-			ownerID:   UserID(ownerID),
-			scriptID:  ScriptID(scriptID),
-			input:     input,
-			expected:  expected,
-			url:       url,
-			createdAt: createdAt,
+			ownerID:       UserID(ownerID),
+			scriptID:      ScriptID(scriptID),
+			input:         input,
+			expected:      expected,
+			url:           url,
+			createdAt:     createdAt,
+			pythonVersion: pythonVersion,
 		},
 		id:         JobID(id),
 		state:      jState,

@@ -111,6 +111,7 @@ func main() {
 		os.Getenv("PYTHON_INTERPRETER"),
 		os.Getenv("SCRIPTS_DIR"),
 		MaxFileSize,
+		l,
 	)
 	if err != nil {
 		log.Fatalf("failed get python launcher: %s", err.Error())

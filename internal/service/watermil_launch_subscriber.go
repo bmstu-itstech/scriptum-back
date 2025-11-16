@@ -54,16 +54,17 @@ func UnmarshalJob(data []byte) (*app.JobDTO, error) {
 	}
 
 	job := &app.JobDTO{
-		JobID:        int64(jsonJob.JobID),
-		OwnerID:      int64(jsonJob.OwnerID),
-		ScriptID:     int64(jsonJob.ScriptID),
-		Url:          jsonJob.URL,
-		Input:        inputVal,
-		Expected:     expected,
-		State:        scripts.JobPending.String(),
-		CreatedAt:    jsonJob.CreatedAt,
-		FinishedAt:   nil,
-		NeedToNotify: jsonJob.NeedToNotify,
+		JobID:         int64(jsonJob.JobID),
+		OwnerID:       int64(jsonJob.OwnerID),
+		ScriptID:      int64(jsonJob.ScriptID),
+		Url:           jsonJob.URL,
+		Input:         inputVal,
+		Expected:      expected,
+		State:         scripts.JobPending.String(),
+		CreatedAt:     jsonJob.CreatedAt,
+		FinishedAt:    nil,
+		PythonVersion: jsonJob.PythonVersion,
+		NeedToNotify:  jsonJob.NeedToNotify,
 	}
 
 	return job, nil

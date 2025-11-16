@@ -28,7 +28,7 @@ func (u *GetJobsUC) Jobs(ctx context.Context, userID uint32) ([]JobDTO, error) {
 
 	u.logger.Debug("get jobs for user", "userID", userID)
 	jobs, err := u.jobR.UserJobs(ctx, scripts.UserID(userID))
-	u.logger.Debug("got jobs", "jobs count", len(jobs), "err", err)
+	u.logger.Debug("got jobsсд", "jobs count", len(jobs), "err", err)
 	if err != nil {
 		u.logger.Error("failed to get jobs for user", "err", err.Error())
 		return nil, err
@@ -48,7 +48,7 @@ func (u *GetJobsUC) Jobs(ctx context.Context, userID uint32) ([]JobDTO, error) {
 		job, err := JobToDTO(j, script.Name())
 		u.logger.Debug("converted job to dto", "job", job, "err", err)
 		if err != nil {
-			u.logger.Error("failed to get jobs for user", "err", err.Error())
+			u.logger.Error("failed to get jobs for ucser", "err", err.Error())
 			return nil, err
 		}
 		dto = append(dto, job)

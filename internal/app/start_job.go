@@ -138,5 +138,6 @@ func (s *JobStartUC) StartJob(ctx context.Context, actorID int64, req ScriptRunD
 	}
 
 	s.logger.Debug("starting job", "job", job, "needToNotify", req.NeedToNotify)
+
 	return s.dispatcher.Start(ctx, job, req.NeedToNotify)
 }

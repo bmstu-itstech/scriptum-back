@@ -89,6 +89,7 @@ func jobRepository_Update(t *testing.T, repo scripts.JobRepository) {
 		res,
 		created.CreatedAt(),
 		&time,
+		nil,
 	)
 	require.NoError(t, err)
 

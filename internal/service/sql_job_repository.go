@@ -182,6 +182,7 @@ func (r *JobRepo) Job(ctx context.Context, jobID scripts.JobID) (*scripts.Job, e
 		result,
 		jobRow.StartedAt,
 		jobRow.ClosedAt,
+		nil,
 	)
 	r.l.Debug("restored job", "job", *job, "err", err)
 	if err != nil {
@@ -405,6 +406,7 @@ func (r *JobRepo) buildJobsFromRows(ctx context.Context, rows []JobRow) ([]scrip
 			result,
 			jr.StartedAt,
 			jr.ClosedAt,
+			nil,
 		)
 		r.l.Debug("restored job", "job", *job)
 		if err != nil {

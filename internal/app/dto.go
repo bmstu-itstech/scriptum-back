@@ -41,18 +41,19 @@ type ResultDTO struct {
 }
 
 type JobDTO struct {
-	JobID        int64
-	OwnerID      int64
-	ScriptID     int64
-	ScriptName   string
-	Input        []ValueDTO
-	Expected     []FieldDTO
-	Url          string
-	State        string
-	CreatedAt    time.Time
-	FinishedAt   *time.Time
-	NeedToNotify bool
-	JobResult    *ResultDTO
+	JobID         int64
+	OwnerID       int64
+	ScriptID      int64
+	ScriptName    string
+	Input         []ValueDTO
+	Expected      []FieldDTO
+	Url           string
+	State         string
+	CreatedAt     time.Time
+	FinishedAt    *time.Time
+	NeedToNotify  bool
+	PythonVersion string
+	JobResult     *ResultDTO
 }
 
 type FileDTO struct {
@@ -223,18 +224,26 @@ func JobToDTO(j scripts.Job, name string) (JobDTO, error) {
 		return JobDTO{}, err
 	}
 
+	var versionStr string
+	if j.PythonVersion() == nil {
+		versionStr = ""
+	} else {
+		versionStr = j.PythonVersion().String()
+	}
+
 	return JobDTO{
-		JobID:      int64(j.ID()),
-		OwnerID:    int64(j.OwnerID()),
-		ScriptID:   int64(j.ScriptID()),
-		ScriptName: name,
-		Input:      input,
-		Expected:   expected,
-		Url:        j.URL(),
-		State:      j.State().String(),
-		CreatedAt:  j.CreatedAt(),
-		FinishedAt: finishedAt,
-		JobResult:  resDto,
+		JobID:         int64(j.ID()),
+		OwnerID:       int64(j.OwnerID()),
+		ScriptID:      int64(j.ScriptID()),
+		ScriptName:    name,
+		Input:         input,
+		Expected:      expected,
+		Url:           j.URL(),
+		State:         j.State().String(),
+		CreatedAt:     j.CreatedAt(),
+		FinishedAt:    finishedAt,
+		JobResult:     resDto,
+		PythonVersion: versionStr,
 	}, nil
 }
 
@@ -249,6 +258,8 @@ func DTOToJob(j JobDTO) (*scripts.Job, error) {
 		return nil, err
 	}
 
+	version := scripts.PythonVersion(j.PythonVersion)
+
 	job, err := scripts.RestoreJob(
 		j.JobID,
 		j.OwnerID,
@@ -260,6 +271,7 @@ func DTOToJob(j JobDTO) (*scripts.Job, error) {
 		nil,
 		j.CreatedAt,
 		j.FinishedAt,
+		&version,
 	)
 
 	return job, err
