@@ -16,14 +16,11 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/value"
 )
 
+const imagePrefix = "sc-box"
+
 type Runner struct {
 	cli *client.Client
 	l   *slog.Logger
-}
-
-type RunResult struct {
-	Status  int
-	Message string
 }
 
 func NewRunner(l *slog.Logger) (*Runner, error) {
@@ -45,24 +42,27 @@ func MustNewRunner(l *slog.Logger) *Runner {
 	return r
 }
 
-func (r *Runner) Build(ctx context.Context, path string, image string) error {
+func (r *Runner) Build(ctx context.Context, path string, id value.BoxID) (value.ImageTag, error) {
 	l := r.l.With(
 		slog.String("op", "docker.Runner.Build"),
-		slog.String("image", image),
+		slog.String("box_id", string(id)),
 	)
 
 	buildCtx, err := os.Open(path)
 	if err != nil {
-		return fmt.Errorf("failed to open archive %q: %w", path, err)
+		return "", fmt.Errorf("failed to open archive %q: %w", path, err)
 	}
+
+	image := value.NewImageTag(imagePrefix, id)
+	l = l.With(slog.String("image", string(image)))
 
 	l.Debug("Docker build started")
 	res, err := r.cli.ImageBuild(ctx, buildCtx, client.ImageBuildOptions{
-		Tags:       []string{image},
+		Tags:       []string{string(image)},
 		Dockerfile: "Dockerfile",
 	})
 	if err != nil {
-		return fmt.Errorf("failed to build image: %w", err)
+		return "", fmt.Errorf("failed to build image: %w", err)
 	}
 	defer func() { _ = res.Body.Close() }()
 
@@ -70,18 +70,18 @@ func (r *Runner) Build(ctx context.Context, path string, image string) error {
 	_, _ = io.ReadAll(res.Body)
 
 	l.Debug("Docker build finished")
-	return nil
+	return image, nil
 }
 
-func (r *Runner) Run(ctx context.Context, image string, input string) (RunResult, error) {
+func (r *Runner) Run(ctx context.Context, image value.ImageTag, input value.Input) (value.Result, error) {
 	l := r.l.With(
 		slog.String("op", "docker.Runner.Run"),
-		slog.String("image", image),
+		slog.String("image", string(image)),
 	)
 
 	l.Debug("Docker container creating started")
 	resp, err := r.cli.ContainerCreate(ctx, client.ContainerCreateOptions{
-		Image: image,
+		Image: string(image),
 		Config: &container.Config{
 			OpenStdin:   true,
 			AttachStdin: true,
@@ -89,14 +89,14 @@ func (r *Runner) Run(ctx context.Context, image string, input string) (RunResult
 		},
 	})
 	if err != nil {
-		return RunResult{}, fmt.Errorf("failed to create container: %w", err)
+		return value.Result{}, fmt.Errorf("failed to create container: %w", err)
 	}
 	l.Debug("Docker container created")
 
 	l.Debug("Docker container starting")
 	_, err = r.cli.ContainerStart(ctx, resp.ID, client.ContainerStartOptions{})
 	if err != nil {
-		return RunResult{}, fmt.Errorf("failed to start container: %w", err)
+		return value.Result{}, fmt.Errorf("failed to start container: %w", err)
 	}
 	l.Debug("Docker container started")
 
@@ -106,15 +106,15 @@ func (r *Runner) Run(ctx context.Context, image string, input string) (RunResult
 		Stdin:  true,
 	})
 	if err != nil {
-		return RunResult{}, fmt.Errorf("failed to attach container: %w", err)
+		return value.Result{}, fmt.Errorf("failed to attach container: %w", err)
 	}
 	l.Debug("Docker container attached")
 
 	l.Debug("Docker container writing")
-	n, err := attach.Conn.Write([]byte(input))
+	n, err := attach.Conn.Write([]byte(input.String()))
 	if err != nil {
 		_ = attach.Conn.Close()
-		return RunResult{}, fmt.Errorf("failed to write input: %w", err)
+		return value.Result{}, fmt.Errorf("failed to write input: %w", err)
 	}
 	l.Debug("Docker container input written", slog.Int("bytes", n))
 
@@ -123,16 +123,16 @@ func (r *Runner) Run(ctx context.Context, image string, input string) (RunResult
 		Condition: container.WaitConditionNotRunning,
 	})
 
-	var result RunResult
+	var result value.Result
 	select {
 	case err := <-wRes.Error:
 		if err != nil {
-			return RunResult{}, fmt.Errorf("failed to wait container: %w", err)
+			return value.Result{}, fmt.Errorf("failed to wait container: %w", err)
 		}
 	case res := <-wRes.Result:
-		result.Status = int(res.StatusCode)
+		result = value.NewResult(value.ExitCode(res.StatusCode))
 	}
-	l.Debug("Docker container exited", slog.Int("status", result.Status))
+	l.Debug("Docker container exited", slog.Int("exitCode", int(result.Code())))
 
 	out, err := r.cli.ContainerLogs(ctx, resp.ID, client.ContainerLogsOptions{
 		ShowStdout: true,
@@ -147,7 +147,7 @@ func (r *Runner) Run(ctx context.Context, image string, input string) (RunResult
 	if err != nil {
 		return result, fmt.Errorf("failed to get container logs: %w", err)
 	}
-	result.Message = output
+	result = result.WithOutput(output)
 
 	_, err = r.cli.ContainerRemove(ctx, resp.ID, client.ContainerRemoveOptions{})
 	if err != nil {
@@ -177,8 +177,8 @@ func (r *Runner) readDockerLogs(rd io.Reader) (string, error) {
 	return builder.String(), nil
 }
 
-func (r *Runner) Cleanup(ctx context.Context, image string) error {
-	_, err := r.cli.ImageRemove(ctx, image, client.ImageRemoveOptions{})
+func (r *Runner) Cleanup(ctx context.Context, image value.ImageTag) error {
+	_, err := r.cli.ImageRemove(ctx, string(image), client.ImageRemoveOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to remove image: %w", err)
 	}

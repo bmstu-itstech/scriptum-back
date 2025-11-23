@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/bmstu-itstech/scriptum-back/internal/domain/value"
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/docker"
 	"github.com/bmstu-itstech/scriptum-back/pkg/logs/handlers/slogdiscard"
 	"github.com/bmstu-itstech/scriptum-back/pkg/testutils"
@@ -36,8 +37,7 @@ func TestRunner_Adder(t *testing.T) {
 	defer cancelFn()
 
 	r := docker.MustNewRunner(l)
-	image := "sc-test-adder"
-	err = r.Build(ctx, archive, image)
+	image, err := r.Build(ctx, archive, value.NewBoxID())
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		err = r.Cleanup(ctx, image)
@@ -47,23 +47,23 @@ func TestRunner_Adder(t *testing.T) {
 	})
 
 	t.Run("successfully added", func(t *testing.T) {
-		res, err := r.Run(ctx, image, "1\n2\n")
+		input := value.NewEmptyInput().With(value.MustNewIntegerValue("1")).With(value.MustNewIntegerValue("2"))
+		res, err := r.Run(ctx, image, input)
 		require.NoError(t, err)
-		require.Equal(t, docker.RunResult{
-			Status:  0,
-			Message: "3\n",
-		}, res)
+		require.Equal(t, value.NewResult(0).WithOutput("3\n"), res)
 	})
 
 	t.Run("should return exception on invalid input", func(t *testing.T) {
-		res, err := r.Run(ctx, image, "1\na\n")
+		input := value.NewEmptyInput().With(value.MustNewIntegerValue("1")).With(value.NewStringValue("a"))
+		res, err := r.Run(ctx, image, input)
 		require.NoError(t, err)
-		require.NotEqual(t, 0, res.Status)
-		require.NotEmpty(t, res.Message)
+		require.NotEqual(t, value.ExitCode(0), res.Code())
+		require.NotEmpty(t, res.Output())
 	})
 
 	t.Run("should return error if image not found", func(t *testing.T) {
-		_, err := r.Run(ctx, "", "1\n")
+		input := value.NewEmptyInput().With(value.MustNewIntegerValue("1")).With(value.MustNewIntegerValue("2"))
+		_, err := r.Run(ctx, "", input)
 		require.Error(t, err)
 	})
 }
