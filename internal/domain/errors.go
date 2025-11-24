@@ -2,6 +2,8 @@ package domain
 
 import "fmt"
 
+var ErrPermissionDenied = fmt.Errorf("permission denied")
+
 type InvalidInputError struct {
 	Code    string
 	Message string

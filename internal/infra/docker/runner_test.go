@@ -22,14 +22,16 @@ func TestRunner_Adder(t *testing.T) {
 		t.Skip("docker is not available")
 	}
 
-	archive, err := testutils.TarCreate("tests/adder")
+	archivePath, err := testutils.TarCreate("tests/adder")
 	require.NoError(t, err)
 	t.Cleanup(func() {
-		err = os.Remove(archive)
+		err = os.Remove(archivePath)
 		if err != nil {
-			t.Logf("failed to remove test archive: %v", err)
+			t.Logf("failed to remove test archivePath: %v", err)
 		}
 	})
+	buildCtx, err := os.Open(archivePath)
+	require.NoError(t, err)
 
 	l := slogdiscard.NewDiscardLogger()
 	ctx := context.Background()
@@ -37,7 +39,7 @@ func TestRunner_Adder(t *testing.T) {
 	defer cancelFn()
 
 	r := docker.MustNewRunner(l)
-	image, err := r.Build(ctx, archive, value.NewBoxID())
+	image, err := r.Build(ctx, buildCtx, value.NewBoxID())
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		err = r.Cleanup(ctx, image)
@@ -47,23 +49,29 @@ func TestRunner_Adder(t *testing.T) {
 	})
 
 	t.Run("successfully added", func(t *testing.T) {
-		input := value.NewEmptyInput().With(value.MustNewIntegerValue("1")).With(value.MustNewIntegerValue("2"))
-		res, err := r.Run(ctx, image, input)
+		res, err := r.Run(ctx, image, []value.Value{
+			value.MustNewIntegerValue("1"),
+			value.MustNewIntegerValue("2"),
+		})
 		require.NoError(t, err)
 		require.Equal(t, value.NewResult(0).WithOutput("3\n"), res)
 	})
 
 	t.Run("should return exception on invalid input", func(t *testing.T) {
-		input := value.NewEmptyInput().With(value.MustNewIntegerValue("1")).With(value.NewStringValue("a"))
-		res, err := r.Run(ctx, image, input)
+		res, err := r.Run(ctx, image, []value.Value{
+			value.MustNewIntegerValue("1"),
+			value.NewStringValue("a"),
+		})
 		require.NoError(t, err)
 		require.NotEqual(t, value.ExitCode(0), res.Code())
 		require.NotEmpty(t, res.Output())
 	})
 
 	t.Run("should return error if image not found", func(t *testing.T) {
-		input := value.NewEmptyInput().With(value.MustNewIntegerValue("1")).With(value.MustNewIntegerValue("2"))
-		_, err := r.Run(ctx, "", input)
+		_, err := r.Run(ctx, image, []value.Value{
+			value.MustNewIntegerValue("1"),
+			value.MustNewIntegerValue("2"),
+		})
 		require.Error(t, err)
 	})
 }

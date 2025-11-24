@@ -2,12 +2,12 @@ package docker
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io"
 	"log/slog"
-	"os"
 	"strings"
 
 	"github.com/moby/moby/api/types/container"
@@ -42,16 +42,11 @@ func MustNewRunner(l *slog.Logger) *Runner {
 	return r
 }
 
-func (r *Runner) Build(ctx context.Context, path string, id value.BoxID) (value.ImageTag, error) {
+func (r *Runner) Build(ctx context.Context, buildCtx io.Reader, id value.BoxID) (value.ImageTag, error) {
 	l := r.l.With(
 		slog.String("op", "docker.Runner.Build"),
 		slog.String("box_id", string(id)),
 	)
-
-	buildCtx, err := os.Open(path)
-	if err != nil {
-		return "", fmt.Errorf("failed to open archive %q: %w", path, err)
-	}
 
 	image := value.NewImageTag(imagePrefix, id)
 	l = l.With(slog.String("image", string(image)))
@@ -73,7 +68,7 @@ func (r *Runner) Build(ctx context.Context, path string, id value.BoxID) (value.
 	return image, nil
 }
 
-func (r *Runner) Run(ctx context.Context, image value.ImageTag, input value.Input) (value.Result, error) {
+func (r *Runner) Run(ctx context.Context, image value.ImageTag, input []value.Value) (value.Result, error) {
 	l := r.l.With(
 		slog.String("op", "docker.Runner.Run"),
 		slog.String("image", string(image)),
@@ -111,7 +106,7 @@ func (r *Runner) Run(ctx context.Context, image value.ImageTag, input value.Inpu
 	l.Debug("Docker container attached")
 
 	l.Debug("Docker container writing")
-	n, err := attach.Conn.Write([]byte(input.String()))
+	n, err := attach.Conn.Write(r.marshallInput(input))
 	if err != nil {
 		_ = attach.Conn.Close()
 		return value.Result{}, fmt.Errorf("failed to write input: %w", err)
@@ -132,7 +127,7 @@ func (r *Runner) Run(ctx context.Context, image value.ImageTag, input value.Inpu
 	case res := <-wRes.Result:
 		result = value.NewResult(value.ExitCode(res.StatusCode))
 	}
-	l.Debug("Docker container exited", slog.Int("exitCode", int(result.Code())))
+	l.Debug("Docker container exited", slog.Int("exit_code", int(result.Code())))
 
 	out, err := r.cli.ContainerLogs(ctx, resp.ID, client.ContainerLogsOptions{
 		ShowStdout: true,
@@ -155,6 +150,15 @@ func (r *Runner) Run(ctx context.Context, image value.ImageTag, input value.Inpu
 	}
 
 	return result, nil
+}
+
+func (r *Runner) marshallInput(input []value.Value) []byte {
+	var buf bytes.Buffer
+	for _, v := range input {
+		buf.WriteString(v.String())
+		buf.WriteRune('\n')
+	}
+	return buf.Bytes()
 }
 
 func (r *Runner) readDockerLogs(rd io.Reader) (string, error) {

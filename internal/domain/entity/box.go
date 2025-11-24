@@ -1,4 +1,4 @@
-package entities
+package entity
 
 import (
 	"errors"
@@ -16,8 +16,8 @@ type Box struct {
 	name      string
 	desc      *string
 	vis       value.Visibility
-	input     []value.Field
-	output    []value.Field
+	in        []value.Field
+	out       []value.Field
 	createdAt time.Time
 }
 
@@ -27,8 +27,8 @@ func NewBox(
 	name string,
 	desc *string,
 	vis value.Visibility,
-	input []value.Field,
-	output []value.Field,
+	in []value.Field,
+	out []value.Field,
 ) (*Box, error) {
 	if ownerID == 0 {
 		return nil, errors.New("zero ownerID")
@@ -50,12 +50,12 @@ func NewBox(
 		return nil, errors.New("zero visibility")
 	}
 
-	if input == nil {
-		input = make([]value.Field, 0)
+	if in == nil {
+		in = make([]value.Field, 0)
 	}
 
-	if output == nil {
-		output = make([]value.Field, 0)
+	if out == nil {
+		out = make([]value.Field, 0)
 	}
 
 	id := value.NewBoxID()
@@ -66,46 +66,28 @@ func NewBox(
 		name:      name,
 		desc:      desc,
 		vis:       vis,
-		input:     input,
-		output:    output,
+		in:        in,
+		out:       out,
 		createdAt: time.Now(),
 	}, nil
 }
 
-func MustNewBox(
-	owner value.UserID,
-	archive value.FileID,
-	name string,
-	desc *string,
-	vis value.Visibility,
-	input []value.Field,
-	output []value.Field,
-) *Box {
-	b, err := NewBox(owner, archive, name, desc, vis, input, output)
-	if err != nil {
-		panic(err)
-	}
-	return b
-}
-
-func (b *Box) AssembleJob(uid value.UserID, in []value.Value) (*Job, error) {
-	if len(in) != len(b.input) {
+func (b *Box) AssembleJob(uid value.UserID, input []value.Value) (*Job, error) {
+	if len(input) != len(b.in) {
 		return nil, domain.NewInvalidInputError(
 			"assemble-values-mismatch",
-			fmt.Sprintf("failed to assemble job: expected %d values, got %d", &b.input, len(in)),
+			fmt.Sprintf("failed to assemble job: expected %d values, got %d", &b.in, len(input)),
 		)
 	}
 
-	input := value.NewEmptyInput()
-	for i, field := range b.input {
-		v := in[i]
+	for i, field := range b.in {
+		v := input[i]
 		if err := field.Validate(v); err != nil {
 			return nil, domain.NewInvalidInputError(
 				"assemble-value-validation-error",
 				fmt.Sprintf("failed to assemble job: field %d: %s", i, err.Error()),
 			)
 		}
-		input = input.With(v)
 	}
 
 	return &Job{
@@ -115,6 +97,7 @@ func (b *Box) AssembleJob(uid value.UserID, in []value.Value) (*Job, error) {
 		ownerID:   uid, // Владельцем job не обязательно является владелец скрипта
 		state:     value.JobPending,
 		input:     input,
+		out:       b.out,
 		createdAt: time.Now(),
 	}, nil
 }
@@ -130,11 +113,11 @@ func (b *Box) ID() value.BoxID {
 	return b.id
 }
 
-func (b *Box) Owner() value.UserID {
+func (b *Box) OwnerID() value.UserID {
 	return b.ownerID
 }
 
-func (b *Box) Archive() value.FileID {
+func (b *Box) ArchiveID() value.FileID {
 	return b.archiveID
 }
 
@@ -150,14 +133,66 @@ func (b *Box) Vis() value.Visibility {
 	return b.vis
 }
 
-func (b *Box) Input() []value.Field {
-	return b.input
+func (b *Box) In() []value.Field {
+	return b.in
 }
 
-func (b *Box) Output() []value.Field {
-	return b.output
+func (b *Box) Out() []value.Field {
+	return b.out
 }
 
 func (b *Box) CreatedAt() time.Time {
 	return b.createdAt
+}
+
+func RestoreBox(
+	id value.BoxID,
+	ownerID value.UserID,
+	archiveID value.FileID,
+	name string,
+	desc *string,
+	vis value.Visibility,
+	in []value.Field,
+	out []value.Field,
+	createdAt time.Time,
+) (*Box, error) {
+	if id == "" {
+		return nil, errors.New("empty boxID")
+	}
+
+	if ownerID == 0 {
+		return nil, errors.New("zero ownerID")
+	}
+
+	if archiveID == "" {
+		return nil, errors.New("empty archiveID")
+	}
+
+	if name == "" {
+		return nil, errors.New("empty name")
+	}
+
+	if vis.IsZero() {
+		return nil, errors.New("zero visibility")
+	}
+
+	if in == nil {
+		in = make([]value.Field, 0)
+	}
+
+	if out == nil {
+		out = make([]value.Field, 0)
+	}
+
+	return &Box{
+		id:        id,
+		ownerID:   ownerID,
+		archiveID: archiveID,
+		name:      name,
+		desc:      desc,
+		vis:       vis,
+		in:        in,
+		out:       out,
+		createdAt: createdAt,
+	}, nil
 }
