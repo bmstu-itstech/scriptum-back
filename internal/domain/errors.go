@@ -20,5 +20,5 @@ func NewInvalidInputError(code string, message string) InvalidInputError {
 }
 
 func (e InvalidInputError) Error() string {
-	return fmt.Sprintf("invalid input: %s", e.Code)
+	return fmt.Sprintf("invalid input: %s: %s", e.Code, e.Message)
 }

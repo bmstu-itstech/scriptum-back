@@ -101,8 +101,8 @@ func (r *Repository) selectPublicAndUserBoxByNameRows(
 	return rows, nil
 }
 
-func (r *Repository) insertBoxRow(ctx context.Context, ec sqlx.ExecerContext, row boxRow) error {
-	err := pgutils.RequireAffected(pgutils.Exec(ctx, ec, `
+func (r *Repository) insertBoxRow(ctx context.Context, ec sqlx.ExtContext, row boxRow) error {
+	err := pgutils.RequireAffected(pgutils.NamedExec(ctx, ec, `
 		INSERT INTO box.boxes (
 			id,
 			owner_id,
@@ -176,10 +176,10 @@ func (r *Repository) selectBoxInputFieldRows(
 
 func (r *Repository) insertBoxInputFieldRows(
 	ctx context.Context,
-	ec sqlx.ExecerContext,
+	ec sqlx.ExtContext,
 	rows []boxFieldRow,
 ) error {
-	err := pgutils.RequireAffected(pgutils.Exec(ctx, ec, `
+	err := pgutils.RequireAffected(pgutils.NamedExec(ctx, ec, `
 		INSERT INTO box.input_fields (
 			box_id, 
 			index, 
@@ -233,10 +233,10 @@ func (r *Repository) selectBoxOutputFieldRows(
 
 func (r *Repository) insertBoxOutputFieldRows(
 	ctx context.Context,
-	ec sqlx.ExecerContext,
+	ec sqlx.ExtContext,
 	rows []boxFieldRow,
 ) error {
-	err := pgutils.RequireAffected(pgutils.Exec(ctx, ec, `
+	err := pgutils.RequireAffected(pgutils.NamedExec(ctx, ec, `
 		INSERT INTO box.output_fields (
 			box_id, 
 			index, 
@@ -264,7 +264,7 @@ func (r *Repository) insertBoxOutputFieldRows(
 
 func (r *Repository) selectJobRow(ctx context.Context, qc sqlx.QueryerContext, jobID string) (jobRow, error) {
 	var row jobRow
-	err := pgutils.Select(ctx, qc, &row, `
+	err := pgutils.Get(ctx, qc, &row, `
 		SELECT
 			id, 
 			box_id, 
@@ -351,8 +351,8 @@ func (r *Repository) selectUserJobRowsWithState(
 	return rows, nil
 }
 
-func (r *Repository) insertJobRow(ctx context.Context, ec sqlx.ExecerContext, row jobRow) error {
-	err := pgutils.RequireAffected(pgutils.Exec(ctx, ec, `
+func (r *Repository) insertJobRow(ctx context.Context, ec sqlx.ExtContext, row jobRow) error {
+	err := pgutils.RequireAffected(pgutils.NamedExec(ctx, ec, `
 		INSERT INTO job.jobs (
 		    id, 
 			box_id, 
@@ -389,6 +389,25 @@ func (r *Repository) insertJobRow(ctx context.Context, ec sqlx.ExecerContext, ro
 	return nil
 }
 
+func (r *Repository) updateJobRow(ctx context.Context, ec sqlx.ExtContext, row jobRow) error {
+	err := pgutils.RequireAffected(pgutils.NamedExec(ctx, ec, `
+		UPDATE job.jobs
+		SET
+			state = :state,
+			started_at = :started_at,
+			result_code = :result_code,
+			result_msg = :result_msg,
+			finished_at = :finished_at
+		WHERE id = :id
+		`,
+		row,
+	))
+	if err != nil {
+		return fmt.Errorf("insert job row: %w", err)
+	}
+	return nil
+}
+
 func (r *Repository) selectJobInputValueRows(
 	ctx context.Context,
 	qc sqlx.QueryerContext,
@@ -415,10 +434,10 @@ func (r *Repository) selectJobInputValueRows(
 
 func (r *Repository) insertJobInputValueRows(
 	ctx context.Context,
-	ec sqlx.ExecerContext,
+	ec sqlx.ExtContext,
 	rows []jobValueRow,
 ) error {
-	err := pgutils.RequireAffected(pgutils.Exec(ctx, ec, `
+	_, err := pgutils.NamedExec(ctx, ec, `
 		INSERT INTO job.input_values (
 		    job_id, 
 			index, 
@@ -431,9 +450,11 @@ func (r *Repository) insertJobInputValueRows(
 			:type,
 			:value
 		)
+		ON CONFLICT (job_id, index)
+		DO NOTHING
 		`,
 		rows,
-	))
+	)
 	if err != nil {
 		return fmt.Errorf("insert job input value rows: %w", err)
 	}
@@ -466,10 +487,10 @@ func (r *Repository) selectJobOutputValueRows(
 
 func (r *Repository) insertJobOutputValueRows(
 	ctx context.Context,
-	ec sqlx.ExecerContext,
+	ec sqlx.ExtContext,
 	rows []jobValueRow,
 ) error {
-	err := pgutils.RequireAffected(pgutils.Exec(ctx, ec, `
+	_, err := pgutils.NamedExec(ctx, ec, `
 		INSERT INTO job.output_values (
 		    job_id, 
 			index, 
@@ -482,9 +503,11 @@ func (r *Repository) insertJobOutputValueRows(
 			:type,
 			:value
 		)
+		ON CONFLICT (job_id, index)
+		DO NOTHING
 		`,
 		rows,
-	))
+	)
 	if err != nil {
 		return fmt.Errorf("insert job output value rows: %w", err)
 	}
@@ -519,10 +542,10 @@ func (r *Repository) selectJobOutputFieldRows(
 
 func (r *Repository) insertJobOutputFieldRows(
 	ctx context.Context,
-	ec sqlx.ExecerContext,
+	ec sqlx.ExtContext,
 	rows []jobFieldRow,
 ) error {
-	err := pgutils.RequireAffected(pgutils.Exec(ctx, ec, `
+	_, err := pgutils.NamedExec(ctx, ec, `
 		INSERT INTO job.output_fields (
 			job_id, 
 			index, 
@@ -539,9 +562,11 @@ func (r *Repository) insertJobOutputFieldRows(
 			:desc,
 			:unit
 		)	
+		ON CONFLICT (job_id, index)
+		DO NOTHING
 		`,
 		rows,
-	))
+	)
 	if err != nil {
 		return fmt.Errorf("insert job output field rows: %w", err)
 	}

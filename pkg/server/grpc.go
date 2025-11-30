@@ -9,7 +9,10 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
+
+	"github.com/bmstu-itstech/scriptum-back/pkg/server/auth"
 )
 
 func RunGRPCServerOnAddr(ctx context.Context, l *slog.Logger, addr string, register func(server *grpc.Server)) error {
@@ -35,13 +38,15 @@ func RunGRPCServerOnAddr(ctx context.Context, l *slog.Logger, addr string, regis
 	s := grpc.NewServer(grpc.ChainUnaryInterceptor(
 		recovery.UnaryServerInterceptor(recoveryOpts...),
 		logging.UnaryServerInterceptor(interceptorLogger(l), loggingOpts...),
+		auth.UnaryServerInterceptor(),
 	))
 	register(s)
+	reflection.Register(s)
 
 	go func() {
 		l.InfoContext(ctx, "gRPC server starts listening", slog.String("addr", addr))
 		if err = s.Serve(lis); err != nil {
-			l.ErrorContext(ctx, "gRPC server failed to serve", slog.Any("error", err))
+			l.ErrorContext(ctx, "gRPC server failed to serve", slog.String("error", err.Error()))
 		}
 	}()
 

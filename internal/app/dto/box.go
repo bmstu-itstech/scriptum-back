@@ -15,7 +15,7 @@ type Box struct {
 	Vis       string
 	In        []Field
 	Out       []Field
-	Created   time.Time
+	CreatedAt time.Time
 }
 
 func BoxToDTO(box *entity.Box) Box {
@@ -28,7 +28,7 @@ func BoxToDTO(box *entity.Box) Box {
 		Vis:       box.Vis().String(),
 		In:        fieldsToDTOs(box.In()),
 		Out:       fieldsToDTOs(box.Out()),
-		Created:   box.CreatedAt(),
+		CreatedAt: box.CreatedAt(),
 	}
 }
 

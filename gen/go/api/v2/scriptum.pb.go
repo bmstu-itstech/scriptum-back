@@ -1302,7 +1302,7 @@ func (x *GetJobResponse) GetJob() *Job {
 
 type GetJobsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	State         *string                `protobuf:"bytes,1,opt,name=state,proto3,oneof" json:"state,omitempty"`
+	State         *JobState              `protobuf:"varint,1,opt,name=state,proto3,enum=api.v2.JobState,oneof" json:"state,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1337,11 +1337,11 @@ func (*GetJobsRequest) Descriptor() ([]byte, []int) {
 	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{20}
 }
 
-func (x *GetJobsRequest) GetState() string {
+func (x *GetJobsRequest) GetState() JobState {
 	if x != nil && x.State != nil {
 		return *x.State
 	}
-	return ""
+	return JobState_JOB_STATE_PENDING
 }
 
 type GetJobsResponse struct {
@@ -1574,9 +1574,9 @@ const file_api_v2_scriptum_proto_rawDesc = "" +
 	"\rGetJobRequest\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\"/\n" +
 	"\x0eGetJobResponse\x12\x1d\n" +
-	"\x03job\x18\x01 \x01(\v2\v.api.v2.JobR\x03job\"5\n" +
-	"\x0eGetJobsRequest\x12\x19\n" +
-	"\x05state\x18\x01 \x01(\tH\x00R\x05state\x88\x01\x01B\b\n" +
+	"\x03job\x18\x01 \x01(\v2\v.api.v2.JobR\x03job\"G\n" +
+	"\x0eGetJobsRequest\x12+\n" +
+	"\x05state\x18\x01 \x01(\x0e2\x10.api.v2.JobStateH\x00R\x05state\x88\x01\x01B\b\n" +
 	"\x06_state\"2\n" +
 	"\x0fGetJobsResponse\x12\x1f\n" +
 	"\x04jobs\x18\x01 \x03(\v2\v.api.v2.JobR\x04jobs\"O\n" +
@@ -1678,31 +1678,32 @@ var file_api_v2_scriptum_proto_depIdxs = []int32{
 	5,  // 18: api.v2.GetBoxesResponse.boxes:type_name -> api.v2.Box
 	5,  // 19: api.v2.SearchBoxesResponse.boxes:type_name -> api.v2.Box
 	7,  // 20: api.v2.GetJobResponse.job:type_name -> api.v2.Job
-	7,  // 21: api.v2.GetJobsResponse.jobs:type_name -> api.v2.Job
-	3,  // 22: api.v2.StartJobRequest.values:type_name -> api.v2.Value
-	9,  // 23: api.v2.FileService.Upload:input_type -> api.v2.FileUploadRequest
-	11, // 24: api.v2.BoxService.CreateBox:input_type -> api.v2.CreateBoxRequest
-	13, // 25: api.v2.BoxService.DeleteBox:input_type -> api.v2.DeleteBoxRequest
-	15, // 26: api.v2.BoxService.GetBox:input_type -> api.v2.GetBoxRequest
-	17, // 27: api.v2.BoxService.GetBoxes:input_type -> api.v2.GetBoxesRequest
-	19, // 28: api.v2.BoxService.SearchBoxes:input_type -> api.v2.SearchBoxesRequest
-	21, // 29: api.v2.JobService.GetJob:input_type -> api.v2.GetJobRequest
-	23, // 30: api.v2.JobService.GetJobs:input_type -> api.v2.GetJobsRequest
-	25, // 31: api.v2.JobService.StartJob:input_type -> api.v2.StartJobRequest
-	10, // 32: api.v2.FileService.Upload:output_type -> api.v2.FileUploadResponse
-	12, // 33: api.v2.BoxService.CreateBox:output_type -> api.v2.CreateBoxResponse
-	14, // 34: api.v2.BoxService.DeleteBox:output_type -> api.v2.DeleteBoxResponse
-	16, // 35: api.v2.BoxService.GetBox:output_type -> api.v2.GetBoxResponse
-	18, // 36: api.v2.BoxService.GetBoxes:output_type -> api.v2.GetBoxesResponse
-	20, // 37: api.v2.BoxService.SearchBoxes:output_type -> api.v2.SearchBoxesResponse
-	22, // 38: api.v2.JobService.GetJob:output_type -> api.v2.GetJobResponse
-	24, // 39: api.v2.JobService.GetJobs:output_type -> api.v2.GetJobsResponse
-	26, // 40: api.v2.JobService.StartJob:output_type -> api.v2.StartJobResponse
-	32, // [32:41] is the sub-list for method output_type
-	23, // [23:32] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	2,  // 21: api.v2.GetJobsRequest.state:type_name -> api.v2.JobState
+	7,  // 22: api.v2.GetJobsResponse.jobs:type_name -> api.v2.Job
+	3,  // 23: api.v2.StartJobRequest.values:type_name -> api.v2.Value
+	9,  // 24: api.v2.FileService.Upload:input_type -> api.v2.FileUploadRequest
+	11, // 25: api.v2.BoxService.CreateBox:input_type -> api.v2.CreateBoxRequest
+	13, // 26: api.v2.BoxService.DeleteBox:input_type -> api.v2.DeleteBoxRequest
+	15, // 27: api.v2.BoxService.GetBox:input_type -> api.v2.GetBoxRequest
+	17, // 28: api.v2.BoxService.GetBoxes:input_type -> api.v2.GetBoxesRequest
+	19, // 29: api.v2.BoxService.SearchBoxes:input_type -> api.v2.SearchBoxesRequest
+	21, // 30: api.v2.JobService.GetJob:input_type -> api.v2.GetJobRequest
+	23, // 31: api.v2.JobService.GetJobs:input_type -> api.v2.GetJobsRequest
+	25, // 32: api.v2.JobService.StartJob:input_type -> api.v2.StartJobRequest
+	10, // 33: api.v2.FileService.Upload:output_type -> api.v2.FileUploadResponse
+	12, // 34: api.v2.BoxService.CreateBox:output_type -> api.v2.CreateBoxResponse
+	14, // 35: api.v2.BoxService.DeleteBox:output_type -> api.v2.DeleteBoxResponse
+	16, // 36: api.v2.BoxService.GetBox:output_type -> api.v2.GetBoxResponse
+	18, // 37: api.v2.BoxService.GetBoxes:output_type -> api.v2.GetBoxesResponse
+	20, // 38: api.v2.BoxService.SearchBoxes:output_type -> api.v2.SearchBoxesResponse
+	22, // 39: api.v2.JobService.GetJob:output_type -> api.v2.GetJobResponse
+	24, // 40: api.v2.JobService.GetJobs:output_type -> api.v2.GetJobsResponse
+	26, // 41: api.v2.JobService.StartJob:output_type -> api.v2.StartJobResponse
+	33, // [33:42] is the sub-list for method output_type
+	24, // [24:33] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_api_v2_scriptum_proto_init() }

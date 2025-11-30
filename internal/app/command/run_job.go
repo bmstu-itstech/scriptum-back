@@ -35,7 +35,7 @@ func (h RunJobHandler) Handle(ctx context.Context, job request.RunJob) error {
 		return job.Run()
 	})
 	if err != nil {
-		l.ErrorContext(ctx, "failed to update job", slog.Any("error", err))
+		l.ErrorContext(ctx, "failed to update job", slog.String("error", err.Error()))
 		return err
 	}
 
@@ -56,7 +56,7 @@ func (h RunJobHandler) Handle(ctx context.Context, job request.RunJob) error {
 		return job.Finish(res)
 	})
 	if err != nil {
-		l.ErrorContext(ctx, "failed to update job", slog.Any("error", err))
+		l.ErrorContext(ctx, "failed to update job", slog.String("error", err.Error()))
 		return err
 	}
 	l.InfoContext(ctx, "job successfully run", slog.Int("code", int(res.Code())), slog.String("output", res.Output()))

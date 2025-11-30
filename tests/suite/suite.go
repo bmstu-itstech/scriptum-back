@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"math/rand/v2"
 	"net"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -13,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/test/bufconn"
 
 	apiv2 "github.com/bmstu-itstech/scriptum-back/gen/go/api/v2"
@@ -27,12 +30,15 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/postgres"
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/watermill"
 	"github.com/bmstu-itstech/scriptum-back/pkg/logs"
+	"github.com/bmstu-itstech/scriptum-back/pkg/server/auth"
 )
 
 const runnerTimeout = 15 * time.Second
 
 type Suite struct {
+	BoxService  apiv2.BoxServiceClient
 	FileService apiv2.FileServiceClient
+	JobService  apiv2.JobServiceClient
 }
 
 func connectDB() (*sqlx.DB, error) {
@@ -64,7 +70,7 @@ func New(t *testing.T) (context.Context, *Suite) {
 			CreateBox:  command.NewCreateBoxHandler(repos, mockIAP, l),
 			DeleteBox:  command.NewDeleteBoxHandler(repos, l),
 			RunJob:     command.NewRunJobHandler(runner, repos, storage, l),
-			StartJob:   command.NewStartJobHandler(repos, jPub, l),
+			StartJob:   command.NewStartJobHandler(repos, repos, jPub, l),
 			UploadFile: command.NewUploadFileHandler(storage, l),
 		},
 		Queries: app.Queries{
@@ -91,8 +97,14 @@ func New(t *testing.T) (context.Context, *Suite) {
 	}()
 
 	lis := bufconn.Listen(1024 * 1024)
-	s := grpc.NewServer()
+	s := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		auth.UnaryServerInterceptor(),
+	))
+
+	api.RegisterBoxService(s, a, l)
 	api.RegisterFileService(s, a, l)
+	api.RegisterJobService(s, a, l)
+
 	go func() {
 		err = s.Serve(lis)
 		if err != nil {
@@ -111,9 +123,18 @@ func New(t *testing.T) (context.Context, *Suite) {
 	t.Cleanup(func() {
 		require.NoError(t, conn.Close())
 	})
+
+	boxClient := apiv2.NewBoxServiceClient(conn)
 	fileClient := apiv2.NewFileServiceClient(conn)
+	jobClient := apiv2.NewJobServiceClient(conn)
+
+	uid := rand.Int64() //nolint:gosec // В рамках тестов допустимо использование такого рода генерации чисел
+	md := metadata.New(map[string]string{"x-user-id": strconv.FormatInt(uid, 10)})
+	ctx = metadata.NewOutgoingContext(ctx, md)
 
 	return ctx, &Suite{
+		BoxService:  boxClient,
 		FileService: fileClient,
+		JobService:  jobClient,
 	}
 }

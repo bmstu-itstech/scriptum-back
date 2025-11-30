@@ -14,12 +14,18 @@ import (
 
 type StartJobHandler struct {
 	bp ports.BoxProvider
+	jr ports.JobRepository
 	jp ports.JobPublisher
 	l  *slog.Logger
 }
 
-func NewStartJobHandler(bp ports.BoxProvider, jp ports.JobPublisher, l *slog.Logger) StartJobHandler {
-	return StartJobHandler{bp, jp, l}
+func NewStartJobHandler(
+	bp ports.BoxProvider,
+	jr ports.JobRepository,
+	jp ports.JobPublisher,
+	l *slog.Logger,
+) StartJobHandler {
+	return StartJobHandler{bp, jr, jp, l}
 }
 
 func (h StartJobHandler) Handle(ctx context.Context, req request.StartJob) (string, error) {
@@ -50,6 +56,12 @@ func (h StartJobHandler) Handle(ctx context.Context, req request.StartJob) (stri
 	job, err := box.AssembleJob(value.UserID(req.UID), in)
 	if err != nil {
 		l.InfoContext(ctx, "failed to assemble job", slog.String("error", err.Error()))
+		return "", err
+	}
+
+	err = h.jr.SaveJob(ctx, job)
+	if err != nil {
+		l.ErrorContext(ctx, "failed to save job", slog.String("error", err.Error()))
 		return "", err
 	}
 

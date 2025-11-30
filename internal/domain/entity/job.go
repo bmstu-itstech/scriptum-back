@@ -63,6 +63,7 @@ func (j *Job) Finish(res value.Result) error {
 
 func (j *Job) parseOutput(output string) ([]value.Value, error) {
 	lines := strings.Split(output, "\n")
+	lines = lines[:len(lines)-1]
 	if len(lines) != len(j.out) {
 		return nil, fmt.Errorf("failed to parse job out: expected %d lines, got %d", len(j.out), len(lines))
 	}

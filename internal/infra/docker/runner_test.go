@@ -27,7 +27,7 @@ func TestRunner_Adder(t *testing.T) {
 	t.Cleanup(func() {
 		err = os.Remove(archivePath)
 		if err != nil {
-			t.Logf("failed to remove test archivePath: %v", err)
+			t.Logf("failed to remove test archive: %v", err)
 		}
 	})
 	buildCtx, err := os.Open(archivePath)

@@ -23,7 +23,7 @@ func (s *Storage) Upload(ctx context.Context, name string, reader io.Reader) (va
 
 	err := os.MkdirAll(dirPath, basePathPerms)
 	if err != nil {
-		l.ErrorContext(ctx, "failed to create directory", slog.Any("error", err))
+		l.ErrorContext(ctx, "failed to create directory", slog.String("error", err.Error()))
 		return "", err
 	}
 
@@ -34,17 +34,17 @@ func (s *Storage) Upload(ctx context.Context, name string, reader io.Reader) (va
 
 	file, err := os.Create(filePath)
 	if err != nil {
-		l.ErrorContext(ctx, "failed to create file", slog.Any("error", err))
+		l.ErrorContext(ctx, "failed to create file", slog.String("error", err.Error()))
 		return "", err
 	}
 	defer func() { _ = file.Close() }()
 
 	_, err = io.Copy(file, reader)
 	if err != nil {
-		l.ErrorContext(ctx, "failed to copy file", slog.Any("error", err))
+		l.ErrorContext(ctx, "failed to copy file", slog.String("error", err.Error()))
 		err2 := os.Remove(dirPath)
 		if err2 != nil {
-			l.ErrorContext(ctx, "failed to remove file", slog.Any("error", err))
+			l.ErrorContext(ctx, "failed to remove file", slog.String("error", err.Error()))
 		}
 		return "", err
 	}

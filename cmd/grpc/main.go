@@ -58,7 +58,7 @@ func main() {
 			CreateBox:  command.NewCreateBoxHandler(repos, mockIAP, l),
 			DeleteBox:  command.NewDeleteBoxHandler(repos, l),
 			RunJob:     command.NewRunJobHandler(runner, repos, storage, l),
-			StartJob:   command.NewStartJobHandler(repos, jPub, l),
+			StartJob:   command.NewStartJobHandler(repos, repos, jPub, l),
 			UploadFile: command.NewUploadFileHandler(storage, l),
 		},
 		Queries: app.Queries{
@@ -91,7 +91,9 @@ func main() {
 	}
 
 	err = server.RunGRPCServerOnAddr(ctx, l, fmt.Sprintf(":%s", port), func(s *grpc.Server) {
+		api.RegisterBoxService(s, a, l)
 		api.RegisterFileService(s, a, l)
+		api.RegisterJobService(s, a, l)
 	})
 	if err != nil {
 		l.Error("failed to start grpc server", slog.String("error", err.Error()))

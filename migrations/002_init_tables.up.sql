@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS box.input_fields (
 
     FOREIGN KEY (box_id)
         REFERENCES box.boxes (id)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS box.output_fields (
@@ -38,6 +39,7 @@ CREATE TABLE IF NOT EXISTS box.output_fields (
 
     FOREIGN KEY (box_id)
         REFERENCES box.boxes (id)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS job.jobs (
@@ -55,6 +57,7 @@ CREATE TABLE IF NOT EXISTS job.jobs (
 
     FOREIGN KEY (box_id)
         REFERENCES box.boxes (id)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS job.input_values (
@@ -67,6 +70,7 @@ CREATE TABLE IF NOT EXISTS job.input_values (
 
     FOREIGN KEY (job_id)
         REFERENCES job.jobs (id)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS job.output_values (
@@ -79,6 +83,7 @@ CREATE TABLE IF NOT EXISTS job.output_values (
 
     FOREIGN KEY (job_id)
         REFERENCES job.jobs (id)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS job.output_fields (
@@ -93,4 +98,5 @@ CREATE TABLE IF NOT EXISTS job.output_fields (
 
     FOREIGN KEY (job_id)
         REFERENCES job.jobs (id)
+        ON DELETE CASCADE
 );

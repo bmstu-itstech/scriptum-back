@@ -35,7 +35,7 @@ func NewBox(
 	}
 
 	if archiveID == "" {
-		return nil, errors.New("zero archiveID")
+		return nil, domain.NewInvalidInputError("box-empty-archive-id", "expected not empty archive ID")
 	}
 
 	if name == "" {

@@ -7,10 +7,12 @@ import (
 	"path/filepath"
 )
 
+// TarCreate создаёт архив .tar из всех файлов в директории и сохраняет его там же с названием директории.
 func TarCreate(dirPath string) (string, error) {
-	archivePath := filepath.Join(dirPath, "archive.tar")
+	name := filepath.Base(dirPath) + ".tar"
+	path := filepath.Join(dirPath, name)
 
-	tarFile, err := os.Create(archivePath)
+	tarFile, err := os.Create(path)
 	if err != nil {
 		return "", err
 	}
@@ -25,7 +27,7 @@ func TarCreate(dirPath string) (string, error) {
 		}
 
 		// Пропускаем сам архив, чтобы не заархивировать его же самого
-		if filePath == archivePath {
+		if filePath == path {
 			return nil
 		}
 
@@ -65,5 +67,5 @@ func TarCreate(dirPath string) (string, error) {
 		return "", err
 	}
 
-	return archivePath, nil
+	return path, nil
 }

@@ -32,10 +32,10 @@ func TestFileServiceUpload(t *testing.T) {
 	require.NoError(t, err)
 
 	data := []byte(s)
-	chunkSize := 8 // Для тестов проверим отправку чанками ОЧЕНЬ маленького размера (8 байт)
+	testChunkSize := 8 // Для тестов проверим отправку чанками ОЧЕНЬ маленького размера (8 байт)
 
-	for i := 0; i < len(data); i += chunkSize {
-		end := i + chunkSize
+	for i := 0; i < len(data); i += testChunkSize {
+		end := i + testChunkSize
 		if end > len(data) {
 			end = len(data)
 		}
