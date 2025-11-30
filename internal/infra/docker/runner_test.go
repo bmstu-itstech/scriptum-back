@@ -42,33 +42,33 @@ func TestRunner_Adder(t *testing.T) {
 	image, err := r.Build(ctx, buildCtx, value.NewBoxID())
 	require.NoError(t, err)
 	t.Cleanup(func() {
-		err = r.Cleanup(ctx, image)
+		err = r.Cleanup(context.Background(), image)
 		if err != nil {
 			t.Logf("failed to cleanup image: %v", err)
 		}
 	})
 
 	t.Run("successfully added", func(t *testing.T) {
-		res, err := r.Run(ctx, image, []value.Value{
+		res, err2 := r.Run(ctx, image, []value.Value{
 			value.MustNewIntegerValue("1"),
 			value.MustNewIntegerValue("2"),
 		})
-		require.NoError(t, err)
+		require.NoError(t, err2)
 		require.Equal(t, value.NewResult(0).WithOutput("3\n"), res)
 	})
 
 	t.Run("should return exception on invalid input", func(t *testing.T) {
-		res, err := r.Run(ctx, image, []value.Value{
+		res, err2 := r.Run(ctx, image, []value.Value{
 			value.MustNewIntegerValue("1"),
 			value.NewStringValue("a"),
 		})
-		require.NoError(t, err)
+		require.NoError(t, err2)
 		require.NotEqual(t, value.ExitCode(0), res.Code())
 		require.NotEmpty(t, res.Output())
 	})
 
 	t.Run("should return error if image not found", func(t *testing.T) {
-		_, err := r.Run(ctx, image, []value.Value{
+		_, err = r.Run(ctx, "invalid", []value.Value{
 			value.MustNewIntegerValue("1"),
 			value.MustNewIntegerValue("2"),
 		})

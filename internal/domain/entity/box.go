@@ -76,7 +76,7 @@ func (b *Box) AssembleJob(uid value.UserID, input []value.Value) (*Job, error) {
 	if len(input) != len(b.in) {
 		return nil, domain.NewInvalidInputError(
 			"assemble-values-mismatch",
-			fmt.Sprintf("failed to assemble job: expected %d values, got %d", &b.in, len(input)),
+			fmt.Sprintf("failed to assemble job: expected %d values, got %d", len(b.in), len(input)),
 		)
 	}
 

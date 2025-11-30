@@ -51,7 +51,7 @@ func (r *Runner) Build(ctx context.Context, buildCtx io.Reader, id value.BoxID) 
 	image := value.NewImageTag(imagePrefix, id)
 	l = l.With(slog.String("image", string(image)))
 
-	l.Debug("Docker build started")
+	l.DebugContext(ctx, "Docker build started")
 	res, err := r.cli.ImageBuild(ctx, buildCtx, client.ImageBuildOptions{
 		Tags:       []string{string(image)},
 		Dockerfile: "Dockerfile",
@@ -64,7 +64,7 @@ func (r *Runner) Build(ctx context.Context, buildCtx io.Reader, id value.BoxID) 
 	// Не знаю почему, но сборка не идёт, если не прочесть res.Body
 	_, _ = io.ReadAll(res.Body)
 
-	l.Debug("Docker build finished")
+	l.DebugContext(ctx, "Docker build finished")
 	return image, nil
 }
 
@@ -74,7 +74,7 @@ func (r *Runner) Run(ctx context.Context, image value.ImageTag, input []value.Va
 		slog.String("image", string(image)),
 	)
 
-	l.Debug("Docker container creating started")
+	l.DebugContext(ctx, "Docker container creating started")
 	resp, err := r.cli.ContainerCreate(ctx, client.ContainerCreateOptions{
 		Image: string(image),
 		Config: &container.Config{
@@ -86,16 +86,16 @@ func (r *Runner) Run(ctx context.Context, image value.ImageTag, input []value.Va
 	if err != nil {
 		return value.Result{}, fmt.Errorf("failed to create container: %w", err)
 	}
-	l.Debug("Docker container created")
+	l.DebugContext(ctx, "Docker container created")
 
-	l.Debug("Docker container starting")
+	l.DebugContext(ctx, "Docker container starting")
 	_, err = r.cli.ContainerStart(ctx, resp.ID, client.ContainerStartOptions{})
 	if err != nil {
 		return value.Result{}, fmt.Errorf("failed to start container: %w", err)
 	}
-	l.Debug("Docker container started")
+	l.DebugContext(ctx, "Docker container started")
 
-	l.Debug("Docker container attaching")
+	l.DebugContext(ctx, "Docker container attaching")
 	attach, err := r.cli.ContainerAttach(ctx, resp.ID, client.ContainerAttachOptions{
 		Stream: true,
 		Stdin:  true,
@@ -103,31 +103,31 @@ func (r *Runner) Run(ctx context.Context, image value.ImageTag, input []value.Va
 	if err != nil {
 		return value.Result{}, fmt.Errorf("failed to attach container: %w", err)
 	}
-	l.Debug("Docker container attached")
+	l.DebugContext(ctx, "Docker container attached")
 
-	l.Debug("Docker container writing")
+	l.DebugContext(ctx, "Docker container writing")
 	n, err := attach.Conn.Write(r.marshallInput(input))
 	if err != nil {
 		_ = attach.Conn.Close()
 		return value.Result{}, fmt.Errorf("failed to write input: %w", err)
 	}
-	l.Debug("Docker container input written", slog.Int("bytes", n))
+	l.DebugContext(ctx, "Docker container input written", slog.Int("bytes", n))
 
-	l.Debug("Docker container waiting")
+	l.DebugContext(ctx, "Docker container waiting")
 	wRes := r.cli.ContainerWait(ctx, resp.ID, client.ContainerWaitOptions{
 		Condition: container.WaitConditionNotRunning,
 	})
 
 	var result value.Result
 	select {
-	case err := <-wRes.Error:
+	case err = <-wRes.Error:
 		if err != nil {
 			return value.Result{}, fmt.Errorf("failed to wait container: %w", err)
 		}
 	case res := <-wRes.Result:
 		result = value.NewResult(value.ExitCode(res.StatusCode))
 	}
-	l.Debug("Docker container exited", slog.Int("exit_code", int(result.Code())))
+	l.DebugContext(ctx, "Docker container exited", slog.Int("exit_code", int(result.Code())))
 
 	out, err := r.cli.ContainerLogs(ctx, resp.ID, client.ContainerLogsOptions{
 		ShowStdout: true,

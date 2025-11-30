@@ -1,8 +1,11 @@
 package domain
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
-var ErrPermissionDenied = fmt.Errorf("permission denied")
+var ErrPermissionDenied = errors.New("permission denied")
 
 type InvalidInputError struct {
 	Code    string

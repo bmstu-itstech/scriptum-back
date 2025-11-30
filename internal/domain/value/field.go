@@ -39,19 +39,11 @@ func NewField(t Type, name string, desc *string, unit *string) (Field, error) {
 	}, nil
 }
 
-func MustNewField(t Type, name string, desc *string, unit *string) Field {
-	f, err := NewField(t, name, desc, unit)
-	if err != nil {
-		panic(err)
-	}
-	return f
-}
-
 func (f Field) Validate(v Value) error {
 	if f.t != v.t {
 		return domain.NewInvalidInputError(
 			"field-mismatch",
-			fmt.Sprintf("field type mismatch: expected '%output', got '%output'", f.t.String(), v.t.String()),
+			fmt.Sprintf("field type mismatch: expected '%s', got '%s'", f.t.String(), v.t.String()),
 		)
 	}
 	return nil

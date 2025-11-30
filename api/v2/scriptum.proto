@@ -1,0 +1,176 @@
+syntax = "proto3";
+
+package api.v2;
+option go_package = "api/v2;apiv2";
+
+import "google/protobuf/timestamp.proto";
+
+// Enums
+
+enum Visibility {
+  VISIBILITY_PRIVATE = 0;
+  VISIBILITY_PUBLIC = 1;
+}
+
+enum Type {
+  TYPE_STRING = 0;
+  TYPE_INTEGER = 1;
+  TYPE_REAL = 2;
+}
+
+enum JobState {
+  JOB_STATE_PENDING = 0;
+  JOB_STATE_RUNNING = 1;
+  JOB_STATE_FINISHED = 2;
+}
+
+// Base messages
+
+message Value {
+  Type type = 1;
+  string value = 2;
+}
+
+message Field {
+  Type type = 1;
+  string name = 2;
+  optional string desc = 3;
+  optional string unit = 4;
+}
+
+message Box {
+  string id = 1;
+  int64 owner_id = 2;
+  string archive_id = 3;
+  string name = 4;
+  optional string desc = 5;
+  Visibility vis = 6;
+  repeated Field in = 7;
+  repeated Field out = 8;
+  google.protobuf.Timestamp created_at = 9;
+}
+
+message JobResult {
+  int64 code = 1;
+  repeated Value output = 2;
+  optional string message = 3;
+}
+
+message Job {
+  string id = 1;
+  string box_id = 2;
+  string archive_id = 3;
+  int64 owner_id = 4;
+  JobState state = 5;
+  repeated Value input = 6;
+  repeated Field out = 7;
+  google.protobuf.Timestamp created_at = 8;
+  optional google.protobuf.Timestamp started_at = 9;
+  optional JobResult result = 10;
+  optional google.protobuf.Timestamp finished_at = 11;
+}
+
+// Uploader service
+
+message FileMeta {
+  string name = 1;
+}
+
+message FileUploadRequest {
+  oneof body {
+    FileMeta meta = 1;
+    bytes chunk = 2;
+  }
+}
+
+message FileUploadResponse {
+  string file_id = 1;
+  uint32 size = 2;
+}
+
+service FileService {
+  rpc Upload(stream FileUploadRequest) returns(FileUploadResponse);
+}
+
+// Box service
+
+message CreateBoxRequest {
+  string archive_id = 1;
+  string name = 2;
+  optional string desc = 3;
+  repeated Field input = 4;
+  repeated Field output = 5;
+}
+
+message CreateBoxResponse {
+  string box_id = 1;
+}
+
+message DeleteBoxRequest {
+  string box_id = 1;
+}
+
+message DeleteBoxResponse {}
+
+message GetBoxRequest {
+  string box_id = 1;
+}
+
+message GetBoxResponse {
+  Box box = 1;
+}
+
+message GetBoxesRequest {}
+
+message GetBoxesResponse {
+  repeated Box boxes = 1;
+}
+
+message SearchBoxesRequest {
+  string name = 1;
+}
+
+message SearchBoxesResponse {
+  repeated Box boxes = 1;
+}
+
+service BoxService {
+  rpc CreateBox(CreateBoxRequest) returns(CreateBoxResponse);
+  rpc DeleteBox(DeleteBoxRequest) returns(DeleteBoxResponse);
+  rpc GetBox(GetBoxRequest) returns(GetBoxResponse);
+  rpc GetBoxes(GetBoxesRequest) returns(GetBoxesResponse);
+  rpc SearchBoxes(SearchBoxesRequest) returns(SearchBoxesResponse);
+}
+
+// Job service
+
+message GetJobRequest {
+  string job_id = 1;
+}
+
+message GetJobResponse {
+  Job job = 1;
+}
+
+message GetJobsRequest {
+  optional string state = 1;
+}
+
+message GetJobsResponse {
+  repeated Job jobs = 1;
+}
+
+message StartJobRequest {
+  string box_id = 1;
+  repeated Value values = 2;
+}
+
+message StartJobResponse {
+  string job_id = 1;
+}
+
+service JobService {
+  rpc GetJob(GetJobRequest) returns(GetJobResponse);
+  rpc GetJobs(GetJobsRequest) returns(GetJobsResponse);
+  rpc StartJob(StartJobRequest) returns(StartJobResponse);
+}

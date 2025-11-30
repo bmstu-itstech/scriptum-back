@@ -19,23 +19,32 @@ func (s *Storage) Upload(ctx context.Context, name string, reader io.Reader) (va
 	fileID := value.NewFileID()
 	l = l.With(slog.String("file_id", string(fileID)))
 
-	filePath := filepath.Join(s.basePath, string(fileID))
+	dirPath := filepath.Join(s.dir, string(fileID))
+
+	err := os.MkdirAll(dirPath, basePathPerms)
+	if err != nil {
+		l.ErrorContext(ctx, "failed to create directory", slog.Any("error", err))
+		return "", err
+	}
+
+	filePath := filepath.Join(dirPath, name)
+
 	l = l.With(slog.String("path", filePath))
 	l.DebugContext(ctx, "saving file")
 
 	file, err := os.Create(filePath)
 	if err != nil {
-		l.ErrorContext(ctx, "failed to create file", slog.String("error", err.Error()))
+		l.ErrorContext(ctx, "failed to create file", slog.Any("error", err))
 		return "", err
 	}
 	defer func() { _ = file.Close() }()
 
 	_, err = io.Copy(file, reader)
 	if err != nil {
-		l.ErrorContext(ctx, "failed to copy file", slog.String("error", err.Error()))
-		err2 := os.Remove(filePath)
+		l.ErrorContext(ctx, "failed to copy file", slog.Any("error", err))
+		err2 := os.Remove(dirPath)
 		if err2 != nil {
-			l.ErrorContext(ctx, "failed to remove file", slog.String("error", err.Error()))
+			l.ErrorContext(ctx, "failed to remove file", slog.Any("error", err))
 		}
 		return "", err
 	}

@@ -1,0 +1,19 @@
+version: v1alpha
+lint:
+    use:
+      - DEFAULT
+deps:
+    - github.com/googleapis/googleapis@common-protos-1_3_1
+    - github.com/grpc-ecosystem/grpc-gateway
+generate:
+    inputs:
+      - directory: "api/v2"
+    plugins:
+        - name: go
+          out: gen/go
+          opt:
+            paths: source_relative
+        - name: go-grpc
+          out: gen/go
+          opt:
+            paths: source_relative

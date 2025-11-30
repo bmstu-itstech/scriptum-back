@@ -29,9 +29,9 @@ func (h DeleteBoxHandler) Handle(ctx context.Context, req request.DeleteBox) err
 	box, err := h.br.Box(ctx, value.BoxID(req.BoxID))
 	if err != nil {
 		if errors.Is(err, ports.ErrBoxNotFound) {
-			l.Warn("box not found")
+			l.WarnContext(ctx, "box not found")
 		} else {
-			l.Error("failed to query box", slog.String("error", err.Error()))
+			l.ErrorContext(ctx, "failed to query box", slog.Any("error", err))
 		}
 		return err
 	}
@@ -43,7 +43,7 @@ func (h DeleteBoxHandler) Handle(ctx context.Context, req request.DeleteBox) err
 
 	err = h.br.DeleteBox(ctx, value.BoxID(req.BoxID))
 	if err != nil {
-		l.ErrorContext(ctx, "failed to delete box", slog.String("error", err.Error()))
+		l.ErrorContext(ctx, "failed to delete box", slog.Any("error", err))
 		return err
 	}
 	l.InfoContext(ctx, "box deleted")

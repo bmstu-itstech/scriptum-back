@@ -29,7 +29,7 @@ func (h CreateBoxHandler) Handle(ctx context.Context, req request.CreateBox) (st
 
 	isAdmin, err := h.iap.IsAdmin(ctx, value.UserID(req.UID))
 	if err != nil {
-		l.ErrorContext(ctx, "failed to check author isAdmin", slog.String("error", err.Error()))
+		l.ErrorContext(ctx, "failed to check author isAdmin", slog.Any("error", err))
 		return "", err
 	}
 	l = l.With(slog.Bool("is_admin", isAdmin))
@@ -45,12 +45,12 @@ func (h CreateBoxHandler) Handle(ctx context.Context, req request.CreateBox) (st
 
 	input, err := dto.FieldsFromDTOs(req.Input)
 	if err != nil {
-		l.Info("failed to convert input to dto.Out", slog.String("error", err.Error()))
+		l.InfoContext(ctx, "failed to convert input to dto.Out", slog.Any("error", err))
 		return "", err
 	}
 	output, err := dto.FieldsFromDTOs(req.Output)
 	if err != nil {
-		l.Info("failed to convert output to dto.Out", slog.String("error", err.Error()))
+		l.InfoContext(ctx, "failed to convert output to dto.Out", slog.Any("error", err))
 		return "", err
 	}
 
@@ -64,13 +64,13 @@ func (h CreateBoxHandler) Handle(ctx context.Context, req request.CreateBox) (st
 		output,
 	)
 	if err != nil {
-		l.InfoContext(ctx, "failed to create box", slog.String("error", err.Error()))
+		l.InfoContext(ctx, "failed to create box", slog.Any("error", err))
 		return "", err
 	}
 
 	err = h.br.SaveBox(ctx, box)
 	if err != nil {
-		l.ErrorContext(ctx, "failed to save box", slog.String("error", err.Error()))
+		l.ErrorContext(ctx, "failed to save box", slog.Any("error", err))
 		return "", err
 	}
 	l.InfoContext(ctx, "successfully created box", slog.String("id", string(box.ID())))

@@ -29,7 +29,7 @@ func (r *Repository) Job(ctx context.Context, id value.JobID) (*entity.Job, erro
 	})
 	if errors.Is(err, sql.ErrNoRows) {
 		l.WarnContext(ctx, "job not found", slog.String("error", err.Error()))
-		return nil, fmt.Errorf("%w: %s", ports.ErrJobNotFound, err)
+		return nil, fmt.Errorf("%w: %s", ports.ErrJobNotFound, err.Error())
 	}
 	if err != nil {
 		l.ErrorContext(ctx, "failed to execute transaction", slog.String("error", err.Error()))

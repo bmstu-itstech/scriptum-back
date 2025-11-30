@@ -27,15 +27,15 @@ func (h RunJobHandler) Handle(ctx context.Context, job request.RunJob) error {
 		slog.String("op", "app.RunJob"),
 		slog.String("job_id", job.JobID),
 	)
-	l.Debug("running job")
+	l.DebugContext(ctx, "running job")
 
 	// Две раздельные операции обновления Job так как необходимо достичь состояния Running.
 
-	err := h.jr.UpdateJob(ctx, value.JobID(job.JobID), func(ctx2 context.Context, job *entity.Job) error {
+	err := h.jr.UpdateJob(ctx, value.JobID(job.JobID), func(_ context.Context, job *entity.Job) error {
 		return job.Run()
 	})
 	if err != nil {
-		l.Error("failed to update job", slog.String("error", err.Error()))
+		l.ErrorContext(ctx, "failed to update job", slog.Any("error", err))
 		return err
 	}
 
@@ -56,9 +56,9 @@ func (h RunJobHandler) Handle(ctx context.Context, job request.RunJob) error {
 		return job.Finish(res)
 	})
 	if err != nil {
-		l.Error("failed to update job", slog.String("error", err.Error()))
+		l.ErrorContext(ctx, "failed to update job", slog.Any("error", err))
 		return err
 	}
-	l.Info("job successfully run", slog.Int("code", int(res.Code())), slog.String("output", res.Output()))
+	l.InfoContext(ctx, "job successfully run", slog.Int("code", int(res.Code())), slog.String("output", res.Output()))
 	return nil
 }

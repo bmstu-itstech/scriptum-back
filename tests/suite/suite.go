@@ -1,17 +1,21 @@
-package main
+package suite
 
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
+	"net"
 	"os"
-	"os/signal"
+	"testing"
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/test/bufconn"
 
+	apiv2 "github.com/bmstu-itstech/scriptum-back/gen/go/api/v2"
 	"github.com/bmstu-itstech/scriptum-back/internal/api"
 	"github.com/bmstu-itstech/scriptum-back/internal/app"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/command"
@@ -23,11 +27,13 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/postgres"
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/watermill"
 	"github.com/bmstu-itstech/scriptum-back/pkg/logs"
-	"github.com/bmstu-itstech/scriptum-back/pkg/server"
 )
 
-const RunnerTimeout = 15 * time.Minute
-const LocalStorageBasePath = "uploads"
+const runnerTimeout = 15 * time.Second
+
+type Suite struct {
+	FileService apiv2.FileServiceClient
+}
 
 func connectDB() (*sqlx.DB, error) {
 	uri := os.Getenv("DATABASE_URI")
@@ -37,7 +43,7 @@ func connectDB() (*sqlx.DB, error) {
 	return sqlx.Connect("postgres", uri)
 }
 
-func main() {
+func New(t *testing.T) (context.Context, *Suite) {
 	l := logs.DefaultLogger()
 
 	db, err := connectDB()
@@ -48,7 +54,7 @@ func main() {
 
 	repos := postgres.NewRepository(db, l)
 	runner := docker.MustNewRunner(l)
-	storage := local.NewStorage(LocalStorageBasePath, l)
+	storage := local.NewStorage("../uploads", l)
 	mockIAP := mock.NewIsAdminProvider()
 
 	jPub, jSub := watermill.NewJobPubSubGoChannels(l)
@@ -70,42 +76,44 @@ func main() {
 		},
 	}
 
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
-	defer cancel()
-	errCh := make(chan error, 1)
+	ctx, cancel := context.WithTimeout(context.Background(), runnerTimeout)
+	t.Cleanup(cancel)
 
 	go func() {
 		err2 := jSub.Listen(ctx, func(ctx2 context.Context, jobID string) error {
-			ctx2, cancel2 := context.WithTimeout(ctx2, RunnerTimeout)
+			ctx2, cancel2 := context.WithTimeout(ctx2, runnerTimeout)
 			defer cancel2()
 			return a.Commands.RunJob.Handle(ctx2, request.RunJob{JobID: jobID})
 		})
-		errCh <- err2
+		if err != nil {
+			t.Error(err2)
+		}
 	}()
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		l.Error("PORT environment variable must be set")
-		cancel()
-		os.Exit(1) //nolint:gocritic // cancel() вызывается выше
-	}
-
-	err = server.RunGRPCServerOnAddr(ctx, l, fmt.Sprintf(":%s", port), func(s *grpc.Server) {
-		api.RegisterFileService(s, a, l)
-	})
-	if err != nil {
-		l.Error("failed to start grpc server", slog.String("error", err.Error()))
-		cancel()
-		os.Exit(1)
-	}
-
-	select {
-	case <-ctx.Done():
-		l.Info("received cancel signal, gracefully shutting down")
-	case err = <-errCh:
-		if err != nil && !errors.Is(err, context.Canceled) {
-			l.Error("listen error", slog.String("error", err.Error()))
-			cancel()
+	lis := bufconn.Listen(1024 * 1024)
+	s := grpc.NewServer()
+	api.RegisterFileService(s, a, l)
+	go func() {
+		err = s.Serve(lis)
+		if err != nil {
+			t.Error(err)
 		}
+	}()
+
+	conn, err := grpc.NewClient(
+		"passthrough:///bufnet",
+		grpc.WithContextDialer(func(ctx context.Context, _ string) (net.Conn, error) {
+			return lis.DialContext(ctx)
+		}),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, conn.Close())
+	})
+	fileClient := apiv2.NewFileServiceClient(conn)
+
+	return ctx, &Suite{
+		FileService: fileClient,
 	}
 }

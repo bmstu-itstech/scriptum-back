@@ -9,7 +9,7 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/value"
 )
 
-var InvalidJobStateChange = errors.New("invalid job state change")
+var ErrInvalidJobStateChange = errors.New("invalid job state change")
 
 type Job struct {
 	id        value.JobID
@@ -29,7 +29,7 @@ type Job struct {
 func (j *Job) Run() error {
 	if j.state != value.JobPending {
 		return fmt.Errorf(
-			"%w: expected JobPending -> JobRunning, got %s -> JobRunning", InvalidJobStateChange, j.state.String(),
+			"%w: expected JobPending -> JobRunning, got %s -> JobRunning", ErrInvalidJobStateChange, j.state.String(),
 		)
 	}
 	j.state = value.JobRunning
@@ -41,7 +41,7 @@ func (j *Job) Run() error {
 func (j *Job) Finish(res value.Result) error {
 	if j.state != value.JobRunning {
 		return fmt.Errorf(
-			"%w: expected JobRunning -> JobFinished, got %s -> JobFinished", InvalidJobStateChange, j.state.String(),
+			"%w: expected JobRunning -> JobFinished, got %s -> JobFinished", ErrInvalidJobStateChange, j.state.String(),
 		)
 	}
 	j.state = value.JobFinished

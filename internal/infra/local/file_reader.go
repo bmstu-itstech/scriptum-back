@@ -2,6 +2,7 @@ package local
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log/slog"
 	"os"
@@ -17,11 +18,24 @@ func (s *Storage) Read(ctx context.Context, id value.FileID) (io.ReadCloser, err
 		slog.String("file_id", string(id)),
 	)
 
-	filePath := filepath.Join(s.basePath, string(id))
-	l = l.With(slog.String("path", filePath))
+	dirPath := filepath.Join(s.dir, string(id))
+
+	entries, err := os.ReadDir(dirPath)
+	if err != nil {
+		return nil, ports.ErrFileNotFound
+	}
+
+	if len(entries) == 0 {
+		return nil, fmt.Errorf("empty file directory: %s", dirPath)
+	}
+
+	entry := entries[0]
+	path := filepath.Join(dirPath, entry.Name())
+
+	l = l.With(slog.String("path", path))
 	l.DebugContext(ctx, "reading file")
 
-	file, err := os.Open(filePath)
+	file, err := os.Open(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			l.ErrorContext(ctx, "file not found")

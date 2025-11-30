@@ -12,7 +12,7 @@ import (
 
 func (r *Repository) selectBoxRow(ctx context.Context, qc sqlx.QueryerContext, boxID string) (boxRow, error) {
 	var row boxRow
-	err := pgutils.Get(ctx, qc, row, `
+	err := pgutils.Get(ctx, qc, &row, `
 		SELECT
 			id,
 			owner_id,
@@ -40,7 +40,7 @@ func (r *Repository) selectPublicAndUserBoxRows(
 	userID int64,
 ) ([]boxRow, error) {
 	var rows []boxRow
-	err := pgutils.Select(ctx, qc, rows, `
+	err := pgutils.Select(ctx, qc, &rows, `
 		SELECT
 			id,
 			owner_id,
@@ -73,7 +73,7 @@ func (r *Repository) selectPublicAndUserBoxByNameRows(
 	name string,
 ) ([]boxRow, error) {
 	var rows []boxRow
-	err := pgutils.Select(ctx, qc, rows, `
+	err := pgutils.Select(ctx, qc, &rows, `
 		SELECT
 			id,
 			owner_id,
