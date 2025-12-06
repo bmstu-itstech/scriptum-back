@@ -1,4 +1,20 @@
 services:
+  grpc:
+    build: .
+    command: [
+      "-config", "/etc/app/local.yaml",
+    ]
+    environment:
+      - SC_POSTGRES_URI=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=disable
+      - SC_GRPC_PORT=8000
+    ports:
+      - ${SC_EXTERNAL_GRPC_PORT:-8000}:8000
+    networks:
+      - internal
+    depends_on:
+      db:
+        condition: service_healthy
+
   db:
     image: postgres:15.3-alpine3.18
     command: postgres
@@ -21,10 +37,8 @@ services:
   migrate:
     image: migrate/migrate
     command: [
-      "-path",
-      "/migrations",
-      "-database",
-      "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=disable",
+      "-path", "/migrations",
+      "-database", "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=disable",
       "up"
     ]
     depends_on:

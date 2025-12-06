@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -37,19 +38,31 @@ type Storage struct {
 }
 
 func Load(path string) (*Config, error) {
-	viper.SetConfigFile(path)
-	viper.SetEnvPrefix("SC")
-	viper.AutomaticEnv() // только для локальной разработки
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	// Нетривиальный момент Viper, не описанный в документации, но описанный в
+	// 	https://github.com/spf13/viper/issues/1797
+	// Без viper.ExperimentalBindStruct() переменная окружения загружается только если она была указана в yaml конфиге.
+	// Так например:
+	// 	postgres:
+	//    uri:
+	// и SC_POSTGRES_URI работает корректно, а без пустого uri -- не читает переменную вовсе. Причём,
+	//	viper.Get("postgres.uri")
+	// работает исправно -- проблема именно в Unmarshall, который почему-то полагается на файл.
+	// Решение -- viper.ExperimentalBindStruct().
+	v := viper.NewWithOptions(viper.ExperimentalBindStruct())
+	v.SetConfigFile(path)
+	v.AutomaticEnv()
+	v.SetEnvPrefix("SC")
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	if err := viper.ReadInConfig(); err != nil {
-		return nil, err
+	if err := v.ReadInConfig(); err != nil {
+		return nil, fmt.Errorf("failed to read config '%s': %w", path, err)
 	}
 
 	var cfg Config
-	if err := viper.Unmarshal(&cfg); err != nil {
+	if err := v.Unmarshal(&cfg); err != nil {
 		return nil, err
 	}
+
 	return &cfg, nil
 }
 
