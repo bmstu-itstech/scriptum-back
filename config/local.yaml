@@ -2,6 +2,9 @@ docker:
   image_prefix: sc-box
   runner_timeout: 15m
 
+grpc:
+  port: 8070
+
 logging:
   level: debug
 
@@ -10,4 +13,3 @@ postgres:
 
 storage:
   base_path: "uploads"
-
