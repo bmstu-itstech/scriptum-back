@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/bmstu-itstech/scriptum-back/internal/config"
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/value"
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/local"
 	"github.com/bmstu-itstech/scriptum-back/pkg/logs/handlers/slogdiscard"
@@ -16,7 +17,8 @@ func TestFileReader_Read(t *testing.T) {
 		t.Skip("skipping test in short mode")
 	}
 
-	store := local.NewStorage("tests", slogdiscard.NewDiscardLogger())
+	cfg := config.Storage{BasePath: "tests"}
+	store := local.MustNewStorage(cfg, slogdiscard.NewDiscardLogger())
 	fileID := value.FileID("1234abcd")
 
 	rc, err := store.Read(t.Context(), fileID)

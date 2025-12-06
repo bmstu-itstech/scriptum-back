@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/bmstu-itstech/scriptum-back/internal/config"
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/value"
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/docker"
 	"github.com/bmstu-itstech/scriptum-back/pkg/logs/handlers/slogdiscard"
@@ -38,7 +39,11 @@ func TestRunner_Adder(t *testing.T) {
 	ctx, cancelFn := context.WithTimeout(ctx, time.Second*10)
 	defer cancelFn()
 
-	r := docker.MustNewRunner(l)
+	cfg := config.Docker{
+		ImagePrefix:   "sc-box",
+		RunnerTimeout: 10 * time.Second,
+	}
+	r := docker.MustNewRunner(cfg, l)
 	image, err := r.Build(ctx, buildCtx, value.NewBoxID())
 	require.NoError(t, err)
 	t.Cleanup(func() {

@@ -13,29 +13,30 @@ import (
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
 
+	"github.com/bmstu-itstech/scriptum-back/internal/config"
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/value"
 )
-
-const imagePrefix = "sc-box"
 
 type Runner struct {
 	cli *client.Client
 	l   *slog.Logger
+	cfg config.Docker
 }
 
-func NewRunner(l *slog.Logger) (*Runner, error) {
+func NewRunner(cfg config.Docker, l *slog.Logger) (*Runner, error) {
 	if l == nil {
 		return nil, errors.New("nil logger")
 	}
+
 	cli, err := client.New(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create docker client: %w", err)
 	}
-	return &Runner{cli, l}, nil
+	return &Runner{cli, l, cfg}, nil
 }
 
-func MustNewRunner(l *slog.Logger) *Runner {
-	r, err := NewRunner(l)
+func MustNewRunner(cfg config.Docker, l *slog.Logger) *Runner {
+	r, err := NewRunner(cfg, l)
 	if err != nil {
 		panic(err)
 	}
@@ -48,7 +49,7 @@ func (r *Runner) Build(ctx context.Context, buildCtx io.Reader, id value.BoxID) 
 		slog.String("box_id", string(id)),
 	)
 
-	image := value.NewImageTag(imagePrefix, id)
+	image := value.NewImageTag(r.cfg.ImagePrefix, id)
 	l = l.With(slog.String("image", string(image)))
 
 	l.DebugContext(ctx, "Docker build started")
@@ -69,6 +70,9 @@ func (r *Runner) Build(ctx context.Context, buildCtx io.Reader, id value.BoxID) 
 }
 
 func (r *Runner) Run(ctx context.Context, image value.ImageTag, input []value.Value) (value.Result, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.cfg.RunnerTimeout)
+	defer cancel()
+
 	l := r.l.With(
 		slog.String("op", "docker.Runner.Run"),
 		slog.String("image", string(image)),
@@ -165,7 +169,7 @@ func (r *Runner) readDockerLogs(rd io.Reader) (string, error) {
 	br := bufio.NewReader(rd)
 	var builder strings.Builder
 	for {
-		_, err := br.Discard(8)
+		_, err := br.Discard(8) // 8-байтный заголовок Docker в выводе
 		if err != nil {
 			if err == io.EOF {
 				break
