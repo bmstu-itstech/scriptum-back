@@ -18,6 +18,7 @@ type SSO struct {
 
 func NewSSOClient(config config.SSO) *SSO {
 	addr := config.Host + ":" + config.Port
+
 	cc, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatal("did not connect: ", err)
