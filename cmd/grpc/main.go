@@ -34,7 +34,7 @@ func main() {
 	repos := postgres.MustNewRepository(cfg.Postgres, l)
 	runner := docker.MustNewRunner(cfg.Docker, l)
 	storage := local.MustNewStorage(cfg.Storage, l)
-	mockIAP := mock.NewIsAdminProvider()
+	mockIAP := mock.NewIsAdminProvider(cfg.Sso)
 
 	jPub, jSub := watermill.NewJobPubSubGoChannels(l)
 

@@ -12,6 +12,7 @@ type Config struct {
 	Logging  Logging
 	Postgres Postgres
 	Storage  Storage
+	Sso      SSO
 }
 
 func Load(path string) (*Config, error) {
