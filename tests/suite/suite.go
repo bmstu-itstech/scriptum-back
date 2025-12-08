@@ -59,7 +59,7 @@ func New(t *testing.T) (context.Context, *Suite) {
 	repos := postgres.MustNewRepository(cfg.Postgres, l)
 	runner := docker.MustNewRunner(cfg.Docker, l)
 	storage := local.MustNewStorage(cfg.Storage, l)
-	mockIAP := mock.NewIsAdminProvider()
+	mockIAP := mock.NewSSOClient(cfg.SSO)
 
 	jPub, jSub := watermill.NewJobPubSubGoChannels(l)
 

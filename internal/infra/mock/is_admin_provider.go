@@ -16,9 +16,9 @@ type SSO struct {
 	api ssov1.AuthClient
 }
 
-func NewIsAdminProvider(config config.SSO) *SSO {
+func NewSSOClient(config config.SSO) *SSO {
 	addr := config.Host + ":" + config.Port
-	cc, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	cc, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatal("did not connect: ", err)
 		return nil
