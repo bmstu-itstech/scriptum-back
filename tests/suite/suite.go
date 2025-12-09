@@ -20,8 +20,8 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/config"
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/docker"
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/local"
-	"github.com/bmstu-itstech/scriptum-back/internal/infra/mock"
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/postgres"
+	"github.com/bmstu-itstech/scriptum-back/internal/infra/sso"
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/watermill"
 	"github.com/bmstu-itstech/scriptum-back/pkg/logs"
 	"github.com/bmstu-itstech/scriptum-back/pkg/server/auth"
@@ -59,7 +59,7 @@ func New(t *testing.T) (context.Context, *Suite) {
 	repos := postgres.MustNewRepository(cfg.Postgres, l)
 	runner := docker.MustNewRunner(cfg.Docker, l)
 	storage := local.MustNewStorage(cfg.Storage, l)
-	mockIAP := mock.NewSSOClient(cfg.SSO)
+	mockIAP := sso.NewSSOClient(cfg.SSO)
 
 	jPub, jSub := watermill.NewJobPubSubGoChannels(l)
 
