@@ -6,6 +6,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log/slog"
+	"net"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/config"
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/value"
@@ -26,34 +27,41 @@ func MustNewSSOClient(config config.SSO, l *slog.Logger) (*SSO, func() error) {
 }
 
 func NewSSOClient(config config.SSO, l *slog.Logger) (*SSO, func() error, error) {
-	addr := config.Host + ":" + config.Port
-
+	addr := net.JoinHostPort(config.Host, config.Port)
 	cc, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, func() error { return nil }, err
+	}
+
 	closeFn := cc.Close
 
 	return &SSO{
 		api:  ssov1.NewAuthClient(cc),
 		conn: cc,
 		l:    l,
-	}, closeFn, err
+	}, closeFn, nil
 }
 
 // IsAdmin checks if the user with the given uid has admin privileges. uid is int64!!!
 func (s *SSO) IsAdmin(ctx context.Context, uid value.UserID) (bool, error) {
-	const op = "infra.SSO.IsAdmin"
+	const op = "sso.SSO.IsAdmin"
 
-	log := s.l.With(slog.String("op", op))
-	log = log.With(slog.Int64("uid", int64(uid)))
+	l := s.l.With(
+		slog.String("op", op),
+		slog.Int64("uid", int64(uid)),
+	)
 
-	log.Debug("Checking admin status")
+	l.Debug("Checking admin status")
 
 	resp, err := s.api.IsAdmin(ctx, &ssov1.IsAdminRequest{
 		UserId: int64(uid),
 	})
 	if err != nil {
-		log.Error("Failed to check admin status: ", err.Error())
+		l.Error("Failed to check admin status: ", err.Error())
 		return false, err
 	}
-	log.Debug("Admin status: ", resp.IsAdmin)
+
+	l.Debug("Admin status: ", resp.IsAdmin)
+
 	return resp.IsAdmin, nil
 }
