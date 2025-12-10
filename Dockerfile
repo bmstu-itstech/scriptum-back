@@ -1,30 +1,20 @@
-FROM golang:1.25-bookworm AS builder
-
-WORKDIR /src
-
-# Зависимости отдельно для кеша
-COPY go.mod go.sum ./
-RUN go mod download
-
-# Исходники
-COPY . .
-
-# Сборка бинарника (статически, без CGO)
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/sso ./cmd/sso
-
-
-FROM gcr.io/distroless/static:nonroot
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
-# Режим gin = release
-ENV GIN_MODE=release
+COPY go.mod go.sum ./
+RUN go mod download
 
-# Бинарник
-COPY --from=builder /out/sso /app/sso
+COPY . .
 
-# Порт из конфигурации
-EXPOSE 8080
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app ./cmd/grpc/main.go
 
-# Запуск
-ENTRYPOINT ["/app/sso"]
+FROM alpine:latest
+
+WORKDIR /root/
+
+COPY --from=builder /app/app .
+COPY --from=builder /app/config/ /etc/app/
+
+ENTRYPOINT ["./app"]
+CMD ["--config /etc/app/local.yaml"]
