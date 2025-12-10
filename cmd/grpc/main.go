@@ -34,7 +34,15 @@ func main() {
 	repos := postgres.MustNewRepository(cfg.Postgres, l)
 	runner := docker.MustNewRunner(cfg.Docker, l)
 	storage := local.MustNewStorage(cfg.Storage, l)
-	mockIAP := sso.NewSSOClient(cfg.SSO)
+
+	ssoApi, closeFn := sso.MustNewSSOClient(cfg.SSO, l)
+
+	defer func() {
+		err := closeFn()
+		if err != nil {
+			l.Error("failed to close SSO client", slog.String("error", err.Error()))
+		}
+	}()
 
 	jPub, jSub := watermill.NewJobPubSubGoChannels(l)
 
@@ -43,7 +51,7 @@ func main() {
 		BoxRepo:         repos,
 		FileReader:      storage,
 		FileUploader:    storage,
-		IsAdminProvider: mockIAP,
+		IsAdminProvider: ssoApi,
 		JobProvider:     repos,
 		JobPublisher:    jPub,
 		JobRepository:   repos,

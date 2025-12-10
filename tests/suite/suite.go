@@ -2,6 +2,7 @@ package suite
 
 import (
 	"context"
+	"fmt"
 	"math/rand/v2"
 	"net"
 	"os"
@@ -59,7 +60,13 @@ func New(t *testing.T) (context.Context, *Suite) {
 	repos := postgres.MustNewRepository(cfg.Postgres, l)
 	runner := docker.MustNewRunner(cfg.Docker, l)
 	storage := local.MustNewStorage(cfg.Storage, l)
-	mockIAP := sso.NewSSOClient(cfg.SSO)
+	mockIAP, closeFn := sso.MustNewSSOClient(cfg.SSO, l)
+	defer func() {
+		err := closeFn()
+		if err != nil {
+			l.Error(fmt.Sprintf("failed to close sso client: %s", err.Error()))
+		}
+	}()
 
 	jPub, jSub := watermill.NewJobPubSubGoChannels(l)
 
