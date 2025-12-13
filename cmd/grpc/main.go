@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
 	"fmt"
 	"log/slog"
 	"os"
@@ -24,9 +25,12 @@ import (
 )
 
 func main() {
-	cfgPath := os.Getenv("CONFIG_PATH")
+	var cfgPath string
+	flag.StringVar(&cfgPath, "config", "", "path to config file")
+	flag.Parse()
 	if cfgPath == "" {
-		panic("CONFIG_PATH environment variable not set")
+		flag.Usage()
+		os.Exit(1)
 	}
 	cfg := config.MustLoad(cfgPath)
 

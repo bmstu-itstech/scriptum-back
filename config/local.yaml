@@ -5,9 +5,6 @@ docker:
 logging:
   level: debug
 
-postgres:
-  uri:
-
 storage:
   base_path: "uploads"
 
