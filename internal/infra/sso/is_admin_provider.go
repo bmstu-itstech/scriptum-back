@@ -56,16 +56,16 @@ func (s *SSO) IsAdmin(ctx context.Context, uid value.UserID) (bool, error) {
 	)
 
 	l.Debug("Checking admin status")
-	// Добавляем метаданные с AppID
+	// Add metadata with application ID to the context
 	ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs(
 		"x-user-id", strconv.FormatInt(int64(s.AppID), 10),
 	))
-	// Вызываем метод IsAdmin на сервере SSO
+	// Call the IsAdmin method on the SSO server
 	resp, err := s.api.IsAdmin(ctx, &ssov1.IsAdminRequest{
 		UserId: int64(uid),
 	})
 	if err != nil {
-		l.Error("Failed to check admin status: ", slog.String("error", err.Error()))
+		l.Error("Failed to check admin status", slog.String("error", err.Error()))
 		return false, err
 	}
 

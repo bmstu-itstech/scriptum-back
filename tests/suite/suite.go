@@ -53,7 +53,7 @@ func suiteConfig() config.Config {
 		SSO: config.SSO{
 			Host:  os.Getenv("SSO_HOST"),
 			Port:  os.Getenv("SSO_PORT"),
-			AppId: 1,
+			AppID: 1,
 		},
 	}
 }
@@ -66,12 +66,12 @@ func New(t *testing.T) (context.Context, *Suite) {
 	runner := docker.MustNewRunner(cfg.Docker, l)
 	storage := local.MustNewStorage(cfg.Storage, l)
 	ssoApi, closeFn := sso.MustNewSSOClient(cfg.SSO, l)
-	defer func() {
+	t.Cleanup(func() {
 		err := closeFn()
 		if err != nil {
 			l.Error(fmt.Sprintf("failed to close sso client: %s", err.Error()))
 		}
-	}()
+	})
 
 	jPub, jSub := watermill.NewJobPubSubGoChannels(l)
 
