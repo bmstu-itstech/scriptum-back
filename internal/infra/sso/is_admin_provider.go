@@ -17,7 +17,7 @@ type SSO struct {
 	conn  *grpc.ClientConn
 	api   ssov1.AuthClient
 	l     *slog.Logger
-	AppId int32
+	AppID int32
 }
 
 func MustNewSSOClient(config config.SSO, l *slog.Logger) (*SSO, func() error) {
@@ -41,11 +41,12 @@ func NewSSOClient(config config.SSO, l *slog.Logger) (*SSO, func() error, error)
 		api:   ssov1.NewAuthClient(cc),
 		conn:  cc,
 		l:     l,
-		AppId: config.AppId,
+		AppID: config.AppId,
 	}, closeFn, nil
 }
 
-// IsAdmin checks if the user with the given uid has admin privileges. uid is int64!!!
+// IsAdmin checks if the user with the given uid has admin privileges.
+// Note: uid parameter is of type value.UserID but is converted to int64 for the gRPC call.
 func (s *SSO) IsAdmin(ctx context.Context, uid value.UserID) (bool, error) {
 	const op = "infra.SSO.IsAdmin"
 
@@ -55,20 +56,20 @@ func (s *SSO) IsAdmin(ctx context.Context, uid value.UserID) (bool, error) {
 	)
 
 	l.Debug("Checking admin status")
-	// Добавляем метаданные с AppId
+	// Добавляем метаданные с AppID
 	ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs(
-		"x-user-id", strconv.FormatInt(int64(s.AppId), 10),
+		"x-user-id", strconv.FormatInt(int64(s.AppID), 10),
 	))
 	// Вызываем метод IsAdmin на сервере SSO
 	resp, err := s.api.IsAdmin(ctx, &ssov1.IsAdminRequest{
 		UserId: int64(uid),
 	})
 	if err != nil {
-		l.Error("Failed to check admin status: ", err.Error())
+		l.Error("Failed to check admin status: ", slog.String("error", err.Error()))
 		return false, err
 	}
 
-	l.Debug("Admin status: ", resp.IsAdmin)
+	l.Debug("Admin status", slog.Bool("is_admin", resp.IsAdmin))
 
 	return resp.IsAdmin, nil
 }

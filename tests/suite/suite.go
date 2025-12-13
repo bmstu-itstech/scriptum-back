@@ -50,6 +50,11 @@ func suiteConfig() config.Config {
 		Storage: config.Storage{
 			BasePath: "../uploads",
 		},
+		SSO: config.SSO{
+			Host:  os.Getenv("SSO_HOST"),
+			Port:  os.Getenv("SSO_PORT"),
+			AppId: 1,
+		},
 	}
 }
 
@@ -60,7 +65,7 @@ func New(t *testing.T) (context.Context, *Suite) {
 	repos := postgres.MustNewRepository(cfg.Postgres, l)
 	runner := docker.MustNewRunner(cfg.Docker, l)
 	storage := local.MustNewStorage(cfg.Storage, l)
-	mockIAP, closeFn := sso.MustNewSSOClient(cfg.SSO, l)
+	ssoApi, closeFn := sso.MustNewSSOClient(cfg.SSO, l)
 	defer func() {
 		err := closeFn()
 		if err != nil {
@@ -75,7 +80,7 @@ func New(t *testing.T) (context.Context, *Suite) {
 		BoxRepo:         repos,
 		FileReader:      storage,
 		FileUploader:    storage,
-		IsAdminProvider: mockIAP,
+		IsAdminProvider: ssoApi,
 		JobProvider:     repos,
 		JobPublisher:    jPub,
 		JobRepository:   repos,
