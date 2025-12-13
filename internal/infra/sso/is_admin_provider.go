@@ -45,7 +45,7 @@ func NewSSOClient(config config.SSO, l *slog.Logger) (*SSO, func() error, error)
 	}, closeFn, nil
 }
 
-// IsAdmin checks if the user with the given uid has admin privileges. uid is int64!!!
+// IsAdmin checks if the user with the given uid has admin privileges. Note: uid parameter is of type value.UserID but is converted to int64 for the gRPC call.
 func (s *SSO) IsAdmin(ctx context.Context, uid value.UserID) (bool, error) {
 	const op = "infra.SSO.IsAdmin"
 
@@ -64,11 +64,11 @@ func (s *SSO) IsAdmin(ctx context.Context, uid value.UserID) (bool, error) {
 		UserId: int64(uid),
 	})
 	if err != nil {
-		l.Error("Failed to check admin status: ", err.Error())
+		l.Error("Failed to check admin status", slog.String("error", err.Error()))
 		return false, err
 	}
 
-	l.Debug("Admin status: ", resp.IsAdmin)
+	l.Debug("Admin status", slog.Bool("is_admin", resp.IsAdmin))
 
 	return resp.IsAdmin, nil
 }
