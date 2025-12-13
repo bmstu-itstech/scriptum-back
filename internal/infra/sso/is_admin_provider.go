@@ -41,7 +41,7 @@ func NewSSOClient(config config.SSO, l *slog.Logger) (*SSO, func() error, error)
 		api:   ssov1.NewAuthClient(cc),
 		conn:  cc,
 		l:     l,
-		AppID: config.AppId,
+		AppID: config.AppID,
 	}, closeFn, nil
 }
 

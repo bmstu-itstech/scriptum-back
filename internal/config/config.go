@@ -41,7 +41,7 @@ type Storage struct {
 type SSO struct {
 	Host  string `mapstructure:"host"`
 	Port  string `mapstructure:"port"`
-	AppId int32  `mapstructure:"app_id"`
+	AppID int32  `mapstructure:"app_id"`
 }
 
 func Load(path string) (*Config, error) {
