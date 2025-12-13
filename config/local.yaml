@@ -11,3 +11,4 @@ storage:
 sso:
   host: "localhost"
   port: "44044"
+  app_id: 1

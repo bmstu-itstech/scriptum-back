@@ -6,6 +6,10 @@ github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERo
 github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
 github.com/ThreeDotsLabs/watermill v1.5.1 h1:t5xMivyf9tpmU3iozPqyrCZXHvoV1XQDfihas4sV0fY=
 github.com/ThreeDotsLabs/watermill v1.5.1/go.mod h1:Uop10dA3VeJWsSvis9qO3vbVY892LARrKAdki6WtXS4=
+github.com/bmstu-itstech/sso v0.0.0-20251205155522-708f9ee1be4d h1:7ih43sInLRb07sPn7ejDu3+MXNxX9XrWz6JQjXngRMc=
+github.com/bmstu-itstech/sso v0.0.0-20251205155522-708f9ee1be4d/go.mod h1:2NBqeXeHbRJYQLYijEOJhLMHeXYxhywpUge6q4kSefk=
+github.com/bmstu-itstech/sso v0.0.0-20251213182333-2ddc5c909188 h1:qodByqKo7PxHbSRPvEKgaWVYdw2zty6Y2t0MneTWyp8=
+github.com/bmstu-itstech/sso v0.0.0-20251213182333-2ddc5c909188/go.mod h1:2NBqeXeHbRJYQLYijEOJhLMHeXYxhywpUge6q4kSefk=
 github.com/containerd/errdefs v1.0.0 h1:tg5yIfIlQIrxYtu9ajqY42W3lpS19XqdxRQeEwYG8PI=
 github.com/containerd/errdefs v1.0.0/go.mod h1:+YBYIdtsnF4Iw6nWZhJcqGSg/dwvV7tyJ/kCkyJ2k+M=
 github.com/containerd/errdefs/pkg v0.3.0 h1:9IKJ06FvyNlexW690DXuQNx2KA2cUJXx151Xdx3ZPPE=
