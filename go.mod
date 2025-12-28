@@ -1,10 +1,9 @@
 module github.com/bmstu-itstech/scriptum-back
 
-go 1.24.0
-
-toolchain go1.24.3
+go 1.25.0
 
 require (
+	github.com/BOBAvov/protos_sso v0.0.17
 	github.com/ThreeDotsLabs/watermill v1.5.1
 	github.com/fatih/color v1.18.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3
@@ -15,7 +14,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/zhikh23/pgutils v1.1.3
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251124214823-79d6a2a48846
-	google.golang.org/grpc v1.74.2
+	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
 )
 
@@ -52,11 +51,11 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.60.0 // indirect
-	go.opentelemetry.io/otel v1.36.0 // indirect
-	go.opentelemetry.io/otel/metric v1.36.0 // indirect
-	go.opentelemetry.io/otel/trace v1.36.0 // indirect
+	go.opentelemetry.io/otel v1.37.0 // indirect
+	go.opentelemetry.io/otel/metric v1.37.0 // indirect
+	go.opentelemetry.io/otel/trace v1.37.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/net v0.40.0 // indirect
+	golang.org/x/net v0.42.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

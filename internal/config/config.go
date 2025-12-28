@@ -14,6 +14,7 @@ type Config struct {
 	Logging  Logging  `mapstructure:"logging"`
 	Postgres Postgres `mapstructure:"postgres"`
 	Storage  Storage  `mapstructure:"storage"`
+	SSO      SSO      `mapstructure:"sso"`
 }
 
 type Docker struct {
@@ -35,6 +36,12 @@ type Postgres struct {
 
 type Storage struct {
 	BasePath string `mapstructure:"base_path"`
+}
+
+type SSO struct {
+	Host  string `mapstructure:"host"`
+	Port  string `mapstructure:"port"`
+	AppID int32  `mapstructure:"app_id"`
 }
 
 func Load(path string) (*Config, error) {

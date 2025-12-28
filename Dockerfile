@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
@@ -11,10 +11,17 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app ./cmd/grpc/ma
 
 FROM alpine:latest
 
-WORKDIR /root/
+# Create an unprivileged user and group
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+WORKDIR /home/appuser
 
 COPY --from=builder /app/app .
 COPY --from=builder /app/config/ /etc/app/
 
+# Change ownership of files to appuser
+RUN chown -R appuser:appgroup /home/appuser /etc/app
+
+USER appuser
 ENTRYPOINT ["./app"]
 CMD ["--config /etc/app/local.yaml"]

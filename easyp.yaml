@@ -1,19 +1,31 @@
-version: v1alpha
 lint:
-    use:
-      - DEFAULT
+  use:
+    - DEFAULT
 deps:
-    - github.com/googleapis/googleapis@common-protos-1_3_1
-    - github.com/grpc-ecosystem/grpc-gateway
+  - github.com/googleapis/googleapis@common-protos-1_3_1
+  - github.com/grpc-ecosystem/grpc-gateway@v2.19.1
 generate:
-    inputs:
-      - directory: "api/v2"
-    plugins:
-        - name: go
-          out: gen/go
-          opt:
-            paths: source_relative
-        - name: go-grpc
-          out: gen/go
-          opt:
-            paths: source_relative
+  inputs:
+    - directory: "api/v2"
+  plugins:
+    - name: go
+      out: gen/go
+      opt:
+        paths: source_relative
+        module: "github.com/bmstu-itstech/scriptum-back"
+      with_imports: true
+
+    - name: go-grpc
+      out: gen/go
+      opt:
+        paths: source_relative
+
+    - name: grpc-gateway
+      out: gen/go
+      opts:
+        paths: source_relative
+
+    - name: openapiv2
+      out: ./gen/openapi
+      opts:
+        simple_operation_ids: true
