@@ -1,0 +1,9 @@
+docker:
+  image_prefix: sc-box
+  runner_timeout: 15m
+
+logging:
+  level: debug
+
+storage:
+  base_path: "uploads"
