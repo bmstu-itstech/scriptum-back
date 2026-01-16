@@ -71,7 +71,7 @@ func TestJobServiceStartJob(t *testing.T) {
 	boxID, err := createAdderBox(ctx, suite)
 	require.NoError(t, err)
 
-	res, err := suite.JobService.StartJob(ctx, &apiv2.StartJobRequest{
+	res, err := suite.BoxService.StartJob(ctx, &apiv2.StartJobRequest{
 		BoxId: boxID,
 		Values: []*apiv2.Value{
 			{
