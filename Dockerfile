@@ -13,8 +13,9 @@ FROM alpine:latest
 
 WORKDIR /root/
 
+RUN mkdir -p /etc/app
+
 COPY --from=builder /app/app .
-COPY --from=builder /app/config/ /etc/app/
 
 ENTRYPOINT ["./app"]
-CMD ["--config /etc/app/local.yaml"]
+CMD ["-config /etc/app/local.yaml"]

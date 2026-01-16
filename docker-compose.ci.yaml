@@ -1,0 +1,29 @@
+services:
+  grpc:
+    build: .
+    command: [
+      "-config", "/etc/app/prod.yaml"
+    ]
+    environment:
+      SC_POSTGRES_URI: $SC_POSTGRES_URI
+      SC_GRPC_PORT: 8000
+      PGSSLROOTCERT: /certs/root.crt
+    ports:
+      - ${EXTERNAL_GRPC_PORT:-8000}:8000
+    volumes:
+      - ./config:/etc/app:ro
+      - ${EXTERNAL_UPLOADS_DIR:-./uploads}:/var/app/uploads
+      - $PGSSLROOTCERT:/certs:ro
+
+  migrate:
+    image: migrate/migrate
+    command: [
+      "-path", "/migrations",
+      "-database", "$SC_POSTGRES_URI",
+      "up"
+    ]
+    environment:
+      PGSSLROOTCERT: /certs/root.crt
+    volumes:
+      - ./migrations:/migrations
+      - $PGSSLROOTCERT:/certs:ro
