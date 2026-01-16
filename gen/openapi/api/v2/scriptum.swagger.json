@@ -1,0 +1,717 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Scriptum API",
+    "version": "2.0.2"
+  },
+  "tags": [
+    {
+      "name": "FileService"
+    },
+    {
+      "name": "BoxService"
+    },
+    {
+      "name": "JobService"
+    }
+  ],
+  "host": "localhost:8000",
+  "basePath": "/api",
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v2/boxes": {
+      "get": {
+        "summary": "Получить все доступные пользователю коробки",
+        "operationId": "GetBoxes",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2GetBoxesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "BoxService"
+        ]
+      },
+      "post": {
+        "summary": "Создать коробку",
+        "operationId": "CreateBox",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2CreateBoxResponse"
+            }
+          },
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/v2CreateBoxResponse"
+            }
+          },
+          "400": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/v2ErrorResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v2CreateBoxRequest"
+            }
+          }
+        ],
+        "tags": [
+          "BoxService"
+        ]
+      }
+    },
+    "/v2/boxes/search": {
+      "get": {
+        "summary": "Найти коробку по части его имени",
+        "operationId": "SearchBoxes",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2SearchBoxesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BoxService"
+        ]
+      }
+    },
+    "/v2/boxes/{boxId}": {
+      "get": {
+        "summary": "Получить коробку по его ID",
+        "operationId": "GetBox",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2GetBoxResponse"
+            }
+          },
+          "404": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/v2ErrorResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "boxId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BoxService"
+        ]
+      },
+      "delete": {
+        "summary": "Удалить коробку по его ID",
+        "operationId": "DeleteBox",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2DeleteBoxResponse"
+            }
+          },
+          "204": {
+            "description": "",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "boxId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BoxService"
+        ]
+      }
+    },
+    "/v2/boxes/{boxId}/start": {
+      "post": {
+        "summary": "Запустить задачу для коробки",
+        "operationId": "StartJob",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2StartJobResponse"
+            }
+          },
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/v2StartJobResponse"
+            }
+          },
+          "400": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/v2ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/v2ErrorResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "boxId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/apiv2Value"
+                  }
+                }
+              },
+              "title": "StartJobRequest"
+            }
+          }
+        ],
+        "tags": [
+          "BoxService"
+        ]
+      }
+    },
+    "/v2/files": {
+      "post": {
+        "summary": "Upload a file",
+        "description": "На самом деле здесь multipart-data с 'attachment' файлом",
+        "operationId": "upload",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2FileUploadResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": " (streaming inputs)",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v2FileUploadRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FileService"
+        ]
+      }
+    },
+    "/v2/jobs": {
+      "get": {
+        "summary": "Получить все пользовательские задачи",
+        "operationId": "GetJobs",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2GetJobsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "JOB_STATE_PENDING",
+              "JOB_STATE_RUNNING",
+              "JOB_STATE_FINISHED"
+            ],
+            "default": "JOB_STATE_PENDING"
+          }
+        ],
+        "tags": [
+          "JobService"
+        ]
+      }
+    },
+    "/v2/jobs/{jobId}": {
+      "get": {
+        "summary": "Найти задачу по её ID",
+        "operationId": "GetJob",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2GetJobResponse"
+            }
+          },
+          "404": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/v2ErrorResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "JobService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiv2Type": {
+      "type": "string",
+      "enum": [
+        "TYPE_STRING",
+        "TYPE_INTEGER",
+        "TYPE_REAL"
+      ],
+      "default": "TYPE_STRING",
+      "title": "Type"
+    },
+    "apiv2Value": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/apiv2Type"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "title": "Value"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v2Box": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "ownerId": {
+          "type": "string",
+          "format": "int64"
+        },
+        "archiveId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "desc": {
+          "type": "string"
+        },
+        "vis": {
+          "$ref": "#/definitions/v2Visibility"
+        },
+        "in": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v2Field"
+          }
+        },
+        "out": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v2Field"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "title": "Box"
+    },
+    "v2CreateBoxRequest": {
+      "type": "object",
+      "properties": {
+        "archiveId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "desc": {
+          "type": "string"
+        },
+        "input": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v2Field"
+          }
+        },
+        "output": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v2Field"
+          }
+        }
+      },
+      "title": "CreateBoxRequest"
+    },
+    "v2CreateBoxResponse": {
+      "type": "object",
+      "properties": {
+        "boxId": {
+          "type": "string"
+        }
+      },
+      "title": "CreateBoxResponse"
+    },
+    "v2DeleteBoxResponse": {
+      "type": "object",
+      "title": "DeleteBoxResponse"
+    },
+    "v2ErrorResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      },
+      "title": "ErrorResponse"
+    },
+    "v2Field": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/apiv2Type"
+        },
+        "name": {
+          "type": "string"
+        },
+        "desc": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        }
+      },
+      "title": "Field"
+    },
+    "v2FileMeta": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "title": "FileMeta"
+    },
+    "v2FileUploadRequest": {
+      "type": "object",
+      "properties": {
+        "meta": {
+          "$ref": "#/definitions/v2FileMeta"
+        },
+        "chunk": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "title": "FileUploadRequest"
+    },
+    "v2FileUploadResponse": {
+      "type": "object",
+      "properties": {
+        "fileId": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "FileUploadResponse"
+    },
+    "v2GetBoxResponse": {
+      "type": "object",
+      "properties": {
+        "box": {
+          "$ref": "#/definitions/v2Box"
+        }
+      },
+      "title": "GetBoxResponse"
+    },
+    "v2GetBoxesResponse": {
+      "type": "object",
+      "properties": {
+        "boxes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v2Box"
+          }
+        }
+      },
+      "title": "GetBoxesResponse"
+    },
+    "v2GetJobResponse": {
+      "type": "object",
+      "properties": {
+        "job": {
+          "$ref": "#/definitions/v2Job"
+        }
+      },
+      "title": "GetJobResponse"
+    },
+    "v2GetJobsResponse": {
+      "type": "object",
+      "properties": {
+        "jobs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v2Job"
+          }
+        }
+      },
+      "title": "GetJobsResponse"
+    },
+    "v2Job": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "boxId": {
+          "type": "string"
+        },
+        "archiveId": {
+          "type": "string"
+        },
+        "ownerId": {
+          "type": "string",
+          "format": "int64"
+        },
+        "state": {
+          "$ref": "#/definitions/v2JobState"
+        },
+        "input": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiv2Value"
+          }
+        },
+        "out": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v2Field"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "startedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "result": {
+          "$ref": "#/definitions/v2JobResult"
+        },
+        "finishedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "title": "Job"
+    },
+    "v2JobResult": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "format": "int64"
+        },
+        "output": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiv2Value"
+          }
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "title": "JobResult"
+    },
+    "v2JobState": {
+      "type": "string",
+      "enum": [
+        "JOB_STATE_PENDING",
+        "JOB_STATE_RUNNING",
+        "JOB_STATE_FINISHED"
+      ],
+      "default": "JOB_STATE_PENDING",
+      "title": "JobState"
+    },
+    "v2SearchBoxesResponse": {
+      "type": "object",
+      "properties": {
+        "boxes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v2Box"
+          }
+        }
+      },
+      "title": "SearchBoxesResponse"
+    },
+    "v2StartJobResponse": {
+      "type": "object",
+      "properties": {
+        "jobId": {
+          "type": "string"
+        }
+      },
+      "title": "StartJobResponse"
+    },
+    "v2Visibility": {
+      "type": "string",
+      "enum": [
+        "VISIBILITY_PRIVATE",
+        "VISIBILITY_PUBLIC"
+      ],
+      "default": "VISIBILITY_PRIVATE",
+      "title": "Visibility"
+    }
+  }
+}

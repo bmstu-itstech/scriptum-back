@@ -23,7 +23,7 @@ func NewField(t Type, name string, desc *string, unit *string) (Field, error) {
 		return Field{}, domain.NewInvalidInputError("field-empty-name", "expected not empty field name")
 	}
 
-	if desc != nil && *desc != "" {
+	if desc != nil && *desc == "" {
 		return Field{}, errors.New("field description is not nil but empty")
 	}
 

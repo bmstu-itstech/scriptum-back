@@ -128,3 +128,32 @@ func (s boxService) SearchBoxes(
 
 	return &apiv2.SearchBoxesResponse{Boxes: boxesToAPI(boxes)}, nil
 }
+
+func (s boxService) StartJob(ctx context.Context, req *apiv2.StartJobRequest) (*apiv2.StartJobResponse, error) {
+	uid, ok := auth.ExtractUserIDFromContext(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "'x-user-id' header is missing")
+	}
+
+	startJob, err := startJobFromAPI(req, uid)
+	var iiErr domain.InvalidInputError
+	if errors.As(err, &iiErr) {
+		return nil, statusInvalidInput(iiErr)
+	} else if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	jobID, err := s.app.Commands.StartJob.Handle(ctx, startJob)
+	switch {
+	case errors.As(err, &iiErr):
+		return nil, statusInvalidInput(iiErr)
+	case errors.Is(err, ports.ErrBoxNotFound):
+		return nil, status.Error(codes.NotFound, err.Error())
+	case errors.Is(err, domain.ErrPermissionDenied):
+		return nil, status.Error(codes.PermissionDenied, err.Error())
+	case err != nil:
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &apiv2.StartJobResponse{JobId: jobID}, nil
+}

@@ -11,9 +11,9 @@ import (
 )
 
 func statusInvalidInput(iiErr domain.InvalidInputError) error {
-	st := status.New(codes.InvalidArgument, iiErr.Code)
+	st := status.New(codes.InvalidArgument, iiErr.Message)
 	errInfo := &errdetails.ErrorInfo{
-		Reason: iiErr.Message,
+		Reason: iiErr.Code,
 	}
 	st, err := st.WithDetails(errInfo)
 	if err != nil {

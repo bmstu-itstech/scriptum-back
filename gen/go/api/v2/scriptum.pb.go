@@ -7,6 +7,8 @@
 package apiv2
 
 import (
+	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -22,6 +24,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Visibility
 type Visibility int32
 
 const (
@@ -68,6 +71,7 @@ func (Visibility) EnumDescriptor() ([]byte, []int) {
 	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{0}
 }
 
+// Type
 type Type int32
 
 const (
@@ -117,6 +121,7 @@ func (Type) EnumDescriptor() ([]byte, []int) {
 	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{1}
 }
 
+// JobState
 type JobState int32
 
 const (
@@ -166,6 +171,43 @@ func (JobState) EnumDescriptor() ([]byte, []int) {
 	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{2}
 }
 
+type Test struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Test) Reset() {
+	*x = Test{}
+	mi := &file_api_v2_scriptum_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Test) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Test) ProtoMessage() {}
+
+func (x *Test) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v2_scriptum_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Test.ProtoReflect.Descriptor instead.
+func (*Test) Descriptor() ([]byte, []int) {
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{0}
+}
+
+// Value
 type Value struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Type          Type                   `protobuf:"varint,1,opt,name=type,proto3,enum=api.v2.Type" json:"type,omitempty"`
@@ -176,7 +218,7 @@ type Value struct {
 
 func (x *Value) Reset() {
 	*x = Value{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[0]
+	mi := &file_api_v2_scriptum_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -188,7 +230,7 @@ func (x *Value) String() string {
 func (*Value) ProtoMessage() {}
 
 func (x *Value) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[0]
+	mi := &file_api_v2_scriptum_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -201,7 +243,7 @@ func (x *Value) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Value.ProtoReflect.Descriptor instead.
 func (*Value) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{0}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Value) GetType() Type {
@@ -218,6 +260,7 @@ func (x *Value) GetValue() string {
 	return ""
 }
 
+// Field
 type Field struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Type          Type                   `protobuf:"varint,1,opt,name=type,proto3,enum=api.v2.Type" json:"type,omitempty"`
@@ -230,7 +273,7 @@ type Field struct {
 
 func (x *Field) Reset() {
 	*x = Field{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[1]
+	mi := &file_api_v2_scriptum_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -242,7 +285,7 @@ func (x *Field) String() string {
 func (*Field) ProtoMessage() {}
 
 func (x *Field) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[1]
+	mi := &file_api_v2_scriptum_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -255,7 +298,7 @@ func (x *Field) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Field.ProtoReflect.Descriptor instead.
 func (*Field) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{1}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Field) GetType() Type {
@@ -286,6 +329,7 @@ func (x *Field) GetUnit() string {
 	return ""
 }
 
+// Box
 type Box struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -303,7 +347,7 @@ type Box struct {
 
 func (x *Box) Reset() {
 	*x = Box{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[2]
+	mi := &file_api_v2_scriptum_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -315,7 +359,7 @@ func (x *Box) String() string {
 func (*Box) ProtoMessage() {}
 
 func (x *Box) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[2]
+	mi := &file_api_v2_scriptum_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -328,7 +372,7 @@ func (x *Box) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Box.ProtoReflect.Descriptor instead.
 func (*Box) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{2}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Box) GetId() string {
@@ -394,6 +438,7 @@ func (x *Box) GetCreatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+// JobResult
 type JobResult struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Code          int64                  `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
@@ -405,7 +450,7 @@ type JobResult struct {
 
 func (x *JobResult) Reset() {
 	*x = JobResult{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[3]
+	mi := &file_api_v2_scriptum_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -417,7 +462,7 @@ func (x *JobResult) String() string {
 func (*JobResult) ProtoMessage() {}
 
 func (x *JobResult) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[3]
+	mi := &file_api_v2_scriptum_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -430,7 +475,7 @@ func (x *JobResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobResult.ProtoReflect.Descriptor instead.
 func (*JobResult) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{3}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *JobResult) GetCode() int64 {
@@ -454,6 +499,7 @@ func (x *JobResult) GetMessage() string {
 	return ""
 }
 
+// Job
 type Job struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -473,7 +519,7 @@ type Job struct {
 
 func (x *Job) Reset() {
 	*x = Job{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[4]
+	mi := &file_api_v2_scriptum_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -485,7 +531,7 @@ func (x *Job) String() string {
 func (*Job) ProtoMessage() {}
 
 func (x *Job) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[4]
+	mi := &file_api_v2_scriptum_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -498,7 +544,7 @@ func (x *Job) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Job.ProtoReflect.Descriptor instead.
 func (*Job) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{4}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Job) GetId() string {
@@ -578,6 +624,7 @@ func (x *Job) GetFinishedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+// FileMeta
 type FileMeta struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -587,7 +634,7 @@ type FileMeta struct {
 
 func (x *FileMeta) Reset() {
 	*x = FileMeta{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[5]
+	mi := &file_api_v2_scriptum_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -599,7 +646,7 @@ func (x *FileMeta) String() string {
 func (*FileMeta) ProtoMessage() {}
 
 func (x *FileMeta) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[5]
+	mi := &file_api_v2_scriptum_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -612,7 +659,7 @@ func (x *FileMeta) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileMeta.ProtoReflect.Descriptor instead.
 func (*FileMeta) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{5}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *FileMeta) GetName() string {
@@ -622,6 +669,7 @@ func (x *FileMeta) GetName() string {
 	return ""
 }
 
+// FileUploadRequest
 type FileUploadRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Body:
@@ -635,7 +683,7 @@ type FileUploadRequest struct {
 
 func (x *FileUploadRequest) Reset() {
 	*x = FileUploadRequest{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[6]
+	mi := &file_api_v2_scriptum_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -647,7 +695,7 @@ func (x *FileUploadRequest) String() string {
 func (*FileUploadRequest) ProtoMessage() {}
 
 func (x *FileUploadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[6]
+	mi := &file_api_v2_scriptum_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -660,7 +708,7 @@ func (x *FileUploadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileUploadRequest.ProtoReflect.Descriptor instead.
 func (*FileUploadRequest) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{6}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *FileUploadRequest) GetBody() isFileUploadRequest_Body {
@@ -704,6 +752,7 @@ func (*FileUploadRequest_Meta) isFileUploadRequest_Body() {}
 
 func (*FileUploadRequest_Chunk) isFileUploadRequest_Body() {}
 
+// FileUploadResponse
 type FileUploadResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	FileId        string                 `protobuf:"bytes,1,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`
@@ -714,7 +763,7 @@ type FileUploadResponse struct {
 
 func (x *FileUploadResponse) Reset() {
 	*x = FileUploadResponse{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[7]
+	mi := &file_api_v2_scriptum_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -726,7 +775,7 @@ func (x *FileUploadResponse) String() string {
 func (*FileUploadResponse) ProtoMessage() {}
 
 func (x *FileUploadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[7]
+	mi := &file_api_v2_scriptum_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -739,7 +788,7 @@ func (x *FileUploadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileUploadResponse.ProtoReflect.Descriptor instead.
 func (*FileUploadResponse) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{7}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *FileUploadResponse) GetFileId() string {
@@ -756,6 +805,7 @@ func (x *FileUploadResponse) GetSize() uint32 {
 	return 0
 }
 
+// CreateBoxRequest
 type CreateBoxRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ArchiveId     string                 `protobuf:"bytes,1,opt,name=archive_id,json=archiveId,proto3" json:"archive_id,omitempty"`
@@ -769,7 +819,7 @@ type CreateBoxRequest struct {
 
 func (x *CreateBoxRequest) Reset() {
 	*x = CreateBoxRequest{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[8]
+	mi := &file_api_v2_scriptum_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -781,7 +831,7 @@ func (x *CreateBoxRequest) String() string {
 func (*CreateBoxRequest) ProtoMessage() {}
 
 func (x *CreateBoxRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[8]
+	mi := &file_api_v2_scriptum_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -794,7 +844,7 @@ func (x *CreateBoxRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBoxRequest.ProtoReflect.Descriptor instead.
 func (*CreateBoxRequest) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{8}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *CreateBoxRequest) GetArchiveId() string {
@@ -832,6 +882,7 @@ func (x *CreateBoxRequest) GetOutput() []*Field {
 	return nil
 }
 
+// CreateBoxResponse
 type CreateBoxResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	BoxId         string                 `protobuf:"bytes,1,opt,name=box_id,json=boxId,proto3" json:"box_id,omitempty"`
@@ -841,7 +892,7 @@ type CreateBoxResponse struct {
 
 func (x *CreateBoxResponse) Reset() {
 	*x = CreateBoxResponse{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[9]
+	mi := &file_api_v2_scriptum_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -853,7 +904,7 @@ func (x *CreateBoxResponse) String() string {
 func (*CreateBoxResponse) ProtoMessage() {}
 
 func (x *CreateBoxResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[9]
+	mi := &file_api_v2_scriptum_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -866,7 +917,7 @@ func (x *CreateBoxResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBoxResponse.ProtoReflect.Descriptor instead.
 func (*CreateBoxResponse) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{9}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *CreateBoxResponse) GetBoxId() string {
@@ -876,6 +927,7 @@ func (x *CreateBoxResponse) GetBoxId() string {
 	return ""
 }
 
+// DeleteBoxRequest
 type DeleteBoxRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	BoxId         string                 `protobuf:"bytes,1,opt,name=box_id,json=boxId,proto3" json:"box_id,omitempty"`
@@ -885,7 +937,7 @@ type DeleteBoxRequest struct {
 
 func (x *DeleteBoxRequest) Reset() {
 	*x = DeleteBoxRequest{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[10]
+	mi := &file_api_v2_scriptum_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -897,7 +949,7 @@ func (x *DeleteBoxRequest) String() string {
 func (*DeleteBoxRequest) ProtoMessage() {}
 
 func (x *DeleteBoxRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[10]
+	mi := &file_api_v2_scriptum_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -910,7 +962,7 @@ func (x *DeleteBoxRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteBoxRequest.ProtoReflect.Descriptor instead.
 func (*DeleteBoxRequest) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{10}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *DeleteBoxRequest) GetBoxId() string {
@@ -920,6 +972,7 @@ func (x *DeleteBoxRequest) GetBoxId() string {
 	return ""
 }
 
+// DeleteBoxResponse
 type DeleteBoxResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -928,7 +981,7 @@ type DeleteBoxResponse struct {
 
 func (x *DeleteBoxResponse) Reset() {
 	*x = DeleteBoxResponse{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[11]
+	mi := &file_api_v2_scriptum_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -940,7 +993,7 @@ func (x *DeleteBoxResponse) String() string {
 func (*DeleteBoxResponse) ProtoMessage() {}
 
 func (x *DeleteBoxResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[11]
+	mi := &file_api_v2_scriptum_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -953,7 +1006,7 @@ func (x *DeleteBoxResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteBoxResponse.ProtoReflect.Descriptor instead.
 func (*DeleteBoxResponse) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{11}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{12}
 }
 
 type GetBoxRequest struct {
@@ -965,7 +1018,7 @@ type GetBoxRequest struct {
 
 func (x *GetBoxRequest) Reset() {
 	*x = GetBoxRequest{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[12]
+	mi := &file_api_v2_scriptum_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -977,7 +1030,7 @@ func (x *GetBoxRequest) String() string {
 func (*GetBoxRequest) ProtoMessage() {}
 
 func (x *GetBoxRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[12]
+	mi := &file_api_v2_scriptum_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -990,7 +1043,7 @@ func (x *GetBoxRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBoxRequest.ProtoReflect.Descriptor instead.
 func (*GetBoxRequest) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{12}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetBoxRequest) GetBoxId() string {
@@ -1000,6 +1053,7 @@ func (x *GetBoxRequest) GetBoxId() string {
 	return ""
 }
 
+// GetBoxResponse
 type GetBoxResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Box           *Box                   `protobuf:"bytes,1,opt,name=box,proto3" json:"box,omitempty"`
@@ -1009,7 +1063,7 @@ type GetBoxResponse struct {
 
 func (x *GetBoxResponse) Reset() {
 	*x = GetBoxResponse{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[13]
+	mi := &file_api_v2_scriptum_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1021,7 +1075,7 @@ func (x *GetBoxResponse) String() string {
 func (*GetBoxResponse) ProtoMessage() {}
 
 func (x *GetBoxResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[13]
+	mi := &file_api_v2_scriptum_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1034,7 +1088,7 @@ func (x *GetBoxResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBoxResponse.ProtoReflect.Descriptor instead.
 func (*GetBoxResponse) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{13}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetBoxResponse) GetBox() *Box {
@@ -1044,6 +1098,7 @@ func (x *GetBoxResponse) GetBox() *Box {
 	return nil
 }
 
+// GetBoxesRequest
 type GetBoxesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -1052,7 +1107,7 @@ type GetBoxesRequest struct {
 
 func (x *GetBoxesRequest) Reset() {
 	*x = GetBoxesRequest{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[14]
+	mi := &file_api_v2_scriptum_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1064,7 +1119,7 @@ func (x *GetBoxesRequest) String() string {
 func (*GetBoxesRequest) ProtoMessage() {}
 
 func (x *GetBoxesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[14]
+	mi := &file_api_v2_scriptum_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1077,9 +1132,10 @@ func (x *GetBoxesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBoxesRequest.ProtoReflect.Descriptor instead.
 func (*GetBoxesRequest) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{14}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{15}
 }
 
+// GetBoxesResponse
 type GetBoxesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Boxes         []*Box                 `protobuf:"bytes,1,rep,name=boxes,proto3" json:"boxes,omitempty"`
@@ -1089,7 +1145,7 @@ type GetBoxesResponse struct {
 
 func (x *GetBoxesResponse) Reset() {
 	*x = GetBoxesResponse{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[15]
+	mi := &file_api_v2_scriptum_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1101,7 +1157,7 @@ func (x *GetBoxesResponse) String() string {
 func (*GetBoxesResponse) ProtoMessage() {}
 
 func (x *GetBoxesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[15]
+	mi := &file_api_v2_scriptum_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1114,7 +1170,7 @@ func (x *GetBoxesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBoxesResponse.ProtoReflect.Descriptor instead.
 func (*GetBoxesResponse) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{15}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetBoxesResponse) GetBoxes() []*Box {
@@ -1133,7 +1189,7 @@ type SearchBoxesRequest struct {
 
 func (x *SearchBoxesRequest) Reset() {
 	*x = SearchBoxesRequest{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[16]
+	mi := &file_api_v2_scriptum_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1145,7 +1201,7 @@ func (x *SearchBoxesRequest) String() string {
 func (*SearchBoxesRequest) ProtoMessage() {}
 
 func (x *SearchBoxesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[16]
+	mi := &file_api_v2_scriptum_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1158,7 +1214,7 @@ func (x *SearchBoxesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchBoxesRequest.ProtoReflect.Descriptor instead.
 func (*SearchBoxesRequest) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{16}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *SearchBoxesRequest) GetName() string {
@@ -1168,6 +1224,7 @@ func (x *SearchBoxesRequest) GetName() string {
 	return ""
 }
 
+// SearchBoxesResponse
 type SearchBoxesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Boxes         []*Box                 `protobuf:"bytes,1,rep,name=boxes,proto3" json:"boxes,omitempty"`
@@ -1177,7 +1234,7 @@ type SearchBoxesResponse struct {
 
 func (x *SearchBoxesResponse) Reset() {
 	*x = SearchBoxesResponse{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[17]
+	mi := &file_api_v2_scriptum_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1189,7 +1246,7 @@ func (x *SearchBoxesResponse) String() string {
 func (*SearchBoxesResponse) ProtoMessage() {}
 
 func (x *SearchBoxesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[17]
+	mi := &file_api_v2_scriptum_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1202,7 +1259,7 @@ func (x *SearchBoxesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchBoxesResponse.ProtoReflect.Descriptor instead.
 func (*SearchBoxesResponse) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{17}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *SearchBoxesResponse) GetBoxes() []*Box {
@@ -1212,6 +1269,52 @@ func (x *SearchBoxesResponse) GetBoxes() []*Box {
 	return nil
 }
 
+// ErrorResponse
+type ErrorResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ErrorResponse) Reset() {
+	*x = ErrorResponse{}
+	mi := &file_api_v2_scriptum_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ErrorResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ErrorResponse) ProtoMessage() {}
+
+func (x *ErrorResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v2_scriptum_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ErrorResponse.ProtoReflect.Descriptor instead.
+func (*ErrorResponse) Descriptor() ([]byte, []int) {
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *ErrorResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+// GetJobRequest
 type GetJobRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	JobId         string                 `protobuf:"bytes,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
@@ -1221,7 +1324,7 @@ type GetJobRequest struct {
 
 func (x *GetJobRequest) Reset() {
 	*x = GetJobRequest{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[18]
+	mi := &file_api_v2_scriptum_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1233,7 +1336,7 @@ func (x *GetJobRequest) String() string {
 func (*GetJobRequest) ProtoMessage() {}
 
 func (x *GetJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[18]
+	mi := &file_api_v2_scriptum_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1246,7 +1349,7 @@ func (x *GetJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobRequest.ProtoReflect.Descriptor instead.
 func (*GetJobRequest) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{18}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GetJobRequest) GetJobId() string {
@@ -1256,6 +1359,7 @@ func (x *GetJobRequest) GetJobId() string {
 	return ""
 }
 
+// GetJobResponse
 type GetJobResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Job           *Job                   `protobuf:"bytes,1,opt,name=job,proto3" json:"job,omitempty"`
@@ -1265,7 +1369,7 @@ type GetJobResponse struct {
 
 func (x *GetJobResponse) Reset() {
 	*x = GetJobResponse{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[19]
+	mi := &file_api_v2_scriptum_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1277,7 +1381,7 @@ func (x *GetJobResponse) String() string {
 func (*GetJobResponse) ProtoMessage() {}
 
 func (x *GetJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[19]
+	mi := &file_api_v2_scriptum_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1290,7 +1394,7 @@ func (x *GetJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobResponse.ProtoReflect.Descriptor instead.
 func (*GetJobResponse) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{19}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *GetJobResponse) GetJob() *Job {
@@ -1300,6 +1404,7 @@ func (x *GetJobResponse) GetJob() *Job {
 	return nil
 }
 
+// GetJobsRequest
 type GetJobsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	State         *JobState              `protobuf:"varint,1,opt,name=state,proto3,enum=api.v2.JobState,oneof" json:"state,omitempty"`
@@ -1309,7 +1414,7 @@ type GetJobsRequest struct {
 
 func (x *GetJobsRequest) Reset() {
 	*x = GetJobsRequest{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[20]
+	mi := &file_api_v2_scriptum_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1321,7 +1426,7 @@ func (x *GetJobsRequest) String() string {
 func (*GetJobsRequest) ProtoMessage() {}
 
 func (x *GetJobsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[20]
+	mi := &file_api_v2_scriptum_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1334,7 +1439,7 @@ func (x *GetJobsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobsRequest.ProtoReflect.Descriptor instead.
 func (*GetJobsRequest) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{20}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetJobsRequest) GetState() JobState {
@@ -1344,6 +1449,7 @@ func (x *GetJobsRequest) GetState() JobState {
 	return JobState_JOB_STATE_PENDING
 }
 
+// GetJobsResponse
 type GetJobsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Jobs          []*Job                 `protobuf:"bytes,1,rep,name=jobs,proto3" json:"jobs,omitempty"`
@@ -1353,7 +1459,7 @@ type GetJobsResponse struct {
 
 func (x *GetJobsResponse) Reset() {
 	*x = GetJobsResponse{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[21]
+	mi := &file_api_v2_scriptum_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1365,7 +1471,7 @@ func (x *GetJobsResponse) String() string {
 func (*GetJobsResponse) ProtoMessage() {}
 
 func (x *GetJobsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[21]
+	mi := &file_api_v2_scriptum_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1378,7 +1484,7 @@ func (x *GetJobsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobsResponse.ProtoReflect.Descriptor instead.
 func (*GetJobsResponse) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{21}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *GetJobsResponse) GetJobs() []*Job {
@@ -1388,6 +1494,7 @@ func (x *GetJobsResponse) GetJobs() []*Job {
 	return nil
 }
 
+// StartJobRequest
 type StartJobRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	BoxId         string                 `protobuf:"bytes,1,opt,name=box_id,json=boxId,proto3" json:"box_id,omitempty"`
@@ -1398,7 +1505,7 @@ type StartJobRequest struct {
 
 func (x *StartJobRequest) Reset() {
 	*x = StartJobRequest{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[22]
+	mi := &file_api_v2_scriptum_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1410,7 +1517,7 @@ func (x *StartJobRequest) String() string {
 func (*StartJobRequest) ProtoMessage() {}
 
 func (x *StartJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[22]
+	mi := &file_api_v2_scriptum_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1423,7 +1530,7 @@ func (x *StartJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartJobRequest.ProtoReflect.Descriptor instead.
 func (*StartJobRequest) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{22}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *StartJobRequest) GetBoxId() string {
@@ -1440,6 +1547,7 @@ func (x *StartJobRequest) GetValues() []*Value {
 	return nil
 }
 
+// StartJobResponse
 type StartJobResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	JobId         string                 `protobuf:"bytes,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
@@ -1449,7 +1557,7 @@ type StartJobResponse struct {
 
 func (x *StartJobResponse) Reset() {
 	*x = StartJobResponse{}
-	mi := &file_api_v2_scriptum_proto_msgTypes[23]
+	mi := &file_api_v2_scriptum_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1461,7 +1569,7 @@ func (x *StartJobResponse) String() string {
 func (*StartJobResponse) ProtoMessage() {}
 
 func (x *StartJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v2_scriptum_proto_msgTypes[23]
+	mi := &file_api_v2_scriptum_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1474,7 +1582,7 @@ func (x *StartJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartJobResponse.ProtoReflect.Descriptor instead.
 func (*StartJobResponse) Descriptor() ([]byte, []int) {
-	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{23}
+	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *StartJobResponse) GetJobId() string {
@@ -1488,7 +1596,8 @@ var File_api_v2_scriptum_proto protoreflect.FileDescriptor
 
 const file_api_v2_scriptum_proto_rawDesc = "" +
 	"\n" +
-	"\x15api/v2/scriptum.proto\x12\x06api.v2\x1a\x1fgoogle/protobuf/timestamp.proto\"?\n" +
+	"\x15api/v2/scriptum.proto\x12\x06api.v2\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x06\n" +
+	"\x04Test\"?\n" +
 	"\x05Value\x12 \n" +
 	"\x04type\x18\x01 \x01(\x0e2\f.api.v2.TypeR\x04type\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value\"\x81\x01\n" +
@@ -1570,7 +1679,9 @@ const file_api_v2_scriptum_proto_rawDesc = "" +
 	"\x12SearchBoxesRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"8\n" +
 	"\x13SearchBoxesResponse\x12!\n" +
-	"\x05boxes\x18\x01 \x03(\v2\v.api.v2.BoxR\x05boxes\"&\n" +
+	"\x05boxes\x18\x01 \x03(\v2\v.api.v2.BoxR\x05boxes\")\n" +
+	"\rErrorResponse\x12\x18\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage\"&\n" +
 	"\rGetJobRequest\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\"/\n" +
 	"\x0eGetJobResponse\x12\x1d\n" +
@@ -1596,21 +1707,49 @@ const file_api_v2_scriptum_proto_rawDesc = "" +
 	"\bJobState\x12\x15\n" +
 	"\x11JOB_STATE_PENDING\x10\x00\x12\x15\n" +
 	"\x11JOB_STATE_RUNNING\x10\x01\x12\x16\n" +
-	"\x12JOB_STATE_FINISHED\x10\x022P\n" +
-	"\vFileService\x12A\n" +
-	"\x06Upload\x12\x19.api.v2.FileUploadRequest\x1a\x1a.api.v2.FileUploadResponse(\x012\xd0\x02\n" +
+	"\x12JOB_STATE_FINISHED\x10\x022\xd2\x01\n" +
+	"\vFileService\x12\xc2\x01\n" +
+	"\x06Upload\x12\x19.api.v2.FileUploadRequest\x1a\x1a.api.v2.FileUploadResponse\"\x7f\x92Ah\x12\rUpload a file\x1aOНа самом деле здесь multipart-data с 'attachment' файлом*\x06upload\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/v2/files(\x012\xf4\t\n" +
 	"\n" +
-	"BoxService\x12@\n" +
-	"\tCreateBox\x12\x18.api.v2.CreateBoxRequest\x1a\x19.api.v2.CreateBoxResponse\x12@\n" +
-	"\tDeleteBox\x12\x18.api.v2.DeleteBoxRequest\x1a\x19.api.v2.DeleteBoxResponse\x127\n" +
-	"\x06GetBox\x12\x15.api.v2.GetBoxRequest\x1a\x16.api.v2.GetBoxResponse\x12=\n" +
-	"\bGetBoxes\x12\x17.api.v2.GetBoxesRequest\x1a\x18.api.v2.GetBoxesResponse\x12F\n" +
-	"\vSearchBoxes\x12\x1a.api.v2.SearchBoxesRequest\x1a\x1b.api.v2.SearchBoxesResponse2\xc0\x01\n" +
+	"BoxService\x12\xc5\x01\n" +
+	"\tCreateBox\x12\x18.api.v2.CreateBoxRequest\x1a\x19.api.v2.CreateBoxResponse\"\x82\x01\x92Ak\x12\x1dСоздать коробкуJ&\n" +
+	"\x03201\x12\x1f\x12\x1d\n" +
+	"\x1b\x1a\x19.api.v2.CreateBoxResponseJ\"\n" +
+	"\x03400\x12\x1b\x12\x19\n" +
+	"\x17\x1a\x15.api.v2.ErrorResponse\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/v2/boxes\x12\x9a\x01\n" +
+	"\tDeleteBox\x12\x18.api.v2.DeleteBoxRequest\x1a\x19.api.v2.DeleteBoxResponse\"X\x92A;\x12,Удалить коробку по его IDJ\v\n" +
+	"\x03204\x12\x04\x12\x02\n" +
+	"\x00\x82\xd3\xe4\x93\x02\x14*\x12/v2/boxes/{box_id}\x12\xd0\x01\n" +
+	"\x06GetBox\x12\x15.api.v2.GetBoxRequest\x1a\x16.api.v2.GetBoxResponse\"\x96\x01\x92Ay\x12.Получить коробку по его IDJ#\n" +
+	"\x03200\x12\x1c\x12\x1a\n" +
+	"\x18\x1a\x16.api.v2.GetBoxResponseJ\"\n" +
+	"\x03404\x12\x1b\x12\x19\n" +
+	"\x17\x1a\x15.api.v2.ErrorResponse\x82\xd3\xe4\x93\x02\x14\x12\x12/v2/boxes/{box_id}\x12\xcf\x01\n" +
+	"\bGetBoxes\x12\x17.api.v2.GetBoxesRequest\x1a\x18.api.v2.GetBoxesResponse\"\x8f\x01\x92A{\x12RПолучить все доступные пользователю коробкиJ%\n" +
+	"\x03200\x12\x1e\x12\x1c\n" +
+	"\x1a\x1a\x18.api.v2.GetBoxesResponse\x82\xd3\xe4\x93\x02\v\x12\t/v2/boxes\x12\xcb\x01\n" +
+	"\vSearchBoxes\x12\x1a.api.v2.SearchBoxesRequest\x1a\x1b.api.v2.SearchBoxesResponse\"\x82\x01\x92Ag\x12;Найти коробку по части его имениJ(\n" +
+	"\x03200\x12!\x12\x1f\n" +
+	"\x1d\x1a\x1b.api.v2.SearchBoxesResponse\x82\xd3\xe4\x93\x02\x12\x12\x10/v2/boxes/search\x12\x8d\x02\n" +
+	"\bStartJob\x12\x17.api.v2.StartJobRequest\x1a\x18.api.v2.StartJobResponse\"\xcd\x01\x92A\xa6\x01\x125Запустить задачу для коробкиJ%\n" +
+	"\x03201\x12\x1e\x12\x1c\n" +
+	"\x1a\x1a\x18.api.v2.StartJobResponseJ\"\n" +
+	"\x03400\x12\x1b\x12\x19\n" +
+	"\x17\x1a\x15.api.v2.ErrorResponseJ\"\n" +
+	"\x03404\x12\x1b\x12\x19\n" +
+	"\x17\x1a\x15.api.v2.ErrorResponse\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/v2/boxes/{box_id}/start2\x94\x03\n" +
 	"\n" +
-	"JobService\x127\n" +
-	"\x06GetJob\x12\x15.api.v2.GetJobRequest\x1a\x16.api.v2.GetJobResponse\x12:\n" +
-	"\aGetJobs\x12\x16.api.v2.GetJobsRequest\x1a\x17.api.v2.GetJobsResponse\x12=\n" +
-	"\bStartJob\x12\x17.api.v2.StartJobRequest\x1a\x18.api.v2.StartJobResponseB\x0eZ\fapi/v2;apiv2b\x06proto3"
+	"JobService\x12\xc5\x01\n" +
+	"\x06GetJob\x12\x15.api.v2.GetJobRequest\x1a\x16.api.v2.GetJobResponse\"\x8b\x01\x92Ao\x12$Найти задачу по её IDJ#\n" +
+	"\x03200\x12\x1c\x12\x1a\n" +
+	"\x18\x1a\x16.api.v2.GetJobResponseJ\"\n" +
+	"\x03404\x12\x1b\x12\x19\n" +
+	"\x17\x1a\x15.api.v2.ErrorResponse\x82\xd3\xe4\x93\x02\x13\x12\x11/v2/jobs/{job_id}\x12\xbd\x01\n" +
+	"\aGetJobs\x12\x16.api.v2.GetJobsRequest\x1a\x17.api.v2.GetJobsResponse\"\x80\x01\x92Am\x12EПолучить все пользовательские задачиJ$\n" +
+	"\x03200\x12\x1d\x12\x1b\n" +
+	"\x19\x1a\x17.api.v2.GetJobsResponse\x82\xd3\xe4\x93\x02\n" +
+	"\x12\b/v2/jobsBe\x92AT\x12\x15\n" +
+	"\fScriptum API2\x052.0.2\x1a\x0elocalhost:8000\"\x04/api*\x01\x012\x10application/json:\x10application/jsonZ\fapi/v2;apiv2b\x06proto3"
 
 var (
 	file_api_v2_scriptum_proto_rawDescOnce sync.Once
@@ -1625,80 +1764,82 @@ func file_api_v2_scriptum_proto_rawDescGZIP() []byte {
 }
 
 var file_api_v2_scriptum_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_api_v2_scriptum_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
+var file_api_v2_scriptum_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
 var file_api_v2_scriptum_proto_goTypes = []any{
 	(Visibility)(0),               // 0: api.v2.Visibility
 	(Type)(0),                     // 1: api.v2.Type
 	(JobState)(0),                 // 2: api.v2.JobState
-	(*Value)(nil),                 // 3: api.v2.Value
-	(*Field)(nil),                 // 4: api.v2.Field
-	(*Box)(nil),                   // 5: api.v2.Box
-	(*JobResult)(nil),             // 6: api.v2.JobResult
-	(*Job)(nil),                   // 7: api.v2.Job
-	(*FileMeta)(nil),              // 8: api.v2.FileMeta
-	(*FileUploadRequest)(nil),     // 9: api.v2.FileUploadRequest
-	(*FileUploadResponse)(nil),    // 10: api.v2.FileUploadResponse
-	(*CreateBoxRequest)(nil),      // 11: api.v2.CreateBoxRequest
-	(*CreateBoxResponse)(nil),     // 12: api.v2.CreateBoxResponse
-	(*DeleteBoxRequest)(nil),      // 13: api.v2.DeleteBoxRequest
-	(*DeleteBoxResponse)(nil),     // 14: api.v2.DeleteBoxResponse
-	(*GetBoxRequest)(nil),         // 15: api.v2.GetBoxRequest
-	(*GetBoxResponse)(nil),        // 16: api.v2.GetBoxResponse
-	(*GetBoxesRequest)(nil),       // 17: api.v2.GetBoxesRequest
-	(*GetBoxesResponse)(nil),      // 18: api.v2.GetBoxesResponse
-	(*SearchBoxesRequest)(nil),    // 19: api.v2.SearchBoxesRequest
-	(*SearchBoxesResponse)(nil),   // 20: api.v2.SearchBoxesResponse
-	(*GetJobRequest)(nil),         // 21: api.v2.GetJobRequest
-	(*GetJobResponse)(nil),        // 22: api.v2.GetJobResponse
-	(*GetJobsRequest)(nil),        // 23: api.v2.GetJobsRequest
-	(*GetJobsResponse)(nil),       // 24: api.v2.GetJobsResponse
-	(*StartJobRequest)(nil),       // 25: api.v2.StartJobRequest
-	(*StartJobResponse)(nil),      // 26: api.v2.StartJobResponse
-	(*timestamppb.Timestamp)(nil), // 27: google.protobuf.Timestamp
+	(*Test)(nil),                  // 3: api.v2.Test
+	(*Value)(nil),                 // 4: api.v2.Value
+	(*Field)(nil),                 // 5: api.v2.Field
+	(*Box)(nil),                   // 6: api.v2.Box
+	(*JobResult)(nil),             // 7: api.v2.JobResult
+	(*Job)(nil),                   // 8: api.v2.Job
+	(*FileMeta)(nil),              // 9: api.v2.FileMeta
+	(*FileUploadRequest)(nil),     // 10: api.v2.FileUploadRequest
+	(*FileUploadResponse)(nil),    // 11: api.v2.FileUploadResponse
+	(*CreateBoxRequest)(nil),      // 12: api.v2.CreateBoxRequest
+	(*CreateBoxResponse)(nil),     // 13: api.v2.CreateBoxResponse
+	(*DeleteBoxRequest)(nil),      // 14: api.v2.DeleteBoxRequest
+	(*DeleteBoxResponse)(nil),     // 15: api.v2.DeleteBoxResponse
+	(*GetBoxRequest)(nil),         // 16: api.v2.GetBoxRequest
+	(*GetBoxResponse)(nil),        // 17: api.v2.GetBoxResponse
+	(*GetBoxesRequest)(nil),       // 18: api.v2.GetBoxesRequest
+	(*GetBoxesResponse)(nil),      // 19: api.v2.GetBoxesResponse
+	(*SearchBoxesRequest)(nil),    // 20: api.v2.SearchBoxesRequest
+	(*SearchBoxesResponse)(nil),   // 21: api.v2.SearchBoxesResponse
+	(*ErrorResponse)(nil),         // 22: api.v2.ErrorResponse
+	(*GetJobRequest)(nil),         // 23: api.v2.GetJobRequest
+	(*GetJobResponse)(nil),        // 24: api.v2.GetJobResponse
+	(*GetJobsRequest)(nil),        // 25: api.v2.GetJobsRequest
+	(*GetJobsResponse)(nil),       // 26: api.v2.GetJobsResponse
+	(*StartJobRequest)(nil),       // 27: api.v2.StartJobRequest
+	(*StartJobResponse)(nil),      // 28: api.v2.StartJobResponse
+	(*timestamppb.Timestamp)(nil), // 29: google.protobuf.Timestamp
 }
 var file_api_v2_scriptum_proto_depIdxs = []int32{
 	1,  // 0: api.v2.Value.type:type_name -> api.v2.Type
 	1,  // 1: api.v2.Field.type:type_name -> api.v2.Type
 	0,  // 2: api.v2.Box.vis:type_name -> api.v2.Visibility
-	4,  // 3: api.v2.Box.in:type_name -> api.v2.Field
-	4,  // 4: api.v2.Box.out:type_name -> api.v2.Field
-	27, // 5: api.v2.Box.created_at:type_name -> google.protobuf.Timestamp
-	3,  // 6: api.v2.JobResult.output:type_name -> api.v2.Value
+	5,  // 3: api.v2.Box.in:type_name -> api.v2.Field
+	5,  // 4: api.v2.Box.out:type_name -> api.v2.Field
+	29, // 5: api.v2.Box.created_at:type_name -> google.protobuf.Timestamp
+	4,  // 6: api.v2.JobResult.output:type_name -> api.v2.Value
 	2,  // 7: api.v2.Job.state:type_name -> api.v2.JobState
-	3,  // 8: api.v2.Job.input:type_name -> api.v2.Value
-	4,  // 9: api.v2.Job.out:type_name -> api.v2.Field
-	27, // 10: api.v2.Job.created_at:type_name -> google.protobuf.Timestamp
-	27, // 11: api.v2.Job.started_at:type_name -> google.protobuf.Timestamp
-	6,  // 12: api.v2.Job.result:type_name -> api.v2.JobResult
-	27, // 13: api.v2.Job.finished_at:type_name -> google.protobuf.Timestamp
-	8,  // 14: api.v2.FileUploadRequest.meta:type_name -> api.v2.FileMeta
-	4,  // 15: api.v2.CreateBoxRequest.input:type_name -> api.v2.Field
-	4,  // 16: api.v2.CreateBoxRequest.output:type_name -> api.v2.Field
-	5,  // 17: api.v2.GetBoxResponse.box:type_name -> api.v2.Box
-	5,  // 18: api.v2.GetBoxesResponse.boxes:type_name -> api.v2.Box
-	5,  // 19: api.v2.SearchBoxesResponse.boxes:type_name -> api.v2.Box
-	7,  // 20: api.v2.GetJobResponse.job:type_name -> api.v2.Job
+	4,  // 8: api.v2.Job.input:type_name -> api.v2.Value
+	5,  // 9: api.v2.Job.out:type_name -> api.v2.Field
+	29, // 10: api.v2.Job.created_at:type_name -> google.protobuf.Timestamp
+	29, // 11: api.v2.Job.started_at:type_name -> google.protobuf.Timestamp
+	7,  // 12: api.v2.Job.result:type_name -> api.v2.JobResult
+	29, // 13: api.v2.Job.finished_at:type_name -> google.protobuf.Timestamp
+	9,  // 14: api.v2.FileUploadRequest.meta:type_name -> api.v2.FileMeta
+	5,  // 15: api.v2.CreateBoxRequest.input:type_name -> api.v2.Field
+	5,  // 16: api.v2.CreateBoxRequest.output:type_name -> api.v2.Field
+	6,  // 17: api.v2.GetBoxResponse.box:type_name -> api.v2.Box
+	6,  // 18: api.v2.GetBoxesResponse.boxes:type_name -> api.v2.Box
+	6,  // 19: api.v2.SearchBoxesResponse.boxes:type_name -> api.v2.Box
+	8,  // 20: api.v2.GetJobResponse.job:type_name -> api.v2.Job
 	2,  // 21: api.v2.GetJobsRequest.state:type_name -> api.v2.JobState
-	7,  // 22: api.v2.GetJobsResponse.jobs:type_name -> api.v2.Job
-	3,  // 23: api.v2.StartJobRequest.values:type_name -> api.v2.Value
-	9,  // 24: api.v2.FileService.Upload:input_type -> api.v2.FileUploadRequest
-	11, // 25: api.v2.BoxService.CreateBox:input_type -> api.v2.CreateBoxRequest
-	13, // 26: api.v2.BoxService.DeleteBox:input_type -> api.v2.DeleteBoxRequest
-	15, // 27: api.v2.BoxService.GetBox:input_type -> api.v2.GetBoxRequest
-	17, // 28: api.v2.BoxService.GetBoxes:input_type -> api.v2.GetBoxesRequest
-	19, // 29: api.v2.BoxService.SearchBoxes:input_type -> api.v2.SearchBoxesRequest
-	21, // 30: api.v2.JobService.GetJob:input_type -> api.v2.GetJobRequest
-	23, // 31: api.v2.JobService.GetJobs:input_type -> api.v2.GetJobsRequest
-	25, // 32: api.v2.JobService.StartJob:input_type -> api.v2.StartJobRequest
-	10, // 33: api.v2.FileService.Upload:output_type -> api.v2.FileUploadResponse
-	12, // 34: api.v2.BoxService.CreateBox:output_type -> api.v2.CreateBoxResponse
-	14, // 35: api.v2.BoxService.DeleteBox:output_type -> api.v2.DeleteBoxResponse
-	16, // 36: api.v2.BoxService.GetBox:output_type -> api.v2.GetBoxResponse
-	18, // 37: api.v2.BoxService.GetBoxes:output_type -> api.v2.GetBoxesResponse
-	20, // 38: api.v2.BoxService.SearchBoxes:output_type -> api.v2.SearchBoxesResponse
-	22, // 39: api.v2.JobService.GetJob:output_type -> api.v2.GetJobResponse
-	24, // 40: api.v2.JobService.GetJobs:output_type -> api.v2.GetJobsResponse
-	26, // 41: api.v2.JobService.StartJob:output_type -> api.v2.StartJobResponse
+	8,  // 22: api.v2.GetJobsResponse.jobs:type_name -> api.v2.Job
+	4,  // 23: api.v2.StartJobRequest.values:type_name -> api.v2.Value
+	10, // 24: api.v2.FileService.Upload:input_type -> api.v2.FileUploadRequest
+	12, // 25: api.v2.BoxService.CreateBox:input_type -> api.v2.CreateBoxRequest
+	14, // 26: api.v2.BoxService.DeleteBox:input_type -> api.v2.DeleteBoxRequest
+	16, // 27: api.v2.BoxService.GetBox:input_type -> api.v2.GetBoxRequest
+	18, // 28: api.v2.BoxService.GetBoxes:input_type -> api.v2.GetBoxesRequest
+	20, // 29: api.v2.BoxService.SearchBoxes:input_type -> api.v2.SearchBoxesRequest
+	27, // 30: api.v2.BoxService.StartJob:input_type -> api.v2.StartJobRequest
+	23, // 31: api.v2.JobService.GetJob:input_type -> api.v2.GetJobRequest
+	25, // 32: api.v2.JobService.GetJobs:input_type -> api.v2.GetJobsRequest
+	11, // 33: api.v2.FileService.Upload:output_type -> api.v2.FileUploadResponse
+	13, // 34: api.v2.BoxService.CreateBox:output_type -> api.v2.CreateBoxResponse
+	15, // 35: api.v2.BoxService.DeleteBox:output_type -> api.v2.DeleteBoxResponse
+	17, // 36: api.v2.BoxService.GetBox:output_type -> api.v2.GetBoxResponse
+	19, // 37: api.v2.BoxService.GetBoxes:output_type -> api.v2.GetBoxesResponse
+	21, // 38: api.v2.BoxService.SearchBoxes:output_type -> api.v2.SearchBoxesResponse
+	28, // 39: api.v2.BoxService.StartJob:output_type -> api.v2.StartJobResponse
+	24, // 40: api.v2.JobService.GetJob:output_type -> api.v2.GetJobResponse
+	26, // 41: api.v2.JobService.GetJobs:output_type -> api.v2.GetJobsResponse
 	33, // [33:42] is the sub-list for method output_type
 	24, // [24:33] is the sub-list for method input_type
 	24, // [24:24] is the sub-list for extension type_name
@@ -1711,23 +1852,23 @@ func file_api_v2_scriptum_proto_init() {
 	if File_api_v2_scriptum_proto != nil {
 		return
 	}
-	file_api_v2_scriptum_proto_msgTypes[1].OneofWrappers = []any{}
 	file_api_v2_scriptum_proto_msgTypes[2].OneofWrappers = []any{}
 	file_api_v2_scriptum_proto_msgTypes[3].OneofWrappers = []any{}
 	file_api_v2_scriptum_proto_msgTypes[4].OneofWrappers = []any{}
-	file_api_v2_scriptum_proto_msgTypes[6].OneofWrappers = []any{
+	file_api_v2_scriptum_proto_msgTypes[5].OneofWrappers = []any{}
+	file_api_v2_scriptum_proto_msgTypes[7].OneofWrappers = []any{
 		(*FileUploadRequest_Meta)(nil),
 		(*FileUploadRequest_Chunk)(nil),
 	}
-	file_api_v2_scriptum_proto_msgTypes[8].OneofWrappers = []any{}
-	file_api_v2_scriptum_proto_msgTypes[20].OneofWrappers = []any{}
+	file_api_v2_scriptum_proto_msgTypes[9].OneofWrappers = []any{}
+	file_api_v2_scriptum_proto_msgTypes[22].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_v2_scriptum_proto_rawDesc), len(file_api_v2_scriptum_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   24,
+			NumMessages:   26,
 			NumExtensions: 0,
 			NumServices:   3,
 		},

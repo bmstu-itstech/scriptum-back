@@ -15,7 +15,10 @@ type Value struct {
 func NewIntegerValue(s string) (Value, error) {
 	err := validateInteger(s)
 	if err != nil {
-		return Value{}, err
+		return Value{}, domain.NewInvalidInputError(
+			"value-type-invalid",
+			fmt.Sprintf("validation error: expected integer, got '%s'", s),
+		)
 	}
 	return Value{
 		t: IntegerValueType,
@@ -34,20 +37,15 @@ func MustNewIntegerValue(s string) Value {
 func NewRealValue(s string) (Value, error) {
 	err := validateReal(s)
 	if err != nil {
-		return Value{}, err
+		return Value{}, domain.NewInvalidInputError(
+			"value-type-invalid",
+			fmt.Sprintf("validation error: expected real, got '%s'", s),
+		)
 	}
 	return Value{
 		t: RealValueType,
 		s: s,
 	}, nil
-}
-
-func MustNewRealValue(s string) Value {
-	v, err := NewValue(RealValueType, s)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func NewStringValue(s string) Value {
@@ -69,14 +67,6 @@ func NewValue(t Type, s string) (Value, error) {
 		"value-type-invalid",
 		fmt.Sprintf("invalid value type: %q", t.String()),
 	)
-}
-
-func MustNewValue(t Type, s string) Value {
-	v, err := NewValue(t, s)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func validateInteger(s string) error {

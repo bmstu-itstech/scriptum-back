@@ -119,6 +119,7 @@ const (
 	BoxService_GetBox_FullMethodName      = "/api.v2.BoxService/GetBox"
 	BoxService_GetBoxes_FullMethodName    = "/api.v2.BoxService/GetBoxes"
 	BoxService_SearchBoxes_FullMethodName = "/api.v2.BoxService/SearchBoxes"
+	BoxService_StartJob_FullMethodName    = "/api.v2.BoxService/StartJob"
 )
 
 // BoxServiceClient is the client API for BoxService service.
@@ -130,6 +131,7 @@ type BoxServiceClient interface {
 	GetBox(ctx context.Context, in *GetBoxRequest, opts ...grpc.CallOption) (*GetBoxResponse, error)
 	GetBoxes(ctx context.Context, in *GetBoxesRequest, opts ...grpc.CallOption) (*GetBoxesResponse, error)
 	SearchBoxes(ctx context.Context, in *SearchBoxesRequest, opts ...grpc.CallOption) (*SearchBoxesResponse, error)
+	StartJob(ctx context.Context, in *StartJobRequest, opts ...grpc.CallOption) (*StartJobResponse, error)
 }
 
 type boxServiceClient struct {
@@ -190,6 +192,16 @@ func (c *boxServiceClient) SearchBoxes(ctx context.Context, in *SearchBoxesReque
 	return out, nil
 }
 
+func (c *boxServiceClient) StartJob(ctx context.Context, in *StartJobRequest, opts ...grpc.CallOption) (*StartJobResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StartJobResponse)
+	err := c.cc.Invoke(ctx, BoxService_StartJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BoxServiceServer is the server API for BoxService service.
 // All implementations must embed UnimplementedBoxServiceServer
 // for forward compatibility.
@@ -199,6 +211,7 @@ type BoxServiceServer interface {
 	GetBox(context.Context, *GetBoxRequest) (*GetBoxResponse, error)
 	GetBoxes(context.Context, *GetBoxesRequest) (*GetBoxesResponse, error)
 	SearchBoxes(context.Context, *SearchBoxesRequest) (*SearchBoxesResponse, error)
+	StartJob(context.Context, *StartJobRequest) (*StartJobResponse, error)
 	mustEmbedUnimplementedBoxServiceServer()
 }
 
@@ -223,6 +236,9 @@ func (UnimplementedBoxServiceServer) GetBoxes(context.Context, *GetBoxesRequest)
 }
 func (UnimplementedBoxServiceServer) SearchBoxes(context.Context, *SearchBoxesRequest) (*SearchBoxesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchBoxes not implemented")
+}
+func (UnimplementedBoxServiceServer) StartJob(context.Context, *StartJobRequest) (*StartJobResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StartJob not implemented")
 }
 func (UnimplementedBoxServiceServer) mustEmbedUnimplementedBoxServiceServer() {}
 func (UnimplementedBoxServiceServer) testEmbeddedByValue()                    {}
@@ -335,6 +351,24 @@ func _BoxService_SearchBoxes_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BoxService_StartJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BoxServiceServer).StartJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BoxService_StartJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BoxServiceServer).StartJob(ctx, req.(*StartJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BoxService_ServiceDesc is the grpc.ServiceDesc for BoxService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -362,15 +396,18 @@ var BoxService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "SearchBoxes",
 			Handler:    _BoxService_SearchBoxes_Handler,
 		},
+		{
+			MethodName: "StartJob",
+			Handler:    _BoxService_StartJob_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "api/v2/scriptum.proto",
 }
 
 const (
-	JobService_GetJob_FullMethodName   = "/api.v2.JobService/GetJob"
-	JobService_GetJobs_FullMethodName  = "/api.v2.JobService/GetJobs"
-	JobService_StartJob_FullMethodName = "/api.v2.JobService/StartJob"
+	JobService_GetJob_FullMethodName  = "/api.v2.JobService/GetJob"
+	JobService_GetJobs_FullMethodName = "/api.v2.JobService/GetJobs"
 )
 
 // JobServiceClient is the client API for JobService service.
@@ -379,7 +416,6 @@ const (
 type JobServiceClient interface {
 	GetJob(ctx context.Context, in *GetJobRequest, opts ...grpc.CallOption) (*GetJobResponse, error)
 	GetJobs(ctx context.Context, in *GetJobsRequest, opts ...grpc.CallOption) (*GetJobsResponse, error)
-	StartJob(ctx context.Context, in *StartJobRequest, opts ...grpc.CallOption) (*StartJobResponse, error)
 }
 
 type jobServiceClient struct {
@@ -410,23 +446,12 @@ func (c *jobServiceClient) GetJobs(ctx context.Context, in *GetJobsRequest, opts
 	return out, nil
 }
 
-func (c *jobServiceClient) StartJob(ctx context.Context, in *StartJobRequest, opts ...grpc.CallOption) (*StartJobResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StartJobResponse)
-	err := c.cc.Invoke(ctx, JobService_StartJob_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // JobServiceServer is the server API for JobService service.
 // All implementations must embed UnimplementedJobServiceServer
 // for forward compatibility.
 type JobServiceServer interface {
 	GetJob(context.Context, *GetJobRequest) (*GetJobResponse, error)
 	GetJobs(context.Context, *GetJobsRequest) (*GetJobsResponse, error)
-	StartJob(context.Context, *StartJobRequest) (*StartJobResponse, error)
 	mustEmbedUnimplementedJobServiceServer()
 }
 
@@ -442,9 +467,6 @@ func (UnimplementedJobServiceServer) GetJob(context.Context, *GetJobRequest) (*G
 }
 func (UnimplementedJobServiceServer) GetJobs(context.Context, *GetJobsRequest) (*GetJobsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetJobs not implemented")
-}
-func (UnimplementedJobServiceServer) StartJob(context.Context, *StartJobRequest) (*StartJobResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StartJob not implemented")
 }
 func (UnimplementedJobServiceServer) mustEmbedUnimplementedJobServiceServer() {}
 func (UnimplementedJobServiceServer) testEmbeddedByValue()                    {}
@@ -503,24 +525,6 @@ func _JobService_GetJobs_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _JobService_StartJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StartJobRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(JobServiceServer).StartJob(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: JobService_StartJob_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(JobServiceServer).StartJob(ctx, req.(*StartJobRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // JobService_ServiceDesc is the grpc.ServiceDesc for JobService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -535,10 +539,6 @@ var JobService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetJobs",
 			Handler:    _JobService_GetJobs_Handler,
-		},
-		{
-			MethodName: "StartJob",
-			Handler:    _JobService_StartJob_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

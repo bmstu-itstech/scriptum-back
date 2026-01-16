@@ -42,7 +42,7 @@ func NewBox(
 		return nil, domain.NewInvalidInputError("box-empty-name", "expected not empty box name")
 	}
 
-	if desc != nil && *desc != "" {
+	if desc != nil && *desc == "" {
 		return nil, errors.New("expected nil or not empty box description")
 	}
 

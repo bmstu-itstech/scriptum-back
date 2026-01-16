@@ -4,33 +4,48 @@ package api.v2;
 option go_package = "api/v2;apiv2";
 
 import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
-// Enums
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "Scriptum API";
+    version: "2.0.2";
+  };
+  host: "localhost:8000";
+  schemes: HTTP;
+  consumes: "application/json";
+  produces: "application/json";
+  base_path: "/api";
+};
 
+// Visibility
 enum Visibility {
   VISIBILITY_PRIVATE = 0;
   VISIBILITY_PUBLIC = 1;
 }
 
+// Type
 enum Type {
   TYPE_STRING = 0;
   TYPE_INTEGER = 1;
   TYPE_REAL = 2;
 }
 
+// JobState
 enum JobState {
   JOB_STATE_PENDING = 0;
   JOB_STATE_RUNNING = 1;
   JOB_STATE_FINISHED = 2;
 }
 
-// Base messages
-
+// Value
 message Value {
   Type type = 1;
   string value = 2;
 }
 
+// Field
 message Field {
   Type type = 1;
   string name = 2;
@@ -38,6 +53,7 @@ message Field {
   optional string unit = 4;
 }
 
+// Box
 message Box {
   string id = 1;
   int64 owner_id = 2;
@@ -50,12 +66,14 @@ message Box {
   google.protobuf.Timestamp created_at = 9;
 }
 
+// JobResult
 message JobResult {
   int64 code = 1;
   repeated Value output = 2;
   optional string message = 3;
 }
 
+// Job
 message Job {
   string id = 1;
   string box_id = 2;
@@ -70,12 +88,12 @@ message Job {
   optional google.protobuf.Timestamp finished_at = 11;
 }
 
-// Uploader service
-
+// FileMeta
 message FileMeta {
   string name = 1;
 }
 
+// FileUploadRequest
 message FileUploadRequest {
   oneof body {
     FileMeta meta = 1;
@@ -83,17 +101,28 @@ message FileUploadRequest {
   }
 }
 
+// FileUploadResponse
 message FileUploadResponse {
   string file_id = 1;
   uint32 size = 2;
 }
 
 service FileService {
-  rpc Upload(stream FileUploadRequest) returns(FileUploadResponse);
+  rpc Upload(stream FileUploadRequest) returns(FileUploadResponse) {
+    option (google.api.http) = {
+      post: "/v2/files",
+      body: "*",
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Upload a file"
+      operation_id: "upload"
+      description: "На самом деле здесь multipart-data с 'attachment' файлом"
+    };
+  }
 }
 
-// Box service
-
+// CreateBoxRequest
 message CreateBoxRequest {
   string archive_id = 1;
   string name = 2;
@@ -102,26 +131,32 @@ message CreateBoxRequest {
   repeated Field output = 5;
 }
 
+// CreateBoxResponse
 message CreateBoxResponse {
   string box_id = 1;
 }
 
+// DeleteBoxRequest
 message DeleteBoxRequest {
   string box_id = 1;
 }
 
+// DeleteBoxResponse
 message DeleteBoxResponse {}
 
 message GetBoxRequest {
   string box_id = 1;
 }
 
+// GetBoxResponse
 message GetBoxResponse {
   Box box = 1;
 }
 
+// GetBoxesRequest
 message GetBoxesRequest {}
 
+// GetBoxesResponse
 message GetBoxesResponse {
   repeated Box boxes = 1;
 }
@@ -130,47 +165,260 @@ message SearchBoxesRequest {
   string name = 1;
 }
 
+// SearchBoxesResponse
 message SearchBoxesResponse {
   repeated Box boxes = 1;
 }
 
-service BoxService {
-  rpc CreateBox(CreateBoxRequest) returns(CreateBoxResponse);
-  rpc DeleteBox(DeleteBoxRequest) returns(DeleteBoxResponse);
-  rpc GetBox(GetBoxRequest) returns(GetBoxResponse);
-  rpc GetBoxes(GetBoxesRequest) returns(GetBoxesResponse);
-  rpc SearchBoxes(SearchBoxesRequest) returns(SearchBoxesResponse);
+// ErrorResponse
+message ErrorResponse {
+  string message = 1;
 }
+
+service BoxService {
+  rpc CreateBox(CreateBoxRequest) returns(CreateBoxResponse) {
+    option (google.api.http) = {
+      post: "/v2/boxes"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Создать коробку",
+      responses: [
+        {
+          key: "201",
+          value: {
+            schema: {
+              json_schema: {
+                ref: ".api.v2.CreateBoxResponse"
+              }
+            }
+          }
+        },
+        {
+          key: "400",
+          value: {
+            schema: {
+              json_schema: {
+                ref: ".api.v2.ErrorResponse"
+              }
+            }
+          }
+        }
+      ]
+    };
+  }
+
+  rpc DeleteBox(DeleteBoxRequest) returns(DeleteBoxResponse) {
+    option (google.api.http) = {
+      delete: "/v2/boxes/{box_id}"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Удалить коробку по его ID",
+      responses: {
+        key: "204",
+        value: {
+          schema: {
+            json_schema: {}
+          }
+        }
+      }
+    };
+  }
+
+  rpc GetBox(GetBoxRequest) returns(GetBoxResponse) {
+    option (google.api.http) = {
+      get: "/v2/boxes/{box_id}"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Получить коробку по его ID",
+      responses: [
+        {
+          key: "200",
+          value: {
+            schema: {
+              json_schema: {
+                ref: ".api.v2.GetBoxResponse"
+              }
+            }
+          },
+        },
+        {
+          key: "404",
+          value: {
+            schema: {
+              json_schema: {
+                ref: ".api.v2.ErrorResponse"
+              }
+            }
+          }
+        }
+      ]
+    };
+  }
+
+  rpc GetBoxes(GetBoxesRequest) returns(GetBoxesResponse) {
+    option (google.api.http) = {
+      get: "/v2/boxes"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Получить все доступные пользователю коробки",
+      responses: {
+        key: "200",
+        value: {
+          schema: {
+            json_schema: {
+              ref: ".api.v2.GetBoxesResponse"
+            }
+          }
+        }
+      }
+    };
+  }
+
+  rpc SearchBoxes(SearchBoxesRequest) returns(SearchBoxesResponse) {
+    option (google.api.http) = {
+      get: "/v2/boxes/search"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Найти коробку по части его имени",
+      responses: {
+        key: "200",
+        value: {
+          schema: {
+            json_schema: {
+              ref: ".api.v2.SearchBoxesResponse"
+            }
+          }
+        }
+      }
+    };
+  }
+
+  rpc StartJob(StartJobRequest) returns(StartJobResponse) {
+    option (google.api.http) = {
+      post: "/v2/boxes/{box_id}/start",
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Запустить задачу для коробки",
+      responses: [
+        {
+          key: "201",
+          value: {
+            schema: {
+              json_schema: {
+                ref: ".api.v2.StartJobResponse"
+              }
+            }
+          }
+        },
+        {
+          key: "400",
+          value: {
+            schema: {
+              json_schema: {
+                ref: ".api.v2.ErrorResponse"
+              }
+            }
+          }
+        },
+        {
+          key: "404",
+          value: {
+            schema: {
+              json_schema: {
+                ref: ".api.v2.ErrorResponse"
+              }
+            }
+          }
+        }
+      ]
+    };
+  }
+}
+
 
 // Job service
 
+// GetJobRequest
 message GetJobRequest {
   string job_id = 1;
 }
 
+// GetJobResponse
 message GetJobResponse {
   Job job = 1;
 }
 
+// GetJobsRequest
 message GetJobsRequest {
   optional JobState state = 1;
 }
 
+// GetJobsResponse
 message GetJobsResponse {
   repeated Job jobs = 1;
 }
 
+// StartJobRequest
 message StartJobRequest {
   string box_id = 1;
   repeated Value values = 2;
 }
 
+// StartJobResponse
 message StartJobResponse {
   string job_id = 1;
 }
 
 service JobService {
-  rpc GetJob(GetJobRequest) returns(GetJobResponse);
-  rpc GetJobs(GetJobsRequest) returns(GetJobsResponse);
-  rpc StartJob(StartJobRequest) returns(StartJobResponse);
+  rpc GetJob(GetJobRequest) returns(GetJobResponse) {
+    option (google.api.http) = {
+      get: "/v2/jobs/{job_id}"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Найти задачу по её ID",
+      responses: [
+        {
+          key: "200",
+          value: {
+            schema: {
+              json_schema: {
+                ref: ".api.v2.GetJobResponse"
+              }
+            }
+          }
+        },
+        {
+          key: "404",
+          value: {
+            schema: {
+              json_schema: {
+                ref: ".api.v2.ErrorResponse"
+              }
+            }
+          }
+        }
+      ]
+    };
+  }
+
+  rpc GetJobs(GetJobsRequest) returns(GetJobsResponse) {
+    option (google.api.http) = {
+      get: "/v2/jobs"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Получить все пользовательские задачи",
+      responses: {
+        key: "200",
+        value: {
+          schema: {
+            json_schema: {
+              ref: ".api.v2.GetJobsResponse"
+            }
+          }
+        }
+      }
+    };
+  }
 }
