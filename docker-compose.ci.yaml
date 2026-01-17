@@ -14,6 +14,7 @@ services:
       - ./config:/etc/app:ro
       - ${EXTERNAL_UPLOADS_DIR:-./uploads}:/var/app/uploads
       - $PGSSLROOTCERT:/certs:ro
+      - /var/run/docker.sock:/var/run/docker.sock
 
   migrate:
     image: migrate/migrate

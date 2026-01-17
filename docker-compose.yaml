@@ -17,6 +17,7 @@ services:
     volumes:
       - ./config:/etc/app:ro
       - ${EXTERNAL_UPLOADS_DIR:-./uploads}:/var/app/uploads
+      - /var/run/docker.sock:/var/run/docker.sock
 
   db:
     image: postgres:15.3-alpine3.18
