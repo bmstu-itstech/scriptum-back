@@ -1,9 +1,10 @@
-generate: generate/proto generate/openapi
+SWAGGER_UI_VERSION:=v5.31.0
 
-.PHONY: generate/proto
-generate/proto:
-	easyp generate
+generate: generate/openapi
 
 .PHONY: generate/openapi
 generate/openapi: api/v2/scriptum.swagger.yaml
 	./scripts/generate-openapi-stubs.sh $<
+
+generate/swagger_ui: api/v2/scriptum.swagger.yaml
+	 SWAGGER_UI_VERSION=$(SWAGGER_UI_VERSION) ./scripts/generate-swagger-ui.sh $<
