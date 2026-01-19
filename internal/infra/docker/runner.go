@@ -63,7 +63,11 @@ func (r *Runner) Build(ctx context.Context, buildCtx io.Reader, id value.Bluepri
 	defer func() { _ = res.Body.Close() }()
 
 	// Не знаю почему, но сборка не идёт, если не прочесть res.Body
-	_, _ = io.ReadAll(res.Body)
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read response body: %w", err)
+	}
+	l.Debug(string(read))
 
 	l.DebugContext(ctx, "Docker build finished")
 	return image, nil
@@ -111,8 +115,8 @@ func (r *Runner) Run(ctx context.Context, image value.ImageTag, input []value.Va
 
 	l.DebugContext(ctx, "Docker container writing")
 	n, err := attach.Conn.Write(r.marshallInput(input))
+	_ = attach.Conn.Close()
 	if err != nil {
-		_ = attach.Conn.Close()
 		return value.Result{}, fmt.Errorf("failed to write input: %w", err)
 	}
 	l.DebugContext(ctx, "Docker container input written", slog.Int("bytes", n))

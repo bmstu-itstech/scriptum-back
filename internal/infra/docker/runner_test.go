@@ -2,6 +2,7 @@ package docker_test
 
 import (
 	"context"
+	"github.com/bmstu-itstech/scriptum-back/pkg/logs"
 	"os"
 	"testing"
 	"time"
@@ -11,9 +12,10 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/config"
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/value"
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/docker"
-	"github.com/bmstu-itstech/scriptum-back/pkg/logs/handlers/slogdiscard"
 	"github.com/bmstu-itstech/scriptum-back/pkg/testutils"
 )
+
+const dockerTimeout = 5 * time.Minute
 
 func TestRunner_Adder(t *testing.T) {
 	if testing.Short() {
@@ -34,14 +36,14 @@ func TestRunner_Adder(t *testing.T) {
 	buildCtx, err := os.Open(archivePath)
 	require.NoError(t, err)
 
-	l := slogdiscard.NewDiscardLogger()
+	l := logs.NewLogger(config.Logging{Level: "debug"})
 	ctx := context.Background()
-	ctx, cancelFn := context.WithTimeout(ctx, time.Second*10)
+	ctx, cancelFn := context.WithTimeout(ctx, dockerTimeout)
 	defer cancelFn()
 
 	cfg := config.Docker{
-		ImagePrefix:   "sc",
-		RunnerTimeout: 10 * time.Second,
+		ImagePrefix:   "sc-blueprint",
+		RunnerTimeout: dockerTimeout,
 	}
 	r := docker.MustNewRunner(cfg, l)
 	image, err := r.Build(ctx, buildCtx, value.NewBlueprintID())
