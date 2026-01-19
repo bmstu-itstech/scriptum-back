@@ -7,7 +7,7 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/value"
 )
 
-func boxFieldRowToDomain(row boxFieldRow) (value.Field, error) {
+func blueprintFieldRowToDomain(row blueprintFieldRow) (value.Field, error) {
 	t, err := value.TypeFromString(row.Type)
 	if err != nil {
 		return value.Field{}, err
@@ -15,10 +15,10 @@ func boxFieldRowToDomain(row boxFieldRow) (value.Field, error) {
 	return value.NewField(t, row.Name, row.Desc, row.Unit)
 }
 
-func boxFieldRowsToDomain(rows []boxFieldRow) ([]value.Field, error) {
+func blueprintFieldRowsToDomain(rows []blueprintFieldRow) ([]value.Field, error) {
 	res := make([]value.Field, len(rows))
 	for i, row := range rows {
-		r, err := boxFieldRowToDomain(row)
+		r, err := blueprintFieldRowToDomain(row)
 		if err != nil {
 			return nil, err
 		}
@@ -27,56 +27,56 @@ func boxFieldRowsToDomain(rows []boxFieldRow) ([]value.Field, error) {
 	return res, nil
 }
 
-func boxRowToDomain(rBox boxRow, rInput []boxFieldRow, rOutput []boxFieldRow) (*entity.Box, error) {
-	in, err := boxFieldRowsToDomain(rInput)
+func blueprintRowToDomain(rB blueprintRow, rInput []blueprintFieldRow, rOutput []blueprintFieldRow) (*entity.Blueprint, error) {
+	in, err := blueprintFieldRowsToDomain(rInput)
 	if err != nil {
 		return nil, err
 	}
-	out, err := boxFieldRowsToDomain(rOutput)
+	out, err := blueprintFieldRowsToDomain(rOutput)
 	if err != nil {
 		return nil, err
 	}
-	vis, err := value.VisibilityFromString(rBox.Vis)
+	vis, err := value.VisibilityFromString(rB.Vis)
 	if err != nil {
 		return nil, err
 	}
-	return entity.RestoreBox(
-		value.BoxID(rBox.ID),
-		value.UserID(rBox.OwnerID),
-		value.FileID(rBox.ArchiveID),
-		rBox.Name,
-		rBox.Desc,
+	return entity.RestoreBlueprint(
+		value.BlueprintID(rB.ID),
+		value.UserID(rB.OwnerID),
+		value.FileID(rB.ArchiveID),
+		rB.Name,
+		rB.Desc,
 		vis,
 		in,
 		out,
-		rBox.CreatedAt,
+		rB.CreatedAt,
 	)
 }
 
-func boxFieldRowsFromDomain(fields []value.Field, boxID value.BoxID) []boxFieldRow {
-	res := make([]boxFieldRow, len(fields))
+func blueprintFieldRowsFromDomain(fields []value.Field, blueprintID value.BlueprintID) []blueprintFieldRow {
+	res := make([]blueprintFieldRow, len(fields))
 	for i, field := range fields {
-		res[i] = boxFieldRow{
-			BoxID: string(boxID),
-			Index: i,
-			Type:  field.Type().String(),
-			Name:  field.Name(),
-			Desc:  field.Desc(),
-			Unit:  field.Unit(),
+		res[i] = blueprintFieldRow{
+			BlueprintID: string(blueprintID),
+			Index:       i,
+			Type:        field.Type().String(),
+			Name:        field.Name(),
+			Desc:        field.Desc(),
+			Unit:        field.Unit(),
 		}
 	}
 	return res
 }
 
-func boxRowFromDomain(box *entity.Box) boxRow {
-	return boxRow{
-		ID:        string(box.ID()),
-		OwnerID:   int64(box.OwnerID()),
-		ArchiveID: string(box.ArchiveID()),
-		Name:      box.Name(),
-		Desc:      box.Desc(),
-		Vis:       box.Vis().String(),
-		CreatedAt: box.CreatedAt(),
+func blueprintRowFromDomain(b *entity.Blueprint) blueprintRow {
+	return blueprintRow{
+		ID:        string(b.ID()),
+		OwnerID:   string(b.OwnerID()),
+		ArchiveID: string(b.ArchiveID()),
+		Name:      b.Name(),
+		Desc:      b.Desc(),
+		Vis:       b.Vis().String(),
+		CreatedAt: b.CreatedAt(),
 	}
 }
 
@@ -146,7 +146,7 @@ func jobRowToDomain(
 	}
 	return entity.RestoreJob(
 		value.JobID(rJob.ID),
-		value.BoxID(rJob.BoxID),
+		value.BlueprintID(rJob.BlueprintID),
 		value.FileID(rJob.ArchiveID),
 		value.UserID(rJob.OwnerID),
 		state,
@@ -156,6 +156,21 @@ func jobRowToDomain(
 		rJob.StartedAt,
 		result,
 		rJob.FinishedAt,
+	)
+}
+
+func userRowToDomain(row userRow) (*entity.User, error) {
+	role, err := value.RoleFromString(row.Role)
+	if err != nil {
+		return nil, err
+	}
+	return entity.RestoreUser(
+		value.UserID(row.ID),
+		value.MustEmailFromString(row.Email),
+		[]byte(row.Passhash),
+		row.Name,
+		role,
+		row.CreatedAt,
 	)
 }
 
@@ -197,15 +212,15 @@ func jobRowFromDomain(job *entity.Job) jobRow {
 		optMsg = r.Message()
 	}
 	return jobRow{
-		ID:         string(job.ID()),
-		BoxID:      string(job.BoxID()),
-		ArchiveID:  string(job.ArchiveID()),
-		OwnerID:    int64(job.OwnerID()),
-		State:      job.State().String(),
-		CreatedAt:  job.CreatedAt(),
-		StartedAt:  job.StartedAt(),
-		ResultCode: optCode,
-		ResultMsg:  optMsg,
-		FinishedAt: optFinAt,
+		ID:          string(job.ID()),
+		BlueprintID: string(job.BlueprintID()),
+		ArchiveID:   string(job.ArchiveID()),
+		OwnerID:     string(job.OwnerID()),
+		State:       job.State().String(),
+		CreatedAt:   job.CreatedAt(),
+		StartedAt:   job.StartedAt(),
+		ResultCode:  optCode,
+		ResultMsg:   optMsg,
+		FinishedAt:  optFinAt,
 	}
 }

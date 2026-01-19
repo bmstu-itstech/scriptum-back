@@ -10,8 +10,8 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/app/ports"
 )
 
-func (r *Repository) selectBoxRow(ctx context.Context, qc sqlx.QueryerContext, boxID string) (boxRow, error) {
-	var row boxRow
+func (r *Repository) selectBlueprintRow(ctx context.Context, qc sqlx.QueryerContext, blueprintID string) (blueprintRow, error) {
+	var row blueprintRow
 	err := pgutils.Get(ctx, qc, &row, `
 		SELECT
 			id,
@@ -21,25 +21,25 @@ func (r *Repository) selectBoxRow(ctx context.Context, qc sqlx.QueryerContext, b
 			"desc",
 			vis,
 			created_at
-		FROM box.boxes
+		FROM blueprint.blueprints
 		WHERE 
 			id = $1
 			AND deleted_at IS NULL
 		`,
-		boxID,
+		blueprintID,
 	)
 	if err != nil {
-		return boxRow{}, fmt.Errorf("select box row: %w", err)
+		return blueprintRow{}, fmt.Errorf("select blueprint row: %w", err)
 	}
 	return row, nil
 }
 
-func (r *Repository) selectPublicAndUserBoxRows(
+func (r *Repository) selectPublicAndUserBlueprintRows(
 	ctx context.Context,
 	qc sqlx.QueryerContext,
-	userID int64,
-) ([]boxRow, error) {
-	var rows []boxRow
+	userID string,
+) ([]blueprintRow, error) {
+	var rows []blueprintRow
 	err := pgutils.Select(ctx, qc, &rows, `
 		SELECT
 			id,
@@ -49,7 +49,7 @@ func (r *Repository) selectPublicAndUserBoxRows(
 			"desc",
 			vis,
 			created_at
-		FROM box.boxes
+		FROM blueprint.blueprints
 		WHERE
 			deleted_at IS NULL
 			AND (
@@ -61,18 +61,18 @@ func (r *Repository) selectPublicAndUserBoxRows(
 		userID,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("select public and user box rows: %w", err)
+		return nil, fmt.Errorf("select public and user blueprint rows: %w", err)
 	}
 	return rows, nil
 }
 
-func (r *Repository) selectPublicAndUserBoxByNameRows(
+func (r *Repository) selectPublicAndUserBlueprintByNameRows(
 	ctx context.Context,
 	qc sqlx.QueryerContext,
-	userID int64,
+	userID string,
 	name string,
-) ([]boxRow, error) {
-	var rows []boxRow
+) ([]blueprintRow, error) {
+	var rows []blueprintRow
 	err := pgutils.Select(ctx, qc, &rows, `
 		SELECT
 			id,
@@ -82,7 +82,7 @@ func (r *Repository) selectPublicAndUserBoxByNameRows(
 			"desc",
 			vis,
 			created_at
-		FROM box.boxes
+		FROM blueprint.blueprints
 		WHERE
 			deleted_at IS NULL
 			AND name ILIKE $2
@@ -96,14 +96,14 @@ func (r *Repository) selectPublicAndUserBoxByNameRows(
 		name,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("select public and user box rows: %w", err)
+		return nil, fmt.Errorf("select public and user blueprint rows: %w", err)
 	}
 	return rows, nil
 }
 
-func (r *Repository) insertBoxRow(ctx context.Context, ec sqlx.ExtContext, row boxRow) error {
+func (r *Repository) insertBlueprintRow(ctx context.Context, ec sqlx.ExtContext, row blueprintRow) error {
 	err := pgutils.RequireAffected(pgutils.NamedExec(ctx, ec, `
-		INSERT INTO box.boxes (
+		INSERT INTO blueprint.blueprints (
 			id,
 			owner_id,
 			archive_id,
@@ -128,60 +128,60 @@ func (r *Repository) insertBoxRow(ctx context.Context, ec sqlx.ExtContext, row b
 		return ports.ErrJobAlreadyExists
 	}
 	if err != nil {
-		return fmt.Errorf("upsert box row: %w", err)
+		return fmt.Errorf("upsert blueprint row: %w", err)
 	}
 	return nil
 }
 
-func (r *Repository) softDeleteBoxRow(ctx context.Context, ec sqlx.ExecerContext, boxID string) error {
+func (r *Repository) softDeleteBlueprintRow(ctx context.Context, ec sqlx.ExecerContext, blueprintID string) error {
 	err := pgutils.RequireAffected(pgutils.Exec(ctx, ec, `
-		UPDATE box.boxes
+		UPDATE blueprint.blueprints
 		SET
 			deleted_at = NOW()
 		WHERE id = $1
 		`,
-		boxID,
+		blueprintID,
 	))
 	if err != nil {
-		return fmt.Errorf("failed to soft delete box row: %w", err)
+		return fmt.Errorf("failed to soft delete blueprint row: %w", err)
 	}
 	return nil
 }
 
-func (r *Repository) selectBoxInputFieldRows(
+func (r *Repository) selectBlueprintInputFieldRows(
 	ctx context.Context,
 	qc sqlx.QueryerContext,
-	boxID string,
-) ([]boxFieldRow, error) {
-	var rows []boxFieldRow
+	blueprintID string,
+) ([]blueprintFieldRow, error) {
+	var rows []blueprintFieldRow
 	err := pgutils.Select(ctx, qc, &rows, `
 		SELECT
-			box_id, 
+			blueprint_id, 
 			index, 
 			type, 
 			name, 
 			"desc", 
 			unit
-		FROM box.input_fields
-		WHERE box_id = $1
+		FROM blueprint.input_fields
+		WHERE blueprint_id = $1
 		ORDER BY index
 		`,
-		boxID,
+		blueprintID,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("select box input fields rows: %w", err)
+		return nil, fmt.Errorf("select blueprint input fields rows: %w", err)
 	}
 	return rows, nil
 }
 
-func (r *Repository) insertBoxInputFieldRows(
+func (r *Repository) insertBlueprintInputFieldRows(
 	ctx context.Context,
 	ec sqlx.ExtContext,
-	rows []boxFieldRow,
+	rows []blueprintFieldRow,
 ) error {
 	err := pgutils.RequireAffected(pgutils.NamedExec(ctx, ec, `
-		INSERT INTO box.input_fields (
-			box_id, 
+		INSERT INTO blueprint.input_fields (
+			blueprint_id, 
 			index, 
 			type, 
 			name, 
@@ -189,7 +189,7 @@ func (r *Repository) insertBoxInputFieldRows(
 			unit
 		)
 		VALUES (
-		    :box_id,
+		    :blueprint_id,
 			:index,
 			:type,
 			:name,
@@ -200,45 +200,45 @@ func (r *Repository) insertBoxInputFieldRows(
 		rows,
 	))
 	if err != nil {
-		return fmt.Errorf("insert box input field rows: %w", err)
+		return fmt.Errorf("insert blueprint input field rows: %w", err)
 	}
 	return nil
 }
 
-func (r *Repository) selectBoxOutputFieldRows(
+func (r *Repository) selectBlueprintOutputFieldRows(
 	ctx context.Context,
 	qc sqlx.QueryerContext,
-	boxID string,
-) ([]boxFieldRow, error) {
-	var rows []boxFieldRow
+	blueprintID string,
+) ([]blueprintFieldRow, error) {
+	var rows []blueprintFieldRow
 	err := pgutils.Select(ctx, qc, &rows, `
 		SELECT
-			box_id, 
+			blueprint_id, 
 			index, 
 			type, 
 			name, 
 			"desc", 
 			unit
-		FROM box.output_fields
-		WHERE box_id = $1
+		FROM blueprint.output_fields
+		WHERE blueprint_id = $1
 		ORDER BY index
 		`,
-		boxID,
+		blueprintID,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("select box output fields rows: %w", err)
+		return nil, fmt.Errorf("select blueprint output fields rows: %w", err)
 	}
 	return rows, nil
 }
 
-func (r *Repository) insertBoxOutputFieldRows(
+func (r *Repository) insertBlueprintOutputFieldRows(
 	ctx context.Context,
 	ec sqlx.ExtContext,
-	rows []boxFieldRow,
+	rows []blueprintFieldRow,
 ) error {
 	err := pgutils.RequireAffected(pgutils.NamedExec(ctx, ec, `
-		INSERT INTO box.output_fields (
-			box_id, 
+		INSERT INTO blueprint.output_fields (
+			blueprint_id, 
 			index, 
 			type, 
 			name, 
@@ -246,7 +246,7 @@ func (r *Repository) insertBoxOutputFieldRows(
 			unit
 		)
 		VALUES (
-		    :box_id,
+		    :blueprint_id,
 			:index,
 			:type,
 			:name,
@@ -257,7 +257,7 @@ func (r *Repository) insertBoxOutputFieldRows(
 		rows,
 	))
 	if err != nil {
-		return fmt.Errorf("insert box output field rows: %w", err)
+		return fmt.Errorf("insert blueprint output field rows: %w", err)
 	}
 	return nil
 }
@@ -267,7 +267,7 @@ func (r *Repository) selectJobRow(ctx context.Context, qc sqlx.QueryerContext, j
 	err := pgutils.Get(ctx, qc, &row, `
 		SELECT
 			id, 
-			box_id, 
+			blueprint_id, 
 			archive_id, 
 			owner_id, 
 			state, 
@@ -290,13 +290,13 @@ func (r *Repository) selectJobRow(ctx context.Context, qc sqlx.QueryerContext, j
 func (r *Repository) selectUserJobRows(
 	ctx context.Context,
 	qc sqlx.QueryerContext,
-	uid int64,
+	uid string,
 ) ([]jobRow, error) {
 	var rows []jobRow
 	err := pgutils.Select(ctx, qc, &rows, `
 		SELECT
 			id, 
-			box_id, 
+			blueprint_id, 
 			archive_id, 
 			owner_id, 
 			state, 
@@ -320,14 +320,14 @@ func (r *Repository) selectUserJobRows(
 func (r *Repository) selectUserJobRowsWithState(
 	ctx context.Context,
 	qc sqlx.QueryerContext,
-	uid int64,
+	uid string,
 	state string,
 ) ([]jobRow, error) {
 	var rows []jobRow
 	err := pgutils.Select(ctx, qc, &rows, `
 		SELECT
 			id, 
-			box_id, 
+			blueprint_id, 
 			archive_id, 
 			owner_id, 
 			state, 
@@ -355,7 +355,7 @@ func (r *Repository) insertJobRow(ctx context.Context, ec sqlx.ExtContext, row j
 	err := pgutils.RequireAffected(pgutils.NamedExec(ctx, ec, `
 		INSERT INTO job.jobs (
 		    id, 
-			box_id, 
+			blueprint_id, 
 			archive_id, 
 			owner_id, 
 			state, 
@@ -367,7 +367,7 @@ func (r *Repository) insertJobRow(ctx context.Context, ec sqlx.ExtContext, row j
 		) 
 		VALUES (
 			:id,
-			:box_id,
+			:blueprint_id,
 			:archive_id,
 			:owner_id,
 			:state,
@@ -571,4 +571,58 @@ func (r *Repository) insertJobOutputFieldRows(
 		return fmt.Errorf("insert job output field rows: %w", err)
 	}
 	return nil
+}
+
+func (r *Repository) selectUserRow(
+	ctx context.Context,
+	qc sqlx.QueryerContext,
+	userID string,
+) (userRow, error) {
+	var row userRow
+	err := pgutils.Get(ctx, qc, &row, `
+		SELECT
+			id,
+			email,
+			name,
+			passhash,
+			role,
+			created_at
+		FROM public.users
+		WHERE 
+			id = $1
+			AND deleted_at IS NULL
+		`,
+		userID,
+	)
+	if err != nil {
+		return userRow{}, fmt.Errorf("select user row: %w", err)
+	}
+	return row, nil
+}
+
+func (r *Repository) selectUserRowByEmail(
+	ctx context.Context,
+	qc sqlx.QueryerContext,
+	email string,
+) (userRow, error) {
+	var row userRow
+	err := pgutils.Get(ctx, qc, &row, `
+		SELECT
+			id,
+			email,
+			name,
+			passhash,
+			role,
+			created_at
+		FROM public.users
+		WHERE 
+			email = $1
+			AND deleted_at IS NULL
+		`,
+		email,
+	)
+	if err != nil {
+		return userRow{}, fmt.Errorf("select user row: %w", err)
+	}
+	return row, nil
 }

@@ -14,17 +14,14 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 
 	apiv2 "github.com/bmstu-itstech/scriptum-back/gen/go/api/v2"
-	"github.com/bmstu-itstech/scriptum-back/internal/api"
 	"github.com/bmstu-itstech/scriptum-back/internal/app"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/dto/request"
 	"github.com/bmstu-itstech/scriptum-back/internal/config"
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/docker"
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/local"
-	"github.com/bmstu-itstech/scriptum-back/internal/infra/mock"
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/postgres"
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/watermill"
 	"github.com/bmstu-itstech/scriptum-back/pkg/logs"
-	"github.com/bmstu-itstech/scriptum-back/pkg/server/auth"
 )
 
 type Suite struct {
@@ -64,15 +61,15 @@ func New(t *testing.T) (context.Context, *Suite) {
 	jPub, jSub := watermill.NewJobPubSubGoChannels(l)
 
 	infra := app.Infra{
-		BoxProvider:     repos,
-		BoxRepo:         repos,
-		FileReader:      storage,
-		FileUploader:    storage,
-		IsAdminProvider: mockIAP,
-		JobProvider:     repos,
-		JobPublisher:    jPub,
-		JobRepository:   repos,
-		Runner:          runner,
+		BlueprintProvider:   repos,
+		BlueprintRepository: repos,
+		FileReader:          storage,
+		FileUploader:        storage,
+		IsAdminProvider:     mockIAP,
+		JobProvider:         repos,
+		JobPublisher:        jPub,
+		JobRepository:       repos,
+		Runner:              runner,
 	}
 	a := app.NewApp(infra, l)
 

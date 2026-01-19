@@ -24,7 +24,7 @@ func NewGetJobsHandler(jp ports.JobProvider, l *slog.Logger) GetJobsHandler {
 func (h GetJobsHandler) Handle(ctx context.Context, req request.GetJobs) (response.GetJobs, error) {
 	l := h.l.With(
 		slog.String("op", "app.GetJobs"),
-		slog.Int64("uid", req.UID),
+		slog.String("uid", req.UID),
 	)
 	var optState *value.JobState
 	if req.State != nil {

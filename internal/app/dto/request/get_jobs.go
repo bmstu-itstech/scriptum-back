@@ -1,6 +1,6 @@
 package request
 
 type GetJobs struct {
-	UID   int64
+	UID   string
 	State *string // optional filter
 }

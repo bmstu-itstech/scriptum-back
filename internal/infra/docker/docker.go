@@ -6,6 +6,8 @@ import (
 	"github.com/moby/moby/client"
 )
 
+// TODO: add check in app
+
 func IsDockerAvailable() bool {
 	cli, err := client.New(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {

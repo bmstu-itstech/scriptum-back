@@ -12,6 +12,23 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/value"
 )
 
+func (s *Storage) FileExists(ctx context.Context, id value.FileID) (bool, error) {
+	l := s.l.With(
+		slog.String("op", "local.Storage.FileExists"),
+		slog.String("id", string(id)),
+	)
+
+	dirPath := filepath.Join(s.dir, string(id))
+	info, err := os.Stat(dirPath)
+	if os.IsNotExist(err) {
+		return false, nil
+	} else if err != nil {
+		l.ErrorContext(ctx, "failed to check file exists", slog.String("error", err.Error()))
+		return false, err
+	}
+	return !info.IsDir(), nil
+}
+
 func (s *Storage) Read(ctx context.Context, id value.FileID) (io.ReadCloser, error) {
 	l := s.l.With(
 		slog.String("op", "local.Storage.Read"),
@@ -21,7 +38,9 @@ func (s *Storage) Read(ctx context.Context, id value.FileID) (io.ReadCloser, err
 	dirPath := filepath.Join(s.dir, string(id))
 
 	entries, err := os.ReadDir(dirPath)
-	if err != nil {
+	if os.IsNotExist(err) {
+		return nil, ports.ErrFileNotFound
+	} else if err != nil {
 		return nil, ports.ErrFileNotFound
 	}
 

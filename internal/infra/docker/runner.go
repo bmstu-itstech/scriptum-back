@@ -43,10 +43,10 @@ func MustNewRunner(cfg config.Docker, l *slog.Logger) *Runner {
 	return r
 }
 
-func (r *Runner) Build(ctx context.Context, buildCtx io.Reader, id value.BoxID) (value.ImageTag, error) {
+func (r *Runner) Build(ctx context.Context, buildCtx io.Reader, id value.BlueprintID) (value.ImageTag, error) {
 	l := r.l.With(
 		slog.String("op", "docker.Runner.Build"),
-		slog.String("box_id", string(id)),
+		slog.String("blueprint_id", string(id)),
 	)
 
 	image := value.NewImageTag(r.cfg.ImagePrefix, id)

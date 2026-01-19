@@ -13,14 +13,14 @@ import (
 )
 
 type StartJobHandler struct {
-	bp ports.BoxProvider
+	bp ports.BlueprintProvider
 	jr ports.JobRepository
 	jp ports.JobPublisher
 	l  *slog.Logger
 }
 
 func NewStartJobHandler(
-	bp ports.BoxProvider,
+	bp ports.BlueprintProvider,
 	jr ports.JobRepository,
 	jp ports.JobPublisher,
 	l *slog.Logger,
@@ -31,19 +31,19 @@ func NewStartJobHandler(
 func (h StartJobHandler) Handle(ctx context.Context, req request.StartJob) (string, error) {
 	l := h.l.With(
 		slog.String("op", "app.StartJob"),
-		slog.String("box_id", req.BoxID),
-		slog.Int64("uid", req.UID),
+		slog.String("blueprint_id", req.BlueprintID),
+		slog.String("uid", req.UID),
 	)
 	l.DebugContext(ctx, "starting job", "input", fmt.Sprintf("%+v", req.Values))
 
-	box, err := h.bp.Box(ctx, value.BoxID(req.BoxID))
+	blueprint, err := h.bp.Blueprint(ctx, value.BlueprintID(req.BlueprintID))
 	if err != nil {
-		l.InfoContext(ctx, "box not found")
+		l.InfoContext(ctx, "blueprint not found")
 		return "", err
 	}
 
-	if !box.IsAvailableFor(value.UserID(req.UID)) {
-		l.WarnContext(ctx, "box is not available")
+	if !blueprint.IsAvailableFor(value.UserID(req.UID)) {
+		l.WarnContext(ctx, "blueprint is not available")
 		return "", domain.ErrPermissionDenied
 	}
 
@@ -53,7 +53,7 @@ func (h StartJobHandler) Handle(ctx context.Context, req request.StartJob) (stri
 		return "", err
 	}
 
-	job, err := box.AssembleJob(value.UserID(req.UID), in)
+	job, err := blueprint.AssembleJob(value.UserID(req.UID), in)
 	if err != nil {
 		l.InfoContext(ctx, "failed to assemble job", slog.String("error", err.Error()))
 		return "", err

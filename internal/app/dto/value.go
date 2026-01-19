@@ -3,8 +3,8 @@ package dto
 import "github.com/bmstu-itstech/scriptum-back/internal/domain/value"
 
 type Value struct {
-	Type   string
-	String string
+	Type  string
+	Value string
 }
 
 func valueFromDTO(dto Value) (value.Value, error) {
@@ -12,7 +12,7 @@ func valueFromDTO(dto Value) (value.Value, error) {
 	if err != nil {
 		return value.Value{}, err
 	}
-	v, err := value.NewValue(t, dto.String)
+	v, err := value.NewValue(t, dto.Value)
 	if err != nil {
 		return value.Value{}, err
 	}
@@ -33,8 +33,8 @@ func ValuesFromDTOs(dtos []Value) ([]value.Value, error) {
 
 func valueToDTO(v value.Value) Value {
 	return Value{
-		Type:   v.Type().String(),
-		String: v.String(),
+		Type:  v.Type().String(),
+		Value: v.String(),
 	}
 }
 

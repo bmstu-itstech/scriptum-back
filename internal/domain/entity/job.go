@@ -12,14 +12,14 @@ import (
 var ErrInvalidJobStateChange = errors.New("invalid job state change")
 
 type Job struct {
-	id        value.JobID
-	boxID     value.BoxID
-	archiveID value.FileID
-	ownerID   value.UserID
-	state     value.JobState
-	input     []value.Value
-	out       []value.Field
-	createdAt time.Time
+	id          value.JobID
+	blueprintID value.BlueprintID
+	archiveID   value.FileID
+	ownerID     value.UserID
+	state       value.JobState
+	input       []value.Value
+	out         []value.Field
+	createdAt   time.Time
 
 	startedAt  *time.Time
 	result     *value.JobResult
@@ -83,8 +83,8 @@ func (j *Job) ID() value.JobID {
 	return j.id
 }
 
-func (j *Job) BoxID() value.BoxID {
-	return j.boxID
+func (j *Job) BlueprintID() value.BlueprintID {
+	return j.blueprintID
 }
 
 func (j *Job) ArchiveID() value.FileID {
@@ -125,7 +125,7 @@ func (j *Job) FinishedAt() *time.Time {
 
 func RestoreJob(
 	id value.JobID,
-	boxID value.BoxID,
+	blueprintID value.BlueprintID,
 	archiveID value.FileID,
 	ownerID value.UserID,
 	state value.JobState,
@@ -140,15 +140,15 @@ func RestoreJob(
 		return nil, errors.New("empty id")
 	}
 
-	if boxID == "" {
-		return nil, errors.New("empty boxID")
+	if blueprintID == "" {
+		return nil, errors.New("empty blueprintID")
 	}
 
 	if archiveID == "" {
 		return nil, errors.New("empty archiveID")
 	}
 
-	if ownerID == 0 {
+	if ownerID == "" {
 		return nil, errors.New("empty ownerID")
 	}
 
@@ -165,16 +165,16 @@ func RestoreJob(
 	}
 
 	return &Job{
-		id:         id,
-		boxID:      boxID,
-		archiveID:  archiveID,
-		ownerID:    ownerID,
-		state:      state,
-		input:      input,
-		out:        out,
-		createdAt:  createdAt,
-		startedAt:  startedAt,
-		result:     result,
-		finishedAt: finishedAt,
+		id:          id,
+		blueprintID: blueprintID,
+		archiveID:   archiveID,
+		ownerID:     ownerID,
+		state:       state,
+		input:       input,
+		out:         out,
+		createdAt:   createdAt,
+		startedAt:   startedAt,
+		result:      result,
+		finishedAt:  finishedAt,
 	}, nil
 }

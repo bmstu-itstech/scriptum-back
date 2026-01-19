@@ -29,3 +29,13 @@ DO $$ BEGIN
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
+
+DO $$ BEGIN
+    CREATE TYPE ROLE_T
+    AS ENUM (
+        'user',
+        'admin'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;

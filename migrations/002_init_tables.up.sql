@@ -1,7 +1,7 @@
-CREATE SCHEMA box;
+CREATE SCHEMA blueprint;
 CREATE SCHEMA job;
 
-CREATE TABLE IF NOT EXISTS box.boxes (
+CREATE TABLE IF NOT EXISTS blueprint.blueprints (
     id          VARCHAR(8)      PRIMARY KEY,
     owner_id    BIGINT          NOT NULL,
     archive_id  VARCHAR         NOT NULL,
@@ -12,39 +12,39 @@ CREATE TABLE IF NOT EXISTS box.boxes (
     deleted_at  TIMESTAMPTZ                 DEFAULT NULL
 );
 
-CREATE TABLE IF NOT EXISTS box.input_fields (
-    box_id   VARCHAR(8)         NOT NULL,
-    index    INTEGER            NOT NULL,
-    type     VALUE_TYPE_T       NOT NULL,
-    name     VARCHAR            NOT NULL,
-    "desc"   VARCHAR                        DEFAULT NULL,
-    "unit"   VARCHAR                        DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS blueprint.input_fields (
+    blueprint_id VARCHAR(8)     NOT NULL,
+    index        INTEGER        NOT NULL,
+    type         VALUE_TYPE_T   NOT NULL,
+    name         VARCHAR        NOT NULL,
+    "desc"       VARCHAR                    DEFAULT NULL,
+    "unit"       VARCHAR                    DEFAULT NULL,
 
-    PRIMARY KEY (box_id, index),
+    PRIMARY KEY (blueprint_id, index),
 
-    FOREIGN KEY (box_id)
-        REFERENCES box.boxes (id)
+    FOREIGN KEY (blueprint_id)
+        REFERENCES blueprint.blueprints (id)
         ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS box.output_fields (
-    box_id   VARCHAR(8)         NOT NULL,
-    index    INTEGER            NOT NULL,
-    type     VALUE_TYPE_T       NOT NULL,
-    name     VARCHAR            NOT NULL,
-    "desc"   VARCHAR                        DEFAULT NULL,
-    "unit"   VARCHAR                        DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS blueprint.output_fields (
+    blueprint_id VARCHAR(8)     NOT NULL,
+    index        INTEGER        NOT NULL,
+    type         VALUE_TYPE_T   NOT NULL,
+    name         VARCHAR        NOT NULL,
+    "desc"       VARCHAR                    DEFAULT NULL,
+    "unit"       VARCHAR                    DEFAULT NULL,
 
-    PRIMARY KEY (box_id, index),
+    PRIMARY KEY (blueprint_id, index),
 
-    FOREIGN KEY (box_id)
-        REFERENCES box.boxes (id)
+    FOREIGN KEY (blueprint_id)
+        REFERENCES blueprint.blueprints (id)
         ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS job.jobs (
     id              VARCHAR(8)  PRIMARY KEY,
-    box_id          VARCHAR(8)  NOT NULL,
+    blueprint_id    VARCHAR(8)  NOT NULL,
     archive_id      VARCHAR     NOT NULL,
     owner_id        BIGINT      NOT NULL,
     state           JOB_STATE_T NOT NULL,
@@ -55,8 +55,8 @@ CREATE TABLE IF NOT EXISTS job.jobs (
     result_msg      VARCHAR                 DEFAULT NULL,
     finished_at     TIMESTAMPTZ             DEFAULT NULL,
 
-    FOREIGN KEY (box_id)
-        REFERENCES box.boxes (id)
+    FOREIGN KEY (blueprint_id)
+        REFERENCES blueprint.blueprints (id)
         ON DELETE CASCADE
 );
 
@@ -99,4 +99,14 @@ CREATE TABLE IF NOT EXISTS job.output_fields (
     FOREIGN KEY (job_id)
         REFERENCES job.jobs (id)
         ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS users (
+    id          VARCHAR(8)  NOT NULL,
+    email       VARCHAR     NOT NULL    UNIQUE,
+    name        VARCHAR     NOT NULL,
+    role        ROLE_T      NOT NULL,
+    passhash    VARCHAR     NOT NULL,
+    created_at  TIMESTAMPTZ NOT NULL    DEFAULT now(),
+    deleted_at  TIMESTAMPTZ             DEFAULT NULL
 );

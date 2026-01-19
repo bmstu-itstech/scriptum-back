@@ -11,5 +11,6 @@ import (
 var ErrFileNotFound = errors.New("file not found")
 
 type FileReader interface {
+	FileExists(ctx context.Context, id value.FileID) (bool, error)
 	Read(ctx context.Context, id value.FileID) (io.ReadCloser, error)
 }

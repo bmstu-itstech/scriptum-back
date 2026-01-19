@@ -1,0 +1,133 @@
+package apiv2
+
+import (
+	"github.com/bmstu-itstech/scriptum-back/internal/app/dto"
+	"github.com/bmstu-itstech/scriptum-back/internal/app/dto/request"
+)
+
+func valuesToDTO(vs []Value) []dto.Value {
+	res := make([]dto.Value, len(vs))
+	for i, v := range vs {
+		res[i] = dto.Value{
+			Type:  string(v.Type),
+			Value: emptyOnNil(v.Value),
+		}
+	}
+	return res
+}
+
+func valuesToAPI(vs []dto.Value) []Value {
+	res := make([]Value, len(vs))
+	for i, v := range vs {
+		res[i] = Value{
+			Type:  ValueType(v.Type),
+			Value: nilOnEmpty(v.Value),
+		}
+	}
+	return res
+}
+
+func fieldsToDTO(fs []Field) []dto.Field {
+	res := make([]dto.Field, len(fs))
+	for i, v := range fs {
+		res[i] = dto.Field{
+			Name: v.Name,
+			Type: string(v.Type),
+			Desc: nilOnNilOrEmpty(v.Desc),
+			Unit: nilOnNilOrEmpty(v.Unit),
+		}
+	}
+	return res
+}
+
+func fieldsToAPI(fs []dto.Field) []Field {
+	res := make([]Field, len(fs))
+	for i, v := range fs {
+		res[i] = Field{
+			Name: v.Name,
+			Type: ValueType(v.Type),
+		}
+	}
+	return res
+}
+
+func blueprintToAPI(b dto.Blueprint) Blueprint {
+	return Blueprint{
+		ArchiveID:  b.ArchiveID,
+		CreatedAt:  b.CreatedAt,
+		Desc:       b.Desc,
+		Id:         b.ID,
+		In:         fieldsToAPI(b.In),
+		Name:       b.Name,
+		Out:        fieldsToAPI(b.Out),
+		OwnerID:    b.OwnerID,
+		Visibility: Visibility(b.Visibility),
+	}
+}
+
+func blueprintsToAPI(bs []dto.Blueprint) []Blueprint {
+	res := make([]Blueprint, len(bs))
+	for i, v := range bs {
+		res[i] = blueprintToAPI(v)
+	}
+	return res
+}
+
+func jobResultToAPI(jr dto.JobResult) JobResult {
+	return JobResult{
+		Code:    jr.Code,
+		Message: jr.Message,
+		Output:  valuesToAPI(jr.Output),
+	}
+}
+
+func jobResultToAPIOrNil(jrOpt *dto.JobResult) *JobResult {
+	if jrOpt == nil {
+		return nil
+	}
+	jr := jobResultToAPI(*jrOpt)
+	return &jr
+}
+
+func jobToAPI(j dto.Job) Job {
+	return Job{
+		ArchiveID:   j.ArchiveID,
+		BlueprintID: j.BlueprintID,
+		CreatedAt:   j.CreatedAt,
+		FinishedAt:  j.FinishedAt,
+		Id:          j.ID,
+		Input:       valuesToAPI(j.Input),
+		Out:         fieldsToAPI(j.Out),
+		OwnerID:     j.OwnerID,
+		Result:      jobResultToAPIOrNil(j.Result),
+		StartedAt:   j.StartedAt,
+		State:       JobState(j.State),
+	}
+}
+
+func jobsToAPI(js []dto.Job) []Job {
+	res := make([]Job, len(js))
+	for i, v := range js {
+		res[i] = jobToAPI(v)
+	}
+	return res
+}
+
+func startJobRequestToDTO(r StartJobRequest, uid string, blueprintID string) request.StartJob {
+	return request.StartJob{
+		UID:         uid,
+		BlueprintID: blueprintID,
+		Values:      valuesToDTO(r.Values),
+	}
+}
+
+func createBlueprintToDTO(r CreateBlueprintRequest, uid string) request.CreateBlueprint {
+	return request.CreateBlueprint{
+		UID:       uid,
+		ArchiveID: r.ArchiveID,
+		Name:      r.Name,
+		Desc:      r.Desc,
+		In:        fieldsToDTO(r.In),
+		Out:       fieldsToDTO(r.Out),
+	}
+}

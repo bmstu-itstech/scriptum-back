@@ -7,17 +7,17 @@ import (
 )
 
 type Job struct {
-	ID         string
-	BoxID      string
-	ArchiveID  string
-	OwnerID    int64
-	State      string
-	Input      []Value
-	Out        []Field
-	CreatedAt  time.Time
-	StartedAt  *time.Time
-	Result     *JobResult
-	FinishedAt *time.Time
+	ID          string
+	BlueprintID string
+	ArchiveID   string
+	OwnerID     string
+	State       string
+	Input       []Value
+	Out         []Field
+	CreatedAt   time.Time
+	StartedAt   *time.Time
+	Result      *JobResult
+	FinishedAt  *time.Time
 }
 
 func JobToDTO(job *entity.Job) Job {
@@ -27,17 +27,17 @@ func JobToDTO(job *entity.Job) Job {
 		optRes = &t
 	}
 	return Job{
-		ID:         string(job.ID()),
-		BoxID:      string(job.BoxID()),
-		ArchiveID:  string(job.ArchiveID()),
-		OwnerID:    int64(job.OwnerID()),
-		State:      job.State().String(),
-		Input:      valuesToDTOs(job.Input()),
-		Out:        fieldsToDTOs(job.Out()),
-		CreatedAt:  job.CreatedAt(),
-		StartedAt:  job.StartedAt(),
-		Result:     optRes,
-		FinishedAt: job.FinishedAt(),
+		ID:          string(job.ID()),
+		BlueprintID: string(job.BlueprintID()),
+		ArchiveID:   string(job.ArchiveID()),
+		OwnerID:     string(job.OwnerID()),
+		State:       job.State().String(),
+		Input:       valuesToDTOs(job.Input()),
+		Out:         fieldsToDTOs(job.Out()),
+		CreatedAt:   job.CreatedAt(),
+		StartedAt:   job.StartedAt(),
+		Result:      optRes,
+		FinishedAt:  job.FinishedAt(),
 	}
 }
 

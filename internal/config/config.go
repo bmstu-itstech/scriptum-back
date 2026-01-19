@@ -10,7 +10,7 @@ import (
 
 type Config struct {
 	Docker   Docker   `mapstructure:"docker"`
-	GRPC     GRPC     `mapstructure:"grpc"`
+	HTTP     HTTP     `mapstructure:"http"`
 	Logging  Logging  `mapstructure:"logging"`
 	Postgres Postgres `mapstructure:"postgres"`
 	Storage  Storage  `mapstructure:"storage"`
@@ -21,8 +21,10 @@ type Docker struct {
 	RunnerTimeout time.Duration `mapstructure:"runner_timeout"`
 }
 
-type GRPC struct {
-	Port int `mapstructure:"port"`
+type HTTP struct {
+	Port             int      `mapstructure:"port"`
+	CORSAllowOrigins []string `mapstructure:"cors_allow_origins"`
+	JWTSecret        string   `mapstructure:"jwt_secret"`
 }
 
 type Logging struct {

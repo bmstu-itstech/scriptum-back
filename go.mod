@@ -7,21 +7,29 @@ toolchain go1.24.3
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.1
 	github.com/fatih/color v1.18.0
-	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3
+	github.com/go-chi/chi/v5 v5.2.2
+	github.com/go-chi/cors v1.2.2
+	github.com/go-chi/render v1.0.3
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.3
 	github.com/jmoiron/sqlx v1.4.0
+	github.com/matoous/go-nanoid/v2 v2.1.0
 	github.com/moby/moby/api v1.52.0
 	github.com/moby/moby/client v0.1.0
+	github.com/oapi-codegen/runtime v1.1.2
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
 	github.com/zhikh23/pgutils v1.1.3
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20251124214823-79d6a2a48846
+	golang.org/x/crypto v0.39.0
+	google.golang.org/genproto/googleapis/api v0.0.0-20250929231259-57b25ae835d4
 	google.golang.org/grpc v1.75.1
 	google.golang.org/protobuf v1.36.10
 )
 
 require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
+	github.com/ajg/form v1.5.1 // indirect
+	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -60,6 +68,6 @@ require (
 	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250929231259-57b25ae835d4 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251124214823-79d6a2a48846 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

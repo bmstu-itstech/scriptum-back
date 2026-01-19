@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log/slog"
 
 	"github.com/jmoiron/sqlx"
@@ -78,8 +79,8 @@ func (r *Repository) UpdateJob(
 		return r.updateJob(ctx, tx, job)
 	})
 	if errors.Is(err, sql.ErrNoRows) {
-		l.WarnContext(ctx, "box not found", slog.String("error", err.Error()))
-		return ports.ErrJobNotFound
+		l.WarnContext(ctx, "job not found", slog.String("error", err.Error()))
+		return fmt.Errorf("%w: %s", ports.ErrJobNotFound, id)
 	}
 	if err != nil {
 		l.ErrorContext(ctx, "failed to execute transaction", slog.String("error", err.Error()))

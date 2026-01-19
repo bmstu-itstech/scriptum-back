@@ -40,11 +40,11 @@ func TestRunner_Adder(t *testing.T) {
 	defer cancelFn()
 
 	cfg := config.Docker{
-		ImagePrefix:   "sc-box",
+		ImagePrefix:   "sc",
 		RunnerTimeout: 10 * time.Second,
 	}
 	r := docker.MustNewRunner(cfg, l)
-	image, err := r.Build(ctx, buildCtx, value.NewBoxID())
+	image, err := r.Build(ctx, buildCtx, value.NewBlueprintID())
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		err = r.Cleanup(context.Background(), image)

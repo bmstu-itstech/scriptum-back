@@ -65,7 +65,7 @@ func (r *Repository) job(ctx context.Context, qc sqlx.QueryerContext, id value.J
 func (r *Repository) UserJobs(ctx context.Context, uid value.UserID) ([]*entity.Job, error) {
 	l := r.l.With(
 		slog.String("op", "postgres.Repository.UserJobs"),
-		slog.Int64("user_id", int64(uid)),
+		slog.String("user_id", string(uid)),
 	)
 
 	var jobs []*entity.Job
@@ -83,7 +83,7 @@ func (r *Repository) UserJobs(ctx context.Context, uid value.UserID) ([]*entity.
 
 func (r *Repository) userJobs(ctx context.Context, qc sqlx.QueryerContext, uid value.UserID) ([]*entity.Job, error) {
 	jobs := make([]*entity.Job, 0)
-	rJobs, err := r.selectUserJobRows(ctx, qc, int64(uid))
+	rJobs, err := r.selectUserJobRows(ctx, qc, string(uid))
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +116,7 @@ func (r *Repository) UserJobsWithState(
 ) ([]*entity.Job, error) {
 	l := r.l.With(
 		slog.String("op", "postgres.Repository.UserJobsWithState"),
-		slog.Int64("user_id", int64(uid)),
+		slog.String("user_id", string(uid)),
 		slog.String("state", state.String()),
 	)
 
@@ -140,7 +140,7 @@ func (r *Repository) userJobsWithState(
 	state value.JobState,
 ) ([]*entity.Job, error) {
 	jobs := make([]*entity.Job, 0)
-	rJobs, err := r.selectUserJobRowsWithState(ctx, qc, int64(uid), state.String())
+	rJobs, err := r.selectUserJobRowsWithState(ctx, qc, string(uid), state.String())
 	if err != nil {
 		return nil, err
 	}

@@ -370,7 +370,7 @@ func (x *Box) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Box.ProtoReflect.Descriptor instead.
+// Deprecated: Use Blueprint.ProtoReflect.Descriptor instead.
 func (*Box) Descriptor() ([]byte, []int) {
 	return file_api_v2_scriptum_proto_rawDescGZIP(), []int{3}
 }
@@ -1772,7 +1772,7 @@ var file_api_v2_scriptum_proto_goTypes = []any{
 	(*Test)(nil),                  // 3: api.v2.Test
 	(*Value)(nil),                 // 4: api.v2.Value
 	(*Field)(nil),                 // 5: api.v2.Field
-	(*Box)(nil),                   // 6: api.v2.Box
+	(*Box)(nil),                   // 6: api.v2.Blueprint
 	(*JobResult)(nil),             // 7: api.v2.JobResult
 	(*Job)(nil),                   // 8: api.v2.Job
 	(*FileMeta)(nil),              // 9: api.v2.FileMeta
@@ -1800,10 +1800,10 @@ var file_api_v2_scriptum_proto_goTypes = []any{
 var file_api_v2_scriptum_proto_depIdxs = []int32{
 	1,  // 0: api.v2.Value.type:type_name -> api.v2.Type
 	1,  // 1: api.v2.Field.type:type_name -> api.v2.Type
-	0,  // 2: api.v2.Box.vis:type_name -> api.v2.Visibility
-	5,  // 3: api.v2.Box.in:type_name -> api.v2.Field
-	5,  // 4: api.v2.Box.out:type_name -> api.v2.Field
-	29, // 5: api.v2.Box.created_at:type_name -> google.protobuf.Timestamp
+	0,  // 2: api.v2.Blueprint.vis:type_name -> api.v2.Visibility
+	5,  // 3: api.v2.Blueprint.in:type_name -> api.v2.Field
+	5,  // 4: api.v2.Blueprint.out:type_name -> api.v2.Field
+	29, // 5: api.v2.Blueprint.created_at:type_name -> google.protobuf.Timestamp
 	4,  // 6: api.v2.JobResult.output:type_name -> api.v2.Value
 	2,  // 7: api.v2.Job.state:type_name -> api.v2.JobState
 	4,  // 8: api.v2.Job.input:type_name -> api.v2.Value
@@ -1815,28 +1815,28 @@ var file_api_v2_scriptum_proto_depIdxs = []int32{
 	9,  // 14: api.v2.FileUploadRequest.meta:type_name -> api.v2.FileMeta
 	5,  // 15: api.v2.CreateBoxRequest.input:type_name -> api.v2.Field
 	5,  // 16: api.v2.CreateBoxRequest.output:type_name -> api.v2.Field
-	6,  // 17: api.v2.GetBoxResponse.box:type_name -> api.v2.Box
-	6,  // 18: api.v2.GetBoxesResponse.boxes:type_name -> api.v2.Box
-	6,  // 19: api.v2.SearchBoxesResponse.boxes:type_name -> api.v2.Box
+	6,  // 17: api.v2.GetBoxResponse.box:type_name -> api.v2.Blueprint
+	6,  // 18: api.v2.GetBoxesResponse.boxes:type_name -> api.v2.Blueprint
+	6,  // 19: api.v2.SearchBoxesResponse.boxes:type_name -> api.v2.Blueprint
 	8,  // 20: api.v2.GetJobResponse.job:type_name -> api.v2.Job
 	2,  // 21: api.v2.GetJobsRequest.state:type_name -> api.v2.JobState
 	8,  // 22: api.v2.GetJobsResponse.jobs:type_name -> api.v2.Job
 	4,  // 23: api.v2.StartJobRequest.values:type_name -> api.v2.Value
 	10, // 24: api.v2.FileService.Upload:input_type -> api.v2.FileUploadRequest
-	12, // 25: api.v2.BoxService.CreateBox:input_type -> api.v2.CreateBoxRequest
-	14, // 26: api.v2.BoxService.DeleteBox:input_type -> api.v2.DeleteBoxRequest
-	16, // 27: api.v2.BoxService.GetBox:input_type -> api.v2.GetBoxRequest
-	18, // 28: api.v2.BoxService.GetBoxes:input_type -> api.v2.GetBoxesRequest
-	20, // 29: api.v2.BoxService.SearchBoxes:input_type -> api.v2.SearchBoxesRequest
+	12, // 25: api.v2.BoxService.CreateBlueprint:input_type -> api.v2.CreateBoxRequest
+	14, // 26: api.v2.BoxService.DeleteBlueprint:input_type -> api.v2.DeleteBoxRequest
+	16, // 27: api.v2.BoxService.GetBlueprint:input_type -> api.v2.GetBoxRequest
+	18, // 28: api.v2.BoxService.GetBlueprints:input_type -> api.v2.GetBoxesRequest
+	20, // 29: api.v2.BoxService.SearchBlueprints:input_type -> api.v2.SearchBoxesRequest
 	27, // 30: api.v2.BoxService.StartJob:input_type -> api.v2.StartJobRequest
 	23, // 31: api.v2.JobService.GetJob:input_type -> api.v2.GetJobRequest
 	25, // 32: api.v2.JobService.GetJobs:input_type -> api.v2.GetJobsRequest
 	11, // 33: api.v2.FileService.Upload:output_type -> api.v2.FileUploadResponse
-	13, // 34: api.v2.BoxService.CreateBox:output_type -> api.v2.CreateBoxResponse
-	15, // 35: api.v2.BoxService.DeleteBox:output_type -> api.v2.DeleteBoxResponse
-	17, // 36: api.v2.BoxService.GetBox:output_type -> api.v2.GetBoxResponse
-	19, // 37: api.v2.BoxService.GetBoxes:output_type -> api.v2.GetBoxesResponse
-	21, // 38: api.v2.BoxService.SearchBoxes:output_type -> api.v2.SearchBoxesResponse
+	13, // 34: api.v2.BoxService.CreateBlueprint:output_type -> api.v2.CreateBoxResponse
+	15, // 35: api.v2.BoxService.DeleteBlueprint:output_type -> api.v2.DeleteBoxResponse
+	17, // 36: api.v2.BoxService.GetBlueprint:output_type -> api.v2.GetBoxResponse
+	19, // 37: api.v2.BoxService.GetBlueprints:output_type -> api.v2.GetBoxesResponse
+	21, // 38: api.v2.BoxService.SearchBlueprints:output_type -> api.v2.SearchBoxesResponse
 	28, // 39: api.v2.BoxService.StartJob:output_type -> api.v2.StartJobResponse
 	24, // 40: api.v2.JobService.GetJob:output_type -> api.v2.GetJobResponse
 	26, // 41: api.v2.JobService.GetJobs:output_type -> api.v2.GetJobsResponse

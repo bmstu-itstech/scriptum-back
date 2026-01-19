@@ -1,6 +1,6 @@
 package request
 
 type GetJob struct {
-	UID   int64
+	UID   string
 	JobID string
 }

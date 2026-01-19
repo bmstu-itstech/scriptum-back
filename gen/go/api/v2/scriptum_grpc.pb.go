@@ -114,11 +114,11 @@ var FileService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	BoxService_CreateBox_FullMethodName   = "/api.v2.BoxService/CreateBox"
-	BoxService_DeleteBox_FullMethodName   = "/api.v2.BoxService/DeleteBox"
-	BoxService_GetBox_FullMethodName      = "/api.v2.BoxService/GetBox"
-	BoxService_GetBoxes_FullMethodName    = "/api.v2.BoxService/GetBoxes"
-	BoxService_SearchBoxes_FullMethodName = "/api.v2.BoxService/SearchBoxes"
+	BoxService_CreateBox_FullMethodName   = "/api.v2.BoxService/CreateBlueprint"
+	BoxService_DeleteBox_FullMethodName   = "/api.v2.BoxService/DeleteBlueprint"
+	BoxService_GetBox_FullMethodName      = "/api.v2.BoxService/GetBlueprint"
+	BoxService_GetBoxes_FullMethodName    = "/api.v2.BoxService/GetBlueprints"
+	BoxService_SearchBoxes_FullMethodName = "/api.v2.BoxService/SearchBlueprints"
 	BoxService_StartJob_FullMethodName    = "/api.v2.BoxService/StartJob"
 )
 
@@ -223,19 +223,19 @@ type BoxServiceServer interface {
 type UnimplementedBoxServiceServer struct{}
 
 func (UnimplementedBoxServiceServer) CreateBox(context.Context, *CreateBoxRequest) (*CreateBoxResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateBox not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method CreateBlueprint not implemented")
 }
 func (UnimplementedBoxServiceServer) DeleteBox(context.Context, *DeleteBoxRequest) (*DeleteBoxResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteBox not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteBlueprint not implemented")
 }
 func (UnimplementedBoxServiceServer) GetBox(context.Context, *GetBoxRequest) (*GetBoxResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetBox not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method GetBlueprint not implemented")
 }
 func (UnimplementedBoxServiceServer) GetBoxes(context.Context, *GetBoxesRequest) (*GetBoxesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetBoxes not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method GetBlueprints not implemented")
 }
 func (UnimplementedBoxServiceServer) SearchBoxes(context.Context, *SearchBoxesRequest) (*SearchBoxesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SearchBoxes not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method SearchBlueprints not implemented")
 }
 func (UnimplementedBoxServiceServer) StartJob(context.Context, *StartJobRequest) (*StartJobResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StartJob not implemented")
@@ -377,23 +377,23 @@ var BoxService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*BoxServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateBox",
+			MethodName: "CreateBlueprint",
 			Handler:    _BoxService_CreateBox_Handler,
 		},
 		{
-			MethodName: "DeleteBox",
+			MethodName: "DeleteBlueprint",
 			Handler:    _BoxService_DeleteBox_Handler,
 		},
 		{
-			MethodName: "GetBox",
+			MethodName: "GetBlueprint",
 			Handler:    _BoxService_GetBox_Handler,
 		},
 		{
-			MethodName: "GetBoxes",
+			MethodName: "GetBlueprints",
 			Handler:    _BoxService_GetBoxes_Handler,
 		},
 		{
-			MethodName: "SearchBoxes",
+			MethodName: "SearchBlueprints",
 			Handler:    _BoxService_SearchBoxes_Handler,
 		},
 		{

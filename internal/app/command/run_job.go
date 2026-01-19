@@ -45,7 +45,7 @@ func (h RunJobHandler) Handle(ctx context.Context, job request.RunJob) error {
 		if err2 != nil {
 			return fmt.Errorf("failed to read build context: %w", err2)
 		}
-		image, err2 := h.r.Build(ctx2, buildCtx, job.BoxID())
+		image, err2 := h.r.Build(ctx2, buildCtx, job.BlueprintID())
 		if err2 != nil {
 			return err2
 		}

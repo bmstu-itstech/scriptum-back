@@ -8,7 +8,7 @@ import (
 )
 
 type Runner interface {
-	Build(ctx context.Context, archive io.Reader, id value.BoxID) (value.ImageTag, error)
+	Build(ctx context.Context, archive io.Reader, id value.BlueprintID) (value.ImageTag, error)
 	Run(ctx context.Context, image value.ImageTag, input []value.Value) (value.Result, error)
 	Cleanup(ctx context.Context, image value.ImageTag) error
 }
