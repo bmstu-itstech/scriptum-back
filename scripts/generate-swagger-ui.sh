@@ -2,8 +2,6 @@
 
 set -e
 
-readonly specification="$1"
-
 [ -z "$SWAGGER_UI_VERSION" ] && echo "missing \$SWAGGER_UI_VERSION" && exit 1
 
 SWAGGER_UI_GIT="https://github.com/swagger-api/swagger-ui.git"
@@ -25,13 +23,17 @@ if [ ! -d "$CACHE_DIR" ]; then
 fi
 
 # populate swagger.json
-path="$(realpath "$specification")"
-name="$(basename "$path")"
 tmp="    urls: ["
-tmp="$tmp{\"url\":\"$path\",\"name\":\"$name\"}"
+for i in $(find "$GEN_DIR" -name "*.swagger.yaml"); do
+  escaped_gen_dir="$(escape_str "$GEN_DIR/")"
+  path="$(echo $i | sed -e "s/$escaped_gen_dir//g")"
+  tmp="$tmp{\"url\":\"$path\",\"name\":\"$path\"},"
+done
+# delete last characters from $tmp
+tmp=$(echo "$tmp" | sed 's/.$//')
 tmp="$tmp],"
 
-# recreate swagger-ui, delete all except swagger.yaml
+# recreate swagger-ui, delete all except swagger.json
 find "$GEN_DIR" -type f -not -name "*.swagger.yaml" -delete
 mkdir -p "$GEN_DIR"
 cp -r "$CACHE_DIR/"* "$GEN_DIR"
