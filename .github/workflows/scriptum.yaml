@@ -19,17 +19,19 @@ jobs:
           EXTERNAL_GRPC_PORT: ${{ vars.EXTERNAL_GRPC_PORT }}
           PGSSLROOTCERT: ${{ vars.PGSSLROOTCERT }}
           SC_POSTGRES_URI: ${{ secrets.SC_POSTGRES_URI }}
+          SC_HTTP_JWT_SECRET: ${{ secrets.SC_HTTP_JWT_SECRET }}
+          SC_HTTP_CORS_ALLOW_ORIGINS: ${{ vars.SC_HTTP_CORS_ALLOW_ORIGINS }}
         with:
           host: ${{ vars.SSH_HOST }}
           port: ${{ vars.SSH_PORT }}
           username: ${{ vars.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script_stop: true
-          envs: EXTERNAL_GRPC_PORT, PGSSLROOTCERT, SC_POSTGRES_URI
+          envs: EXTERNAL_GRPC_PORT, PGSSLROOTCERT, SC_POSTGRES_URI, SC_HTTP_JWT_SECRET, SC_HTTP_CORS_ALLOW_ORIGINS
           script: |
             cd ${{ vars.PROJECT_DIR }}
             git stash
             git checkout main
             git pull origin main
             docker compose -f docker-compose.ci.yaml run --rm migrate
-            docker compose -f docker-compose.ci.yaml up --build -d grpc
+            docker compose -f docker-compose.ci.yaml up --build -d http

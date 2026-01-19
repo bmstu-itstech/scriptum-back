@@ -1,5 +1,5 @@
 services:
-  grpc:
+  http:
     build: .
     command: [
       "-config", "/etc/app/prod.yaml"
