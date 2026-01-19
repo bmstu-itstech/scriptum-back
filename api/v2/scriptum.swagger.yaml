@@ -4,6 +4,12 @@ info:
   version: 2.1.0
 servers:
   - url: "{url}/api/v2"
+    variables:
+      url:
+        default: http://localhost:8000
+        description: >
+          Протокол + адрес сервера + порт (если требуется).
+          Без trailing / в конце. Пример: http://localhost:8000.
 security:
   - bearerAuth: []
 
