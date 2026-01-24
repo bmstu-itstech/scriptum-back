@@ -24,7 +24,7 @@ func NewGetJobsHandler(jp ports.JobProvider, l *slog.Logger) GetJobsHandler {
 func (h GetJobsHandler) Handle(ctx context.Context, req request.GetJobs) (response.GetJobs, error) {
 	l := h.l.With(
 		slog.String("op", "app.GetJobs"),
-		slog.String("uid", req.UID),
+		slog.String("uid", req.ActorID),
 	)
 	var optState *value.JobState
 	if req.State != nil {
@@ -41,9 +41,9 @@ func (h GetJobsHandler) Handle(ctx context.Context, req request.GetJobs) (respon
 	var jobs []*entity.Job
 	var err error
 	if optState == nil {
-		jobs, err = h.jp.UserJobs(ctx, value.UserID(req.UID))
+		jobs, err = h.jp.UserJobs(ctx, value.UserID(req.ActorID))
 	} else {
-		jobs, err = h.jp.UserJobsWithState(ctx, value.UserID(req.UID), *optState)
+		jobs, err = h.jp.UserJobsWithState(ctx, value.UserID(req.ActorID), *optState)
 	}
 	if err != nil {
 		l.ErrorContext(ctx, "failed to query jobs", slog.String("error", err.Error()))

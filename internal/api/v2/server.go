@@ -100,7 +100,7 @@ func (s *Server) GetBlueprints(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bs, err := s.app.Queries.GetBlueprints.Handle(r.Context(), request.GetBlueprints{UID: uid})
+	bs, err := s.app.Queries.GetBlueprints.Handle(r.Context(), request.GetBlueprints{ActorID: uid})
 	if err != nil {
 		renderInternalServerError(w, r)
 		return
@@ -146,7 +146,7 @@ func (s *Server) SearchBlueprints(w http.ResponseWriter, r *http.Request, params
 		return
 	}
 
-	bs, err := s.app.Queries.SearchBlueprints.Handle(r.Context(), request.SearchBlueprints{UID: uid, Name: params.Name})
+	bs, err := s.app.Queries.SearchBlueprints.Handle(r.Context(), request.SearchBlueprints{ActorID: uid, Name: params.Name})
 	if err != nil {
 		renderInternalServerError(w, r)
 		return
@@ -164,7 +164,7 @@ func (s *Server) DeleteBlueprint(w http.ResponseWriter, r *http.Request, id stri
 		return
 	}
 
-	err := s.app.Commands.DeleteBlueprint.Handle(r.Context(), request.DeleteBlueprint{BlueprintID: id, UID: uid})
+	err := s.app.Commands.DeleteBlueprint.Handle(r.Context(), request.DeleteBlueprint{BlueprintID: id, ActorID: uid})
 	if errors.Is(err, ports.ErrBlueprintNotFound) {
 		renderPlainError(w, r, err, http.StatusNotFound)
 		return
@@ -186,7 +186,7 @@ func (s *Server) GetBlueprint(w http.ResponseWriter, r *http.Request, id string)
 		return
 	}
 
-	b, err := s.app.Queries.GetBlueprint.Handle(r.Context(), request.GetBlueprint{BlueprintID: id, UID: uid})
+	b, err := s.app.Queries.GetBlueprint.Handle(r.Context(), request.GetBlueprint{BlueprintID: id, ActorID: uid})
 	if errors.Is(err, ports.ErrBlueprintNotFound) {
 		renderPlainError(w, r, err, http.StatusNotFound)
 		return
@@ -210,7 +210,7 @@ func (s *Server) GetJobs(w http.ResponseWriter, r *http.Request, params GetJobsP
 		return
 	}
 
-	js, err := s.app.Queries.GetJobs.Handle(r.Context(), request.GetJobs{UID: uid, State: (*string)(params.State)})
+	js, err := s.app.Queries.GetJobs.Handle(r.Context(), request.GetJobs{ActorID: uid, State: (*string)(params.State)})
 	if err != nil {
 		renderInternalServerError(w, r)
 		return
@@ -228,7 +228,7 @@ func (s *Server) GetJob(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
-	j, err := s.app.Queries.GetJob.Handle(r.Context(), request.GetJob{UID: uid, JobID: id})
+	j, err := s.app.Queries.GetJob.Handle(r.Context(), request.GetJob{ActorID: uid, JobID: id})
 	if errors.Is(err, ports.ErrJobNotFound) {
 		renderPlainError(w, r, err, http.StatusNotFound)
 		return

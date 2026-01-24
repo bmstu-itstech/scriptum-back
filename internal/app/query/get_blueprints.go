@@ -23,11 +23,11 @@ func NewGetBlueprintsHandler(bp ports.BlueprintProvider, l *slog.Logger) GetBlue
 func (h GetBlueprintsHandler) Handle(ctx context.Context, req request.GetBlueprints) (response.GetBlueprints, error) {
 	l := h.l.With(
 		slog.String("op", "app.GetBlueprints"),
-		slog.String("uid", req.UID),
+		slog.String("uid", req.ActorID),
 	)
 
 	l.DebugContext(ctx, "querying blueprints")
-	bs, err := h.bp.Blueprints(ctx, value.UserID(req.UID))
+	bs, err := h.bp.Blueprints(ctx, value.UserID(req.ActorID))
 	if err != nil {
 		l.ErrorContext(ctx, "failed to query blueprints", slog.String("error", err.Error()))
 		return nil, err

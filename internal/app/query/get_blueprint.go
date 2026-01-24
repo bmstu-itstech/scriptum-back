@@ -26,7 +26,7 @@ func (h GetBlueprintHandler) Handle(ctx context.Context, req request.GetBlueprin
 	l := h.l.With(
 		slog.String("op", "app.GetBlueprint"),
 		slog.String("blueprint_id", req.BlueprintID),
-		slog.String("uid", req.UID),
+		slog.String("uid", req.ActorID),
 	)
 
 	l.DebugContext(ctx, "querying blueprint")

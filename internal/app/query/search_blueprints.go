@@ -23,11 +23,11 @@ func NewSearchBlueprintsHandler(bp ports.BlueprintProvider, l *slog.Logger) Sear
 func (h SearchBlueprintsHandler) Handle(ctx context.Context, req request.SearchBlueprints) (response.SearchBlueprints, error) {
 	l := h.l.With(
 		slog.String("op", "app.SearchBlueprints"),
-		slog.String("uid", req.UID),
+		slog.String("uid", req.ActorID),
 	)
 
 	l.DebugContext(ctx, "querying blueprints")
-	bs, err := h.bp.SearchBlueprints(ctx, value.UserID(req.UID), req.Name)
+	bs, err := h.bp.SearchBlueprints(ctx, value.UserID(req.ActorID), req.Name)
 	if err != nil {
 		l.ErrorContext(ctx, "failed to search blueprints", slog.String("error", err.Error()))
 		return nil, err

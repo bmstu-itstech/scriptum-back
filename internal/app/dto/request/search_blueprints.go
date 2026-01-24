@@ -1,6 +1,6 @@
 package request
 
 type SearchBlueprints struct {
-	UID  string
-	Name string
+	ActorID string
+	Name    string
 }

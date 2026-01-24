@@ -23,7 +23,7 @@ func NewDeleteBlueprintHandler(br ports.BlueprintRepository, l *slog.Logger) Del
 func (h DeleteBlueprintHandler) Handle(ctx context.Context, req request.DeleteBlueprint) error {
 	l := h.l.With(
 		slog.String("op", "app.DeleteBlueprint"),
-		slog.String("uid", req.UID),
+		slog.String("uid", req.ActorID),
 	)
 
 	bp, err := h.br.Blueprint(ctx, value.BlueprintID(req.BlueprintID))
@@ -36,7 +36,7 @@ func (h DeleteBlueprintHandler) Handle(ctx context.Context, req request.DeleteBl
 		return err
 	}
 
-	if bp.OwnerID() != value.UserID(req.UID) {
+	if bp.OwnerID() != value.UserID(req.ActorID) {
 		l.WarnContext(ctx, "user can't delete blueprint", slog.String("owner_id", string(bp.OwnerID())))
 		return domain.ErrPermissionDenied
 	}

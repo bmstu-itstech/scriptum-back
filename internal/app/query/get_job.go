@@ -26,7 +26,7 @@ func (h GetJobHandler) Handle(ctx context.Context, req request.GetJob) (response
 	l := h.l.With(
 		slog.String("op", "app.GetJob"),
 		slog.String("job_id", req.JobID),
-		slog.String("uid", req.UID),
+		slog.String("uid", req.ActorID),
 	)
 
 	l.DebugContext(ctx, "querying job")
@@ -40,7 +40,7 @@ func (h GetJobHandler) Handle(ctx context.Context, req request.GetJob) (response
 		return response.GetJob{}, err
 	}
 
-	if job.OwnerID() != value.UserID(req.UID) {
+	if job.OwnerID() != value.UserID(req.ActorID) {
 		l.WarnContext(ctx, "user does not own job", slog.String("owner_id", string(job.OwnerID())))
 		return response.GetJob{}, domain.ErrPermissionDenied
 	}

@@ -32,7 +32,7 @@ func (h StartJobHandler) Handle(ctx context.Context, req request.StartJob) (stri
 	l := h.l.With(
 		slog.String("op", "app.StartJob"),
 		slog.String("blueprint_id", req.BlueprintID),
-		slog.String("uid", req.UID),
+		slog.String("uid", req.ActorID),
 	)
 	l.DebugContext(ctx, "starting job", "input", fmt.Sprintf("%+v", req.Values))
 
@@ -42,7 +42,7 @@ func (h StartJobHandler) Handle(ctx context.Context, req request.StartJob) (stri
 		return "", err
 	}
 
-	if !blueprint.IsAvailableFor(value.UserID(req.UID)) {
+	if !blueprint.IsAvailableFor(value.UserID(req.ActorID)) {
 		l.WarnContext(ctx, "blueprint is not available")
 		return "", domain.ErrPermissionDenied
 	}
@@ -53,7 +53,7 @@ func (h StartJobHandler) Handle(ctx context.Context, req request.StartJob) (stri
 		return "", err
 	}
 
-	job, err := blueprint.AssembleJob(value.UserID(req.UID), in)
+	job, err := blueprint.AssembleJob(value.UserID(req.ActorID), in)
 	if err != nil {
 		l.InfoContext(ctx, "failed to assemble job", slog.String("error", err.Error()))
 		return "", err

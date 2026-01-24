@@ -1,6 +1,6 @@
 package request
 
 type DeleteBlueprint struct {
-	UID         string
+	ActorID     string
 	BlueprintID string
 }

@@ -115,7 +115,7 @@ func jobsToAPI(js []dto.Job) []Job {
 
 func startJobRequestToDTO(r StartJobRequest, uid string, blueprintID string) request.StartJob {
 	return request.StartJob{
-		UID:         uid,
+		ActorID:     uid,
 		BlueprintID: blueprintID,
 		Values:      valuesToDTO(r.Values),
 	}
@@ -123,7 +123,7 @@ func startJobRequestToDTO(r StartJobRequest, uid string, blueprintID string) req
 
 func createBlueprintToDTO(r CreateBlueprintRequest, uid string) request.CreateBlueprint {
 	return request.CreateBlueprint{
-		UID:       uid,
+		ActorID:   uid,
 		ArchiveID: r.ArchiveID,
 		Name:      r.Name,
 		Desc:      r.Desc,

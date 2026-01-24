@@ -3,7 +3,7 @@ package request
 import "github.com/bmstu-itstech/scriptum-back/internal/app/dto"
 
 type CreateBlueprint struct {
-	UID       string
+	ActorID   string
 	ArchiveID string
 	Name      string
 	Desc      *string

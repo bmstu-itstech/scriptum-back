@@ -25,10 +25,10 @@ func NewCreateBlueprintHandler(br ports.BlueprintRepository, up ports.UserProvid
 func (h CreateBlueprintHandler) Handle(ctx context.Context, req request.CreateBlueprint) (response.CreateBlueprint, error) {
 	l := h.l.With(
 		slog.String("op", "app.CreateBlueprint"),
-		slog.String("uid", req.UID),
+		slog.String("uid", req.ActorID),
 	)
 
-	user, err := h.up.User(ctx, value.UserID(req.UID))
+	user, err := h.up.User(ctx, value.UserID(req.ActorID))
 	if err != nil {
 		l.WarnContext(ctx, "unknown user creating blueprint", slog.String("error", err.Error()))
 		return "", err
@@ -49,7 +49,7 @@ func (h CreateBlueprintHandler) Handle(ctx context.Context, req request.CreateBl
 	}
 
 	blueprint, err := entity.NewBlueprint(
-		value.UserID(req.UID),
+		value.UserID(req.ActorID),
 		value.FileID(req.ArchiveID),
 		req.Name,
 		req.Desc,

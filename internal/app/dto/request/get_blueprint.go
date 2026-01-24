@@ -1,6 +1,6 @@
 package request
 
 type GetBlueprint struct {
-	UID         string
+	ActorID     string
 	BlueprintID string
 }
