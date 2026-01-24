@@ -31,7 +31,7 @@ func (h GetUserHandler) Handle(ctx context.Context, req request.GetUser) (respon
 		return response.GetUser{}, err
 	}
 
-	if actor.CanSee(value.UserID(req.UserID)) {
+	if !actor.CanSee(value.UserID(req.UserID)) {
 		return response.GetUser{}, domain.ErrPermissionDenied
 	}
 
