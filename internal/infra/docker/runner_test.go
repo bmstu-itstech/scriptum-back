@@ -2,7 +2,6 @@ package docker_test
 
 import (
 	"context"
-	"github.com/bmstu-itstech/scriptum-back/pkg/logs"
 	"os"
 	"testing"
 	"time"
@@ -12,6 +11,7 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/config"
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/value"
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/docker"
+	"github.com/bmstu-itstech/scriptum-back/pkg/logs"
 	"github.com/bmstu-itstech/scriptum-back/pkg/testutils"
 )
 
