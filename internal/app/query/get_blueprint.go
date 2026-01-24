@@ -40,7 +40,7 @@ func (h GetBlueprintHandler) Handle(ctx context.Context, req request.GetBlueprin
 		return response.GetBlueprint{}, err
 	}
 
-	if blueprint.IsAvailableFor(value.UserID(req.BlueprintID)) {
+	if !blueprint.IsAvailableFor(value.UserID(req.BlueprintID)) {
 		l.WarnContext(ctx, "user can't see the blueprint", slog.String("owner_id", string(blueprint.OwnerID())))
 		return response.GetBlueprint{}, domain.ErrPermissionDenied
 	}
