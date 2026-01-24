@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log/slog"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/zhikh23/pgutils"
@@ -16,11 +15,6 @@ import (
 )
 
 func (r *Repository) Blueprint(ctx context.Context, id value.BlueprintID) (*entity.Blueprint, error) {
-	l := r.l.With(
-		slog.String("op", "postgres.Repository.Blueprint"),
-		slog.String("blueprint_id", string(id)),
-	)
-
 	var blueprint *entity.Blueprint
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
 		rB, err := r.selectBlueprintRow(ctx, tx, string(id))
@@ -42,22 +36,15 @@ func (r *Repository) Blueprint(ctx context.Context, id value.BlueprintID) (*enti
 		return nil
 	})
 	if errors.Is(err, sql.ErrNoRows) {
-		l.WarnContext(ctx, "blueprint not found", slog.String("error", err.Error()))
 		return nil, fmt.Errorf("%w: %s", ports.ErrBlueprintNotFound, string(id))
 	}
 	if err != nil {
-		l.ErrorContext(ctx, "failed to execute transaction", slog.String("error", err.Error()))
 		return nil, err
 	}
 	return blueprint, nil
 }
 
 func (r *Repository) Blueprints(ctx context.Context, uid value.UserID) ([]*entity.Blueprint, error) {
-	l := r.l.With(
-		slog.String("op", "postgres.Repository.Blueprints"),
-		slog.String("user_id", string(uid)),
-	)
-
 	blueprints := make([]*entity.Blueprint, 0)
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
 		rBs, err := r.selectPublicAndUserBlueprintRows(ctx, tx, string(uid))
@@ -82,19 +69,12 @@ func (r *Repository) Blueprints(ctx context.Context, uid value.UserID) ([]*entit
 		return nil
 	})
 	if err != nil {
-		l.ErrorContext(ctx, "failed to execute transaction", slog.String("error", err.Error()))
 		return nil, err
 	}
 	return blueprints, nil
 }
 
 func (r *Repository) SearchBlueprints(ctx context.Context, uid value.UserID, name string) ([]*entity.Blueprint, error) {
-	l := r.l.With(
-		slog.String("op", "postgres.Repository.SearchBlueprints"),
-		slog.String("user_id", string(uid)),
-		slog.String("name", name),
-	)
-
 	blueprints := make([]*entity.Blueprint, 0)
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
 		rBs, err := r.selectPublicAndUserBlueprintByNameRows(ctx, tx, string(uid), name)
@@ -119,7 +99,6 @@ func (r *Repository) SearchBlueprints(ctx context.Context, uid value.UserID, nam
 		return nil
 	})
 	if err != nil {
-		l.ErrorContext(ctx, "failed to execute transaction", slog.String("error", err.Error()))
 		return nil, err
 	}
 	return blueprints, nil

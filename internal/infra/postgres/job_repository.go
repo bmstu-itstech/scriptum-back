@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log/slog"
-
 	"github.com/jmoiron/sqlx"
 	"github.com/zhikh23/pgutils"
 
@@ -16,18 +14,13 @@ import (
 )
 
 func (r *Repository) SaveJob(ctx context.Context, job *entity.Job) error {
-	l := r.l.With(
-		slog.String("op", "postgres.Repository.SaveJob"),
-		slog.String("job_id", string(job.ID())),
-	)
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
 		return r.saveJob(ctx, tx, job)
 	})
-	if err != nil {
-		l.ErrorContext(ctx, "failed to execute transaction", slog.String("error", err.Error()))
-		return err
+	if pgutils.IsUniqueViolationError(err) {
+		return fmt.Errorf("%w: %s", ports.ErrJobAlreadyExists, string(job.ID()))
 	}
-	return nil
+	return err
 }
 
 func (r *Repository) saveJob(ctx context.Context, ec sqlx.ExtContext, job *entity.Job) error {
@@ -63,10 +56,6 @@ func (r *Repository) UpdateJob(
 	id value.JobID,
 	updateFn func(ctx2 context.Context, job *entity.Job) error,
 ) error {
-	l := r.l.With(
-		slog.String("op", "postgres.Repository.UpdateJob"),
-		slog.String("job_id", string(id)),
-	)
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
 		job, err := r.job(ctx, tx, id)
 		if err != nil {
@@ -79,14 +68,9 @@ func (r *Repository) UpdateJob(
 		return r.updateJob(ctx, tx, job)
 	})
 	if errors.Is(err, sql.ErrNoRows) {
-		l.WarnContext(ctx, "job not found", slog.String("error", err.Error()))
 		return fmt.Errorf("%w: %s", ports.ErrJobNotFound, id)
 	}
-	if err != nil {
-		l.ErrorContext(ctx, "failed to execute transaction", slog.String("error", err.Error()))
-		return err
-	}
-	return nil
+	return err
 }
 
 func (r *Repository) updateJob(ctx context.Context, ec sqlx.ExtContext, job *entity.Job) error {

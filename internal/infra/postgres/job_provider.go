@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log/slog"
-
 	"github.com/jmoiron/sqlx"
 	"github.com/zhikh23/pgutils"
 
@@ -16,11 +14,6 @@ import (
 )
 
 func (r *Repository) Job(ctx context.Context, id value.JobID) (*entity.Job, error) {
-	l := r.l.With(
-		slog.String("op", "postgres.Repository.Job"),
-		slog.String("job_id", string(id)),
-	)
-
 	var job *entity.Job
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
 		var err error
@@ -28,11 +21,9 @@ func (r *Repository) Job(ctx context.Context, id value.JobID) (*entity.Job, erro
 		return err
 	})
 	if errors.Is(err, sql.ErrNoRows) {
-		l.WarnContext(ctx, "job not found", slog.String("error", err.Error()))
 		return nil, fmt.Errorf("%w: %s", ports.ErrJobNotFound, err.Error())
 	}
 	if err != nil {
-		l.ErrorContext(ctx, "failed to execute transaction", slog.String("error", err.Error()))
 		return nil, err
 	}
 	return job, nil
@@ -63,11 +54,6 @@ func (r *Repository) job(ctx context.Context, qc sqlx.QueryerContext, id value.J
 }
 
 func (r *Repository) UserJobs(ctx context.Context, uid value.UserID) ([]*entity.Job, error) {
-	l := r.l.With(
-		slog.String("op", "postgres.Repository.UserJobs"),
-		slog.String("user_id", string(uid)),
-	)
-
 	var jobs []*entity.Job
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
 		var err error
@@ -75,7 +61,6 @@ func (r *Repository) UserJobs(ctx context.Context, uid value.UserID) ([]*entity.
 		return err
 	})
 	if err != nil {
-		l.ErrorContext(ctx, "failed to execute transaction", slog.String("error", err.Error()))
 		return nil, err
 	}
 	return jobs, nil
@@ -114,12 +99,6 @@ func (r *Repository) UserJobsWithState(
 	uid value.UserID,
 	state value.JobState,
 ) ([]*entity.Job, error) {
-	l := r.l.With(
-		slog.String("op", "postgres.Repository.UserJobsWithState"),
-		slog.String("user_id", string(uid)),
-		slog.String("state", state.String()),
-	)
-
 	var jobs []*entity.Job
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
 		var err error
@@ -127,7 +106,6 @@ func (r *Repository) UserJobsWithState(
 		return err
 	})
 	if err != nil {
-		l.ErrorContext(ctx, "failed to execute transaction", slog.String("error", err.Error()))
 		return nil, err
 	}
 	return jobs, nil

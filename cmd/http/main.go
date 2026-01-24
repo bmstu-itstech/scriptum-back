@@ -46,7 +46,7 @@ func main() {
 
 	l.Debug(fmt.Sprintf("config: %+v", cfg))
 
-	repos := postgres.MustNewRepository(cfg.Postgres, l)
+	repos := postgres.MustNewRepository(cfg.Postgres)
 	runner := docker.MustNewRunner(cfg.Docker, l)
 	storage := local.MustNewStorage(cfg.Storage, l)
 	hasher := bcrypt.NewPasswordHasher(bcryptPasswordHasherCost)

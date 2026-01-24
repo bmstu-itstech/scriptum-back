@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/zhikh23/pgutils"
@@ -15,10 +14,6 @@ import (
 )
 
 func (r *Repository) SaveBlueprint(ctx context.Context, blueprint *entity.Blueprint) error {
-	l := r.l.With(
-		slog.String("op", "postgres.Repository.SaveBlueprint"),
-		slog.String("blueprint_id", string(blueprint.ID())),
-	)
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
 		rB := blueprintRowFromDomain(blueprint)
 		if err := r.insertBlueprintRow(ctx, tx, rB); err != nil {
@@ -34,26 +29,16 @@ func (r *Repository) SaveBlueprint(ctx context.Context, blueprint *entity.Bluepr
 		}
 		return nil
 	})
-	if err != nil {
-		l.ErrorContext(ctx, "failed to execute transaction", slog.String("error", err.Error()))
-		return err
+	if pgutils.IsUniqueViolationError(err) {
+		return fmt.Errorf("%w: %s", ports.ErrJobAlreadyExists, string(blueprint.ID()))
 	}
-	return nil
+	return err
 }
 
 func (r *Repository) DeleteBlueprint(ctx context.Context, id value.BlueprintID) error {
-	l := r.l.With(
-		slog.String("op", "postgres.Repository.DeleteBlueprint"),
-		slog.String("blueprint_id", string(id)),
-	)
 	err := r.softDeleteBlueprintRow(ctx, r.db, string(id))
 	if errors.Is(err, pgutils.ErrNoAffectedRows) {
-		l.WarnContext(ctx, "blueprint not found", slog.String("error", err.Error()))
 		return fmt.Errorf("%w: %s", ports.ErrBlueprintNotFound, id)
 	}
-	if err != nil {
-		l.ErrorContext(ctx, "failed to delete blueprint", slog.String("error", err.Error()))
-		return err
-	}
-	return nil
+	return err
 }

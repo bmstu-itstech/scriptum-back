@@ -6,8 +6,6 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/zhikh23/pgutils"
-
-	"github.com/bmstu-itstech/scriptum-back/internal/app/ports"
 )
 
 func (r *Repository) selectBlueprintRow(ctx context.Context, qc sqlx.QueryerContext, blueprintID string) (blueprintRow, error) {
@@ -124,9 +122,6 @@ func (r *Repository) insertBlueprintRow(ctx context.Context, ec sqlx.ExtContext,
 		`,
 		row,
 	))
-	if pgutils.IsUniqueViolationError(err) {
-		return ports.ErrJobAlreadyExists
-	}
 	if err != nil {
 		return fmt.Errorf("upsert blueprint row: %w", err)
 	}
@@ -380,9 +375,6 @@ func (r *Repository) insertJobRow(ctx context.Context, ec sqlx.ExtContext, row j
 		`,
 		row,
 	))
-	if pgutils.IsUniqueViolationError(err) {
-		return ports.ErrJobAlreadyExists
-	}
 	if err != nil {
 		return fmt.Errorf("insert job row: %w", err)
 	}
