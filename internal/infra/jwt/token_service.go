@@ -14,7 +14,7 @@ import (
 )
 
 type claims struct {
-	UserID string `json:"user_id"`
+	UID string `json:"uid"`
 
 	jwt.RegisteredClaims
 }
@@ -45,7 +45,7 @@ func (s *TokenService) GenerateToken(_ context.Context, userID value.UserID) (va
 	expiresAt := time.Now().Add(s.cfg.AccessTTL)
 
 	c := &claims{
-		UserID: string(userID),
+		UID: string(userID),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -78,5 +78,5 @@ func (s *TokenService) VerifyToken(_ context.Context, token value.Token) (value.
 		return "", ports.ErrTokenInvalid
 	}
 
-	return value.UserID(c.UserID), nil
+	return value.UserID(c.UID), nil
 }
