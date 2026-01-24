@@ -2,11 +2,11 @@ package command
 
 import (
 	"context"
-	"github.com/bmstu-itstech/scriptum-back/internal/app/dto/response"
 	"log/slog"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/app/dto"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/dto/request"
+	"github.com/bmstu-itstech/scriptum-back/internal/app/dto/response"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/ports"
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/entity"
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/value"

@@ -14,6 +14,7 @@ type Config struct {
 	Logging  Logging  `mapstructure:"logging"`
 	Postgres Postgres `mapstructure:"postgres"`
 	Storage  Storage  `mapstructure:"storage"`
+	JWT      JWT      `mapstructure:"jwt"`
 }
 
 type Docker struct {
@@ -24,7 +25,6 @@ type Docker struct {
 type HTTP struct {
 	Port             int      `mapstructure:"port"`
 	CORSAllowOrigins []string `mapstructure:"cors_allow_origins"`
-	JWTSecret        string   `mapstructure:"jwt_secret"`
 }
 
 type Logging struct {
@@ -37,6 +37,11 @@ type Postgres struct {
 
 type Storage struct {
 	BasePath string `mapstructure:"base_path"`
+}
+
+type JWT struct {
+	Secret    string        `mapstructure:"secret"`
+	AccessTTL time.Duration `mapstructure:"access_ttl"`
 }
 
 func Load(path string) (*Config, error) {

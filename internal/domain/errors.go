@@ -6,6 +6,7 @@ import (
 )
 
 var ErrPermissionDenied = errors.New("permission denied")
+var ErrInvalidCredentials = errors.New("invalid credentials")
 
 type InvalidInputError struct {
 	Code    string

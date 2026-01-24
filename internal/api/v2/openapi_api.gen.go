@@ -15,6 +15,9 @@ import (
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
+	// (POST /auth/login)
+	Login(w http.ResponseWriter, r *http.Request)
+
 	// (GET /blueprints)
 	GetBlueprints(w http.ResponseWriter, r *http.Request)
 
@@ -46,6 +49,11 @@ type ServerInterface interface {
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
 
 type Unimplemented struct{}
+
+// (POST /auth/login)
+func (_ Unimplemented) Login(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
 
 // (GET /blueprints)
 func (_ Unimplemented) GetBlueprints(w http.ResponseWriter, r *http.Request) {
@@ -100,6 +108,23 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// Login operation middleware
+func (siw *ServerInterfaceWrapper) Login(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Login(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
 
 // GetBlueprints operation middleware
 func (siw *ServerInterfaceWrapper) GetBlueprints(w http.ResponseWriter, r *http.Request) {
@@ -444,6 +469,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/auth/login", wrapper.Login)
+	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/blueprints", wrapper.GetBlueprints)
 	})

@@ -244,3 +244,27 @@ func (s *Server) GetJob(w http.ResponseWriter, r *http.Request, id string) {
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, res)
 }
+
+func (s *Server) Login(w http.ResponseWriter, r *http.Request) {
+	req := LoginRequest{}
+	if err := render.Decode(r, &req); err != nil {
+		renderPlainError(w, r, err, http.StatusBadRequest)
+		return
+	}
+
+	token, err := s.app.Commands.Login.Handle(r.Context(), request.Login{
+		Email:    req.Email,
+		Password: req.Password,
+	})
+	if errors.Is(err, domain.ErrInvalidCredentials) {
+		renderPlainError(w, r, err, http.StatusUnauthorized)
+		return
+	} else if err != nil {
+		renderInternalServerError(w, r)
+		return
+	}
+
+	res := LoginResponse{AccessToken: token.AccessToken}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
+}

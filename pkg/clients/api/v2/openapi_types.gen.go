@@ -111,6 +111,17 @@ type JobResult struct {
 // JobState defines model for JobState.
 type JobState string
 
+// LoginRequest defines model for LoginRequest.
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+// LoginResponse defines model for LoginResponse.
+type LoginResponse struct {
+	AccessToken string `json:"accessToken"`
+}
+
 // PlainError defines model for PlainError.
 type PlainError struct {
 	// Message Сообщение об ошибке.
@@ -164,6 +175,9 @@ type UploadFileMultipartBody struct {
 type GetJobsParams struct {
 	State *JobState `form:"state,omitempty" json:"state,omitempty"`
 }
+
+// LoginJSONRequestBody defines body for Login for application/json ContentType.
+type LoginJSONRequestBody = LoginRequest
 
 // CreateBlueprintJSONRequestBody defines body for CreateBlueprint for application/json ContentType.
 type CreateBlueprintJSONRequestBody = CreateBlueprintRequest

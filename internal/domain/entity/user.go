@@ -65,6 +65,10 @@ func (u *User) Email() value.Email {
 	return u.email
 }
 
+func (u *User) PasswordHash() []byte {
+	return u.passhash
+}
+
 func (u *User) Role() value.Role {
 	return u.role
 }

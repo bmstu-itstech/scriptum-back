@@ -1,12 +1,20 @@
 http:
   port: 8100
+  cors_allow_origins:
 
 docker:
   image_prefix: sc
   runner_timeout: 15m
+
+postgres:
+  uri:
 
 logging:
   level: debug
 
 storage:
   base_path: "uploads"
+
+jwt:
+  secret:
+  access_ttl: 24h

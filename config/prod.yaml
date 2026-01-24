@@ -1,3 +1,7 @@
+http:
+  port:
+  cors_allow_origins:
+
 docker:
   image_prefix: sc
   runner_timeout: 15m
@@ -5,5 +9,12 @@ docker:
 logging:
   level: debug
 
+postgres:
+  uri:
+
 storage:
   base_path: "/var/app/uploads"
+
+jwt:
+  secret:
+  access_ttl: 24h

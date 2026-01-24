@@ -293,8 +293,41 @@ paths:
           description: ОК.
         "400":
           description: Некорректный формат загрузки файла.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlainError'
         "401":
           description: Неавторизованный доступ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlainError'
+
+  /auth/login:
+    post:
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        "200":
+          description: OK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        "400":
+          description: Некорректный формат запроса.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlainError'
+        "401":
+          description: Некорректный логин или пароль.
           content:
             application/json:
               schema:
@@ -450,6 +483,28 @@ components:
         - out
         - createdAt
 
+    Role:
+      type: string
+      enum:
+        - user
+        - admin
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 1234abcd
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          $ref: '#/components/schemas/Role'
+        createdAt:
+          type: string
+          format: date-time
+
     CreateBlueprintRequest:
       type: object
       properties:
@@ -483,6 +538,34 @@ components:
       required:
         - blueprintID
         - values
+
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    CreateUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        name:
+          type: string
+        role:
+          $ref: '#/components/schemas/Role'
+      required:
+        - email
+        - password
+        - name
+        - role
 
     CreateBlueprintResponse:
       type: object
@@ -534,6 +617,22 @@ components:
       required:
         - fileID
         - size
+
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+      required:
+        - accessToken
+
+    CreateUserResponse:
+      type: object
+      properties:
+        userID:
+          type: string
+      required:
+        - userID
 
     InvalidInputError:
       type: object

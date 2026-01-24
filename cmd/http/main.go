@@ -11,18 +11,26 @@ import (
 	"os/signal"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 
 	apiv2 "github.com/bmstu-itstech/scriptum-back/internal/api/v2"
 	"github.com/bmstu-itstech/scriptum-back/internal/app"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/dto/request"
 	"github.com/bmstu-itstech/scriptum-back/internal/config"
+	"github.com/bmstu-itstech/scriptum-back/internal/infra/bcrypt"
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/docker"
+	"github.com/bmstu-itstech/scriptum-back/internal/infra/jwt"
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/local"
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/postgres"
 	"github.com/bmstu-itstech/scriptum-back/internal/infra/watermill"
+	"github.com/bmstu-itstech/scriptum-back/pkg/jwtauth"
 	"github.com/bmstu-itstech/scriptum-back/pkg/logs"
-	"github.com/bmstu-itstech/scriptum-back/pkg/server"
+	"github.com/bmstu-itstech/scriptum-back/pkg/logs/sl"
 )
+
+const bcryptPasswordHasherCost = 12
+const corsMaxAge = 300
 
 func main() {
 	var cfgPath string
@@ -41,6 +49,8 @@ func main() {
 	repos := postgres.MustNewRepository(cfg.Postgres, l)
 	runner := docker.MustNewRunner(cfg.Docker, l)
 	storage := local.MustNewStorage(cfg.Storage, l)
+	hasher := bcrypt.NewPasswordHasher(bcryptPasswordHasherCost)
+	tokenService := jwt.MustNewTokenService(cfg.JWT)
 
 	jPub, jSub := watermill.NewJobPubSubGoChannels(l)
 
@@ -52,14 +62,39 @@ func main() {
 		JobProvider:         repos,
 		JobPublisher:        jPub,
 		JobRepository:       repos,
+		PasswordHasher:      hasher,
 		Runner:              runner,
+		TokenService:        tokenService,
 		UserProvider:        repos,
 	}
 	a := app.NewApp(infra, l)
 
-	s := server.NewHTTPServer(cfg.HTTP, l, func(r chi.Router) http.Handler {
-		return apiv2.HandlerFromMuxWithBaseURL(apiv2.NewServer(a), r, "/api/v2")
+	root := chi.NewRouter()
+
+	root.Use(middleware.RequestID)
+	root.Use(middleware.RealIP)
+	root.Use(sl.NewLoggerMiddleware(l))
+	root.Use(middleware.Recoverer)
+	corsMiddleware := cors.New(cors.Options{
+		AllowedOrigins:   cfg.HTTP.CORSAllowOrigins,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           corsMaxAge,
 	})
+	root.Use(corsMiddleware.Handler)
+
+	root.Use(
+		middleware.SetHeader("X-Content-Type-Options", "nosniff"),
+		middleware.SetHeader("X-Frame-Options", "deny"),
+	)
+	root.Use(middleware.NoCache)
+	root.Use(jwtauth.NewMiddleware(tokenService).Handler)
+	s := http.Server{
+		Addr:    fmt.Sprintf(":%d", cfg.HTTP.Port),
+		Handler: apiv2.HandlerFromMuxWithBaseURL(apiv2.NewServer(a), root, "/api/v2"),
+	}
 
 	// start
 
@@ -75,6 +110,7 @@ func main() {
 	}()
 
 	go func() {
+		l.Info("starting http server", slog.String("addr", s.Addr))
 		err := s.ListenAndServe()
 		errCh <- err
 	}()

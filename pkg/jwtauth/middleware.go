@@ -1,49 +1,40 @@
 package jwtauth
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/golang-jwt/jwt/v5/request"
+
+	"github.com/bmstu-itstech/scriptum-back/internal/app/ports"
+	"github.com/bmstu-itstech/scriptum-back/internal/domain/value"
 )
 
+type TokenVerifier interface {
+	VerifyToken(ctx context.Context, token value.Token) (value.UserID, error)
+}
+
 type Middleware struct {
-	secret []byte
+	verifier  TokenVerifier
+	extractor request.Extractor
 }
 
-func NewMiddleware(secret string) (*Middleware, error) {
-	if secret == "" {
-		return nil, errors.New("secret key is required")
-	}
+func NewMiddleware(verifier TokenVerifier) *Middleware {
 	return &Middleware{
-		secret: []byte(secret),
-	}, nil
-}
-
-func MustNewMiddleware(secret string) *Middleware {
-	m, err := NewMiddleware(secret)
-	if err != nil {
-		panic(err)
+		verifier: verifier,
+		extractor: request.MultiExtractor{
+			request.AuthorizationHeaderExtractor,
+			request.ArgumentExtractor{"jwtToken"},
+		},
 	}
-	return m
 }
 
 func (m *Middleware) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var claims accessTokenClaims
-		token, err := request.ParseFromRequest(
-			r,
-			request.MultiExtractor{
-				request.AuthorizationHeaderExtractor,
-				request.ArgumentExtractor{"jwtToken"},
-			},
-			func(_ *jwt.Token) (_ interface{}, _ error) {
-				return m.secret, nil
-			},
-			request.WithClaims(&claims),
-		)
+		tokenString, err := m.extractor.ExtractToken(r)
 		if errors.Is(err, request.ErrNoTokenInRequest) {
 			next.ServeHTTP(w, r)
 			return
@@ -53,12 +44,17 @@ func (m *Middleware) Handler(next http.Handler) http.Handler {
 			return
 		}
 
-		if !token.Valid {
+		uid, err := m.verifier.VerifyToken(r.Context(), value.Token(tokenString))
+		if errors.Is(err, ports.ErrTokenInvalid) {
 			w.WriteHeader(http.StatusUnauthorized)
-			render.JSON(w, r, map[string]interface{}{"message": "token is invalid"})
+			render.JSON(w, r, map[string]interface{}{"message": fmt.Sprintf("token is invalid: %s", err.Error())})
+			return
+		} else if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			render.JSON(w, r, map[string]interface{}{"message": "internal server error"})
 		}
 
-		r = r.WithContext(toContext(r.Context(), claims.UID))
+		r = r.WithContext(toContext(r.Context(), string(uid)))
 
 		next.ServeHTTP(w, r)
 	})

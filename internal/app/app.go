@@ -11,6 +11,7 @@ import (
 type Commands struct {
 	CreateBlueprint command.CreateBlueprintHandler
 	DeleteBlueprint command.DeleteBlueprintHandler
+	Login           command.LoginHandler
 	RunJob          command.RunJobHandler
 	StartJob        command.StartJobHandler
 	UploadFile      command.UploadFileHandler
@@ -37,7 +38,9 @@ type Infra struct {
 	JobProvider         ports.JobProvider
 	JobPublisher        ports.JobPublisher
 	JobRepository       ports.JobRepository
+	PasswordHasher      ports.PasswordHasher
 	Runner              ports.Runner
+	TokenService        ports.TokenService
 	UserProvider        ports.UserProvider
 }
 
@@ -46,6 +49,7 @@ func NewApp(infra Infra, l *slog.Logger) *App {
 		Commands: Commands{
 			CreateBlueprint: command.NewCreateBlueprintHandler(infra.BlueprintRepository, infra.UserProvider, l),
 			DeleteBlueprint: command.NewDeleteBlueprintHandler(infra.BlueprintRepository, l),
+			Login:           command.NewLoginHandler(infra.UserProvider, infra.PasswordHasher, infra.TokenService, l),
 			RunJob:          command.NewRunJobHandler(infra.Runner, infra.JobRepository, infra.FileReader, l),
 			StartJob:        command.NewStartJobHandler(infra.BlueprintProvider, infra.JobRepository, infra.JobPublisher, l),
 			UploadFile:      command.NewUploadFileHandler(infra.FileUploader, l),

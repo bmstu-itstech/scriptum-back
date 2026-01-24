@@ -31,16 +31,16 @@ func (r *Repository) User(ctx context.Context, id value.UserID) (*entity.User, e
 	return userRowToDomain(rU)
 }
 
-func (r *Repository) UserByEmail(ctx context.Context, email value.Email) (*entity.User, error) {
+func (r *Repository) UserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	l := r.l.With(
 		slog.String("op", "postgres.Repository.UserByEmail"),
-		slog.String("email", email.String()),
+		slog.String("email", email),
 	)
 
-	rU, err := r.selectUserRowByEmail(ctx, r.db, email.String())
+	rU, err := r.selectUserRowByEmail(ctx, r.db, email)
 	if errors.Is(err, sql.ErrNoRows) {
 		l.WarnContext(ctx, "user not found", slog.String("error", err.Error()))
-		return nil, fmt.Errorf("%w: %s", ports.ErrUserNotFound, email.String())
+		return nil, fmt.Errorf("%w: %s", ports.ErrUserNotFound, email)
 	}
 	if err != nil {
 		l.ErrorContext(ctx, "failed to select user", slog.String("error", err.Error()))
