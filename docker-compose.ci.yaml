@@ -7,7 +7,7 @@ services:
     environment:
       SC_POSTGRES_URI: $SC_POSTGRES_URI
       SC_HTTP_PORT: 8000
-      SC_HTTP_JWT_SECRET: $SC_HTTP_JWT_SECRET
+      SC_JWT_SECRET: $SC_JWT_SECRET
       SC_HTTP_CORS_ALLOW_ORIGINS: $SC_HTTP_CORS_ALLOW_ORIGINS
       PGSSLROOTCERT: /certs/root.crt
     ports:
