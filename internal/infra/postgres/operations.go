@@ -93,7 +93,7 @@ func (r *Repository) selectPublicAndUserBlueprintByNameRows(
 		ORDER BY created_at DESC
 		`,
 		userID,
-		name,
+		"%"+name+"%",
 	)
 	if err != nil {
 		return nil, fmt.Errorf("select public and user blueprint rows: %w", err)
