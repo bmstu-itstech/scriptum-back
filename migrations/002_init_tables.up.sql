@@ -3,7 +3,7 @@ CREATE SCHEMA job;
 
 CREATE TABLE IF NOT EXISTS blueprint.blueprints (
     id          VARCHAR(8)      PRIMARY KEY,
-    owner_id    BIGINT          NOT NULL,
+    owner_id    VARCHAR(8)      NOT NULL,
     archive_id  VARCHAR         NOT NULL,
     name        VARCHAR         NOT NULL,
     "desc"      VARCHAR                     DEFAULT NULL,
@@ -45,8 +45,8 @@ CREATE TABLE IF NOT EXISTS blueprint.output_fields (
 CREATE TABLE IF NOT EXISTS job.jobs (
     id              VARCHAR(8)  PRIMARY KEY,
     blueprint_id    VARCHAR(8)  NOT NULL,
-    archive_id      VARCHAR     NOT NULL,
-    owner_id        BIGINT      NOT NULL,
+    archive_id      VARCHAR(8)  NOT NULL,
+    owner_id        VARCHAR(8)  NOT NULL,
     state           JOB_STATE_T NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL    DEFAULT now(),
 
