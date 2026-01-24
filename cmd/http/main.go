@@ -70,7 +70,6 @@ func main() {
 	a := app.NewApp(infra, l)
 
 	root := chi.NewRouter()
-
 	root.Use(middleware.RequestID)
 	root.Use(middleware.RealIP)
 	root.Use(sl.NewLoggerMiddleware(l))
@@ -84,7 +83,6 @@ func main() {
 		MaxAge:           corsMaxAge,
 	})
 	root.Use(corsMiddleware.Handler)
-
 	root.Use(
 		middleware.SetHeader("X-Content-Type-Options", "nosniff"),
 		middleware.SetHeader("X-Frame-Options", "deny"),

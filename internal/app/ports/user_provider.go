@@ -12,5 +12,6 @@ var ErrUserNotFound = errors.New("user is not found")
 
 type UserProvider interface {
 	User(ctx context.Context, id value.UserID) (*entity.User, error)
+	Users(ctx context.Context) ([]*entity.User, error)
 	UserByEmail(ctx context.Context, email string) (*entity.User, error)
 }

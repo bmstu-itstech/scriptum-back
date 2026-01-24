@@ -131,3 +131,21 @@ func createBlueprintToDTO(r CreateBlueprintRequest, uid string) request.CreateBl
 		Out:       fieldsToDTO(r.Out),
 	}
 }
+
+func userToAPI(u dto.User) User {
+	return User{
+		CreatedAt: u.CreatedAt,
+		Email:     u.Email,
+		Id:        u.ID,
+		Name:      u.Name,
+		Role:      Role(u.Role),
+	}
+}
+
+func usersToAPI(us []dto.User) []User {
+	res := make([]User, len(us))
+	for i, u := range us {
+		res[i] = userToAPI(u)
+	}
+	return res
+}

@@ -22,6 +22,8 @@ type Queries struct {
 	GetBlueprints    query.GetBlueprintsHandler
 	GetJob           query.GetJobHandler
 	GetJobs          query.GetJobsHandler
+	GetUser          query.GetUserHandler
+	GetUsers         query.GetUsersHandler
 	SearchBlueprints query.SearchBlueprintsHandler
 }
 
@@ -59,6 +61,8 @@ func NewApp(infra Infra, l *slog.Logger) *App {
 			GetBlueprints:    query.NewGetBlueprintsHandler(infra.BlueprintProvider, l),
 			GetJob:           query.NewGetJobHandler(infra.JobProvider, l),
 			GetJobs:          query.NewGetJobsHandler(infra.JobProvider, l),
+			GetUser:          query.NewGetUserHandler(infra.UserProvider, l),
+			GetUsers:         query.NewGetUsersHandler(infra.UserProvider, l),
 			SearchBlueprints: query.NewSearchBlueprintsHandler(infra.BlueprintProvider, l),
 		},
 	}

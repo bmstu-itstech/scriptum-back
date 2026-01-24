@@ -39,18 +39,18 @@ func (m *Middleware) Handler(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		} else if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
+			render.Status(r, http.StatusUnauthorized)
 			render.JSON(w, r, map[string]interface{}{"message": err.Error()})
 			return
 		}
 
 		uid, err := m.verifier.VerifyToken(r.Context(), value.Token(tokenString))
 		if errors.Is(err, ports.ErrTokenInvalid) {
-			w.WriteHeader(http.StatusUnauthorized)
+			render.Status(r, http.StatusUnauthorized)
 			render.JSON(w, r, map[string]interface{}{"message": fmt.Sprintf("token is invalid: %s", err.Error())})
 			return
 		} else if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			render.Status(r, http.StatusInternalServerError)
 			render.JSON(w, r, map[string]interface{}{"message": "internal server error"})
 		}
 

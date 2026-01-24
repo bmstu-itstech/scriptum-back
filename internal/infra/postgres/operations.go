@@ -600,6 +600,30 @@ func (r *Repository) selectUserRow(
 	return row, nil
 }
 
+func (r *Repository) selectUserRows(
+	ctx context.Context,
+	qc sqlx.QueryerContext,
+) ([]userRow, error) {
+	var rows []userRow
+	err := pgutils.Select(ctx, qc, &rows, `
+		SELECT
+			id,
+			email,
+			name,
+			passhash,
+			role,
+			created_at
+		FROM public.users
+		WHERE 
+			deleted_at IS NULL
+		`,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("select user rows: %w", err)
+	}
+	return rows, nil
+}
+
 func (r *Repository) selectUserRowByEmail(
 	ctx context.Context,
 	qc sqlx.QueryerContext,

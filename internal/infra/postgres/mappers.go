@@ -174,6 +174,18 @@ func userRowToDomain(row userRow) (*entity.User, error) {
 	)
 }
 
+func userRowsToDomain(rows []userRow) ([]*entity.User, error) {
+	res := make([]*entity.User, len(rows))
+	for i, row := range rows {
+		u, err := userRowToDomain(row)
+		if err != nil {
+			return nil, err
+		}
+		res[i] = u
+	}
+	return res, nil
+}
+
 func jobValueRowsFromDomain(values []value.Value, jobID value.JobID) []jobValueRow {
 	res := make([]jobValueRow, len(values))
 	for i, v := range values {

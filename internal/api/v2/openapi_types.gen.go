@@ -20,6 +20,12 @@ const (
 	Running  JobState = "running"
 )
 
+// Defines values for Role.
+const (
+	RoleAdmin Role = "admin"
+	RoleUser  Role = "user"
+)
+
 // Defines values for ValueType.
 const (
 	Integer ValueType = "integer"
@@ -77,6 +83,9 @@ type GetBlueprintsResponse = []Blueprint
 // GetJobsResponse defines model for GetJobsResponse.
 type GetJobsResponse = []Job
 
+// GetUsersResponse defines model for GetUsersResponse.
+type GetUsersResponse = []User
+
 // InvalidInputError defines model for InvalidInputError.
 type InvalidInputError struct {
 	// Code Уникальный код ошибки.
@@ -128,6 +137,9 @@ type PlainError struct {
 	Message string `json:"message"`
 }
 
+// Role defines model for Role.
+type Role string
+
 // SearchBlueprintsResponse defines model for SearchBlueprintsResponse.
 type SearchBlueprintsResponse = []Blueprint
 
@@ -145,6 +157,15 @@ type StartJobResponse struct {
 type UploadFileResponse struct {
 	FileID string  `json:"fileID"`
 	Size   float32 `json:"size"`
+}
+
+// User defines model for User.
+type User struct {
+	CreatedAt time.Time `json:"createdAt"`
+	Email     string    `json:"email"`
+	Id        string    `json:"id"`
+	Name      string    `json:"name"`
+	Role      Role      `json:"role"`
 }
 
 // Value defines model for Value.

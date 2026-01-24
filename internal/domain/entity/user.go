@@ -53,6 +53,13 @@ func (u *User) BlueprintVisibility() value.Visibility {
 	return value.VisibilityPrivate
 }
 
+func (u *User) CanSee(uid value.UserID) bool {
+	if u.role == value.RoleAdmin {
+		return true
+	}
+	return u.id == uid
+}
+
 func (u *User) ID() value.UserID {
 	return u.id
 }
@@ -71,6 +78,10 @@ func (u *User) PasswordHash() []byte {
 
 func (u *User) Role() value.Role {
 	return u.role
+}
+
+func (u *User) CreatedAt() time.Time {
+	return u.createdAt
 }
 
 func RestoreUser(

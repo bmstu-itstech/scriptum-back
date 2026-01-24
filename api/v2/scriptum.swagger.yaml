@@ -333,6 +333,69 @@ paths:
               schema:
                 $ref: '#/components/schemas/PlainError'
 
+  /users:
+    get:
+      operationId: getUsers
+      description: >
+        Возвращает полный список пользователей платформы. Запрос доступен только администраторам.
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetUsersResponse'
+          description: ОК.
+        "401":
+          description: Неавторизованный доступ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlainError'
+        "403":
+          description: Доступ запрещён для не-администраторов.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlainError'
+
+  /user/{id}:
+    get:
+      operationId: getUser
+      description: >
+        Возвращает информацию о пользователе. Доступно только для администраторов.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Уникальный ID пользователя.
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetUsersResponse'
+          description: ОК.
+        "401":
+          description: Неавторизованный доступ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlainError'
+        "403":
+          description: Доступ запрещён для не-администраторов.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlainError'
+        "404":
+          description: Пользователь не найден.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlainError'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -504,6 +567,12 @@ components:
         createdAt:
           type: string
           format: date-time
+      required:
+        - id
+        - email
+        - name
+        - role
+        - createdAt
 
     CreateBlueprintRequest:
       type: object
@@ -625,6 +694,11 @@ components:
           type: string
       required:
         - accessToken
+
+    GetUsersResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/User'
 
     CreateUserResponse:
       type: object
