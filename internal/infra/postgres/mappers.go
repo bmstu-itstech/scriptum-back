@@ -1,8 +1,6 @@
 package postgres
 
 import (
-	"time"
-
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/entity"
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/value"
 )
@@ -217,7 +215,6 @@ func jobFieldRowsFromDomain(fields []value.Field, jobID value.JobID) []jobFieldR
 func jobRowFromDomain(job *entity.Job) jobRow {
 	var optCode *int
 	var optMsg *string
-	var optFinAt *time.Time
 	if r := job.Result(); r != nil {
 		code := int(r.Code())
 		optCode = &code
@@ -233,6 +230,6 @@ func jobRowFromDomain(job *entity.Job) jobRow {
 		StartedAt:   job.StartedAt(),
 		ResultCode:  optCode,
 		ResultMsg:   optMsg,
-		FinishedAt:  optFinAt,
+		FinishedAt:  job.FinishedAt(),
 	}
 }
