@@ -1,6 +1,6 @@
 SWAGGER_UI_VERSION:=v5.31.0
 
-generate: generate/openapi
+generate: generate/openapi generate/swagger_ui
 
 .PHONY: generate/openapi
 generate/openapi: api/v2/scriptum.swagger.yaml
