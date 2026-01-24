@@ -17,6 +17,8 @@ paths:
   /blueprints:
     get:
       operationId: getBlueprints
+      tags:
+        - blueprints
       description: >
         Возвращает полный список доступных пользователю шаблонов (blueprints). Пользователю доступны собственные 
         шаблоны и публичные.
@@ -36,6 +38,8 @@ paths:
 
     post:
       operationId: createBlueprint
+      tags:
+        - blueprints
       description: >
         Создаёт пользовательский шаблон (blueprint). Если пользователь является администратором (role = UserAdmin), 
         то такой шаблон становится доступным для всех пользователей платформы. Автоматически создаёт ID шаблона.
@@ -68,6 +72,8 @@ paths:
   /blueprints/search:
     get:
       operationId: searchBlueprints
+      tags:
+        - blueprints
       description: >
         Совершает нечётки поиск по имени доступных пользователю шаблонам (blueprints). Пользователю доступны 
         собственные шаблоны и публичные.
@@ -95,6 +101,8 @@ paths:
   /blueprints/{id}:
     get:
       operationId: getBlueprint
+      tags:
+        - blueprints
       description: >
         Возвращает конкретный шаблон (blueprint), если он доступен пользователю. Пользователю доступны собственные
         шаблоны и публичные.
@@ -133,6 +141,8 @@ paths:
 
     delete:
       operationId: deleteBlueprint
+      tags:
+        - blueprints
       description: >
         Удаляет шаблон (blueprint) пользователя.
       parameters:
@@ -167,6 +177,8 @@ paths:
   /blueprints/{id}/start:
     post:
       operationId: startJob
+      tags:
+        - blueprints
       description: >
         Запускает задачу на основании шаблона указанного ID. Задача запускается в асинхронном режиме. Возвращает
         ID задачи.
@@ -212,6 +224,8 @@ paths:
   /jobs:
     get:
       operationId: getJobs
+      tags:
+        - jobs
       description: >
         Возвращает список всех пользовательских задач (jobs). Возможна фильтрация по состоянию задачи.
       parameters:
@@ -237,6 +251,8 @@ paths:
   /jobs/{id}:
     get:
       operationId: getJob
+      tags:
+        - jobs
       description: >
         Возвращает конкретную пользовательскую задачу (job).
       parameters:
@@ -270,6 +286,8 @@ paths:
 
   /files:
     post:
+      tags:
+        - files
       operationId: uploadFile
       requestBody:
         required: true
@@ -306,6 +324,8 @@ paths:
 
   /auth/login:
     post:
+      tags:
+        - auth
       operationId: login
       requestBody:
         required: true
@@ -336,6 +356,8 @@ paths:
   /users:
     get:
       operationId: getUsers
+      tags:
+        - users
       description: >
         Возвращает полный список пользователей платформы. Запрос доступен только администраторам.
       responses:
@@ -357,10 +379,49 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PlainError'
+    post:
+      operationId: createUser
+      tags:
+        - users
+      description:
+        Создаёт пользователя с заданными параметрами. Доступно только для администраторов.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        "201":
+          description: ОК.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateUserResponse'
+        "400":
+          description: Некорректные данные пользователя.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidInputError'
+        "401":
+          description: Неавторизованный доступ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlainError'
+        "403":
+          description: Доступ запрещён для не-администраторов.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlainError'
 
   /user/{id}:
     get:
       operationId: getUser
+      tags:
+        - users
       description: >
         Возвращает информацию о пользователе. Доступно только для администраторов.
       parameters:
@@ -391,6 +452,35 @@ paths:
                 $ref: '#/components/schemas/PlainError'
         "404":
           description: Пользователь не найден.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlainError'
+
+    delete:
+      operationId: deleteUser
+      tags:
+        - users
+      description: >
+        Удаляет пользователя по его ID. Доступно только для администраторов.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Уникальный ID пользователя.
+      responses:
+        "204":
+          description: OK.
+        "401":
+          description: Неавторизованный доступ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlainError'
+        "403":
+          description: Доступ запрещён для не-администраторов.
           content:
             application/json:
               schema:

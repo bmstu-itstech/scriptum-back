@@ -157,6 +157,17 @@ func jobRowToDomain(
 	)
 }
 
+func userRowFromDomain(u *entity.User) userRow {
+	return userRow{
+		ID:        string(u.ID()),
+		Email:     u.Email().String(),
+		Name:      u.Name(),
+		Role:      u.Role().String(),
+		Passhash:  string(u.PasswordHash()),
+		CreatedAt: u.CreatedAt(),
+	}
+}
+
 func userRowToDomain(row userRow) (*entity.User, error) {
 	role, err := value.RoleFromString(row.Role)
 	if err != nil {

@@ -149,3 +149,13 @@ func usersToAPI(us []dto.User) []User {
 	}
 	return res
 }
+
+func createUserToDTO(r CreateUserRequest, actorID string) request.CreateUser {
+	return request.CreateUser{
+		ActorID:  actorID,
+		Email:    r.Email,
+		Password: r.Password,
+		Name:     r.Name,
+		Role:     string(r.Role),
+	}
+}

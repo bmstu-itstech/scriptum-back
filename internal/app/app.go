@@ -10,7 +10,9 @@ import (
 
 type Commands struct {
 	CreateBlueprint command.CreateBlueprintHandler
+	CreateUser      command.CreateUserHandler
 	DeleteBlueprint command.DeleteBlueprintHandler
+	DeleteUser      command.DeleteUserHandler
 	Login           command.LoginHandler
 	RunJob          command.RunJobHandler
 	StartJob        command.StartJobHandler
@@ -44,13 +46,16 @@ type Infra struct {
 	Runner              ports.Runner
 	TokenService        ports.TokenService
 	UserProvider        ports.UserProvider
+	UserRepository      ports.UserRepository
 }
 
 func NewApp(infra Infra, l *slog.Logger) *App {
 	return &App{
 		Commands: Commands{
 			CreateBlueprint: command.NewCreateBlueprintHandler(infra.BlueprintRepository, infra.UserProvider, l),
+			CreateUser:      command.NewCreateUserHandler(infra.UserRepository, infra.PasswordHasher, l),
 			DeleteBlueprint: command.NewDeleteBlueprintHandler(infra.BlueprintRepository, l),
+			DeleteUser:      command.NewDeleteUserHandler(infra.UserRepository, l),
 			Login:           command.NewLoginHandler(infra.UserProvider, infra.PasswordHasher, infra.TokenService, l),
 			RunJob:          command.NewRunJobHandler(infra.Runner, infra.JobRepository, infra.FileReader, l),
 			StartJob:        command.NewStartJobHandler(infra.BlueprintProvider, infra.JobRepository, infra.JobPublisher, l),

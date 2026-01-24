@@ -66,6 +66,19 @@ type CreateBlueprintResponse struct {
 	BlueprintID string `json:"blueprintID"`
 }
 
+// CreateUserRequest defines model for CreateUserRequest.
+type CreateUserRequest struct {
+	Email    string `json:"email"`
+	Name     string `json:"name"`
+	Password string `json:"password"`
+	Role     Role   `json:"role"`
+}
+
+// CreateUserResponse defines model for CreateUserResponse.
+type CreateUserResponse struct {
+	UserID string `json:"userID"`
+}
+
 // Field defines model for Field.
 type Field struct {
 	Desc *string   `json:"desc,omitempty"`
@@ -208,3 +221,6 @@ type StartJobJSONRequestBody = StartJobRequest
 
 // UploadFileMultipartRequestBody defines body for UploadFile for multipart/form-data ContentType.
 type UploadFileMultipartRequestBody UploadFileMultipartBody
+
+// CreateUserJSONRequestBody defines body for CreateUser for application/json ContentType.
+type CreateUserJSONRequestBody = CreateUserRequest

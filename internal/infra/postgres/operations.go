@@ -650,3 +650,68 @@ func (r *Repository) selectUserRowByEmail(
 	}
 	return row, nil
 }
+
+func (r *Repository) insertUserRow(
+	ctx context.Context,
+	ec sqlx.ExtContext,
+	row userRow,
+) error {
+	err := pgutils.RequireAffected(pgutils.NamedExec(ctx, ec, `
+		INSERT INTO users (
+			id, 
+			email, 
+			name, 
+			role, 
+			passhash, 
+			created_at
+		)
+		VALUES (
+			:id,
+			:email,
+			:name,
+			:role,
+			:passhash,
+			:created_at
+		)
+		`,
+		row,
+	))
+	if err != nil {
+		return fmt.Errorf("insert user row: %w", err)
+	}
+	return nil
+}
+
+func (r *Repository) updateUserRow(ctx context.Context, ec sqlx.ExtContext, row userRow) error {
+	err := pgutils.RequireAffected(pgutils.NamedExec(ctx, ec, `
+		UPDATE users
+		SET
+			email = :email,
+			passhash = :passhash,
+			name = :name
+		WHERE 
+			id = :id
+			AND deleted_at IS NULL
+		`,
+		row,
+	))
+	if err != nil {
+		return fmt.Errorf("update user row: %w", err)
+	}
+	return nil
+}
+
+func (r *Repository) softDeleteUserRow(ctx context.Context, ec sqlx.ExecerContext, uid string) error {
+	err := pgutils.RequireAffected(pgutils.Exec(ctx, ec, `
+		UPDATE users
+		SET
+			deleted_at = NOW()
+		WHERE id = $1
+		`,
+		uid,
+	))
+	if err != nil {
+		return fmt.Errorf("failed to soft delete user row: %w", err)
+	}
+	return nil
+}

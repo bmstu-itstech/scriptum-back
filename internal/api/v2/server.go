@@ -313,3 +313,59 @@ func (s *Server) GetUsers(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, res)
 }
+
+func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
+	actorID, ok := jwtauth.FromContext(r.Context())
+	if !ok {
+		renderPlainError(w, r, ErrAuthorizationRequired, http.StatusUnauthorized)
+		return
+	}
+
+	req := CreateUserRequest{}
+	if err := render.Decode(r, &req); err != nil {
+		renderPlainError(w, r, err, http.StatusBadRequest)
+		return
+	}
+
+	appRes, err := s.app.Commands.CreateUser.Handle(r.Context(), createUserToDTO(req, actorID))
+	var iiErr domain.InvalidInputError
+	if errors.As(err, &iiErr) {
+		renderInvalidInputError(w, r, iiErr, http.StatusBadRequest)
+		return
+	} else if errors.Is(err, domain.ErrPermissionDenied) {
+		renderPlainError(w, r, err, http.StatusForbidden)
+		return
+	} else if err != nil {
+		renderInternalServerError(w, r)
+		return
+	}
+
+	res := CreateUserResponse{UserID: appRes.UID}
+	render.Status(r, http.StatusCreated)
+	render.JSON(w, r, res)
+}
+
+func (s *Server) DeleteUser(w http.ResponseWriter, r *http.Request, id string) {
+	actorID, ok := jwtauth.FromContext(r.Context())
+	if !ok {
+		renderPlainError(w, r, ErrAuthorizationRequired, http.StatusUnauthorized)
+		return
+	}
+
+	err := s.app.Commands.DeleteUser.Handle(r.Context(), request.DeleteUser{
+		ActorID: actorID,
+		UID:     id,
+	})
+	if errors.Is(err, domain.ErrPermissionDenied) {
+		renderPlainError(w, r, err, http.StatusForbidden)
+		return
+	} else if errors.Is(err, ports.ErrUserNotFound) {
+		renderPlainError(w, r, err, http.StatusNotFound)
+		return
+	} else if err != nil {
+		renderInternalServerError(w, r)
+		return
+	}
+
+	render.Status(r, http.StatusNoContent)
+}
