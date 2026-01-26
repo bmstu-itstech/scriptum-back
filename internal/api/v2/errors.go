@@ -24,7 +24,7 @@ func renderPlainError(w http.ResponseWriter, r *http.Request, inner error, code 
 }
 
 func renderInternalServerError(w http.ResponseWriter, r *http.Request) {
-	render.Status(r, http.StatusInternalServerError)
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusInternalServerError)
 	_, _ = w.Write([]byte("internal server error"))
 }
