@@ -144,6 +144,17 @@ type LoginResponse struct {
 	AccessToken string `json:"accessToken"`
 }
 
+// PatchUserRequest defines model for PatchUserRequest.
+type PatchUserRequest struct {
+	Email    *string `json:"email,omitempty"`
+	Name     *string `json:"name,omitempty"`
+	Password *string `json:"password,omitempty"`
+	Role     *string `json:"role,omitempty"`
+}
+
+// PatchUserResponse defines model for PatchUserResponse.
+type PatchUserResponse = User
+
 // PlainError defines model for PlainError.
 type PlainError struct {
 	// Message Сообщение об ошибке.
@@ -221,6 +232,9 @@ type StartJobJSONRequestBody = StartJobRequest
 
 // UploadFileMultipartRequestBody defines body for UploadFile for multipart/form-data ContentType.
 type UploadFileMultipartRequestBody UploadFileMultipartBody
+
+// PatchUserJSONRequestBody defines body for PatchUser for application/json ContentType.
+type PatchUserJSONRequestBody = PatchUserRequest
 
 // CreateUserJSONRequestBody defines body for CreateUser for application/json ContentType.
 type CreateUserJSONRequestBody = CreateUserRequest

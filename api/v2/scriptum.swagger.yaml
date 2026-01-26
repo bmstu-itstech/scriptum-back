@@ -457,6 +457,57 @@ paths:
               schema:
                 $ref: '#/components/schemas/PlainError'
 
+    patch:
+      operationId: patchUser
+      tags:
+        - users
+      description: >
+        Обновляет информацию о пользователе. Доступно только для администраторов.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Уникальный ID пользователя.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchUserRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatchUserResponse'
+          description: ОК.
+        "400":
+          description: Некорректные данные пользователя.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidInputError'
+        "401":
+          description: Неавторизованный доступ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlainError'
+        "403":
+          description: Доступ запрещён для не-администраторов.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlainError'
+        "404":
+          description: Пользователь не найден.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlainError'
+
     delete:
       operationId: deleteUser
       tags:
@@ -726,6 +777,18 @@ components:
         - name
         - role
 
+    PatchUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+
     CreateBlueprintResponse:
       type: object
       properties:
@@ -797,6 +860,9 @@ components:
           type: string
       required:
         - userID
+
+    PatchUserResponse:
+      $ref: '#/components/schemas/User'
 
     InvalidInputError:
       type: object

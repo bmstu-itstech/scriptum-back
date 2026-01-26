@@ -16,6 +16,7 @@ type Commands struct {
 	Login           command.LoginHandler
 	RunJob          command.RunJobHandler
 	StartJob        command.StartJobHandler
+	UpdateUser      command.UpdateUserHandler
 	UploadFile      command.UploadFileHandler
 }
 
@@ -59,6 +60,7 @@ func NewApp(infra Infra, l *slog.Logger) *App {
 			Login:           command.NewLoginHandler(infra.UserProvider, infra.PasswordHasher, infra.TokenService, l),
 			RunJob:          command.NewRunJobHandler(infra.Runner, infra.JobRepository, infra.FileReader, l),
 			StartJob:        command.NewStartJobHandler(infra.BlueprintProvider, infra.JobRepository, infra.JobPublisher, l),
+			UpdateUser:      command.NewUpdateUserHandler(infra.UserRepository, infra.PasswordHasher, l),
 			UploadFile:      command.NewUploadFileHandler(infra.FileUploader, l),
 		},
 		Queries: Queries{

@@ -159,3 +159,14 @@ func createUserToDTO(r CreateUserRequest, actorID string) request.CreateUser {
 		Role:     string(r.Role),
 	}
 }
+
+func patchUserToDTO(r PatchUserRequest, actorID string, userID string) request.UpdateUser {
+	return request.UpdateUser{
+		ActorID:  actorID,
+		UserID:   userID,
+		Email:    r.Email,
+		Password: r.Password,
+		Name:     r.Name,
+		Role:     r.Role,
+	}
+}

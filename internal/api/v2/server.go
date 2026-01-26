@@ -369,3 +369,34 @@ func (s *Server) DeleteUser(w http.ResponseWriter, r *http.Request, id string) {
 
 	render.Status(r, http.StatusNoContent)
 }
+
+func (s *Server) PatchUser(w http.ResponseWriter, r *http.Request, id string) {
+	actorID, ok := jwtauth.FromContext(r.Context())
+	if !ok {
+		renderPlainError(w, r, ErrAuthorizationRequired, http.StatusUnauthorized)
+		return
+	}
+
+	req := PatchUserRequest{}
+	if err := render.Decode(r, &req); err != nil {
+		renderPlainError(w, r, err, http.StatusBadRequest)
+		return
+	}
+
+	user, err := s.app.Commands.UpdateUser.Handle(r.Context(), patchUserToDTO(req, actorID, id))
+	var iiErr domain.InvalidInputError
+	if errors.As(err, &iiErr) {
+		renderInvalidInputError(w, r, iiErr, http.StatusBadRequest)
+		return
+	} else if errors.Is(err, domain.ErrPermissionDenied) {
+		renderPlainError(w, r, err, http.StatusForbidden)
+		return
+	} else if err != nil {
+		renderInternalServerError(w, r)
+		return
+	}
+
+	res := userToAPI(user)
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
+}

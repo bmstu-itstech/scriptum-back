@@ -60,6 +60,38 @@ func (u *User) CanSee(uid value.UserID) bool {
 	return u.id == uid
 }
 
+func (u *User) SetEmail(email value.Email) error {
+	if email.IsZero() {
+		return domain.NewInvalidInputError("user-empty-email", "expected not empty email")
+	}
+	u.email = email
+	return nil
+}
+
+func (u *User) SetPassword(password []byte) error {
+	if len(password) == 0 {
+		return domain.NewInvalidInputError("user-empty-password", "expected not empty password")
+	}
+	u.passhash = password
+	return nil
+}
+
+func (u *User) SetName(name string) error {
+	if name == "" {
+		return domain.NewInvalidInputError("user-empty-name", "expected not empty name")
+	}
+	u.name = name
+	return nil
+}
+
+func (u *User) SetRole(role value.Role) error {
+	if role.IsZero() {
+		return domain.NewInvalidInputError("user-empty-role", "expected not empty role")
+	}
+	u.role = role
+	return nil
+}
+
 func (u *User) ID() value.UserID {
 	return u.id
 }
