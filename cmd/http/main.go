@@ -66,6 +66,7 @@ func main() {
 		Runner:              runner,
 		TokenService:        tokenService,
 		UserProvider:        repos,
+		UserRepository:      repos,
 	}
 	a := app.NewApp(infra, l)
 
