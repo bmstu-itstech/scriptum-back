@@ -695,7 +695,8 @@ func (r *Repository) updateUserRow(ctx context.Context, ec sqlx.ExtContext, row 
 		SET
 			email = :email,
 			passhash = :passhash,
-			name = :name
+			name = :name,
+			role = :role
 		WHERE 
 			id = :id
 			AND deleted_at IS NULL

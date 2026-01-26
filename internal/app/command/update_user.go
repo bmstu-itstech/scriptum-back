@@ -82,6 +82,10 @@ func (h UpdateUserHandler) Handle(ctx context.Context, req request.UpdateUser) (
 				l.WarnContext(ctx, "failed to validate role", slog.String("error", errTx.Error()))
 				return errTx
 			}
+			if actor.ID() == u.ID() {
+				l.WarnContext(ctx, "user can not change self role")
+				return domain.ErrPermissionDenied
+			}
 			errTx = u.SetRole(role)
 			if errTx != nil {
 				return errTx
