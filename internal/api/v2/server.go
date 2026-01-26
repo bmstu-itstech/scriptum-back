@@ -332,6 +332,9 @@ func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
 	if errors.As(err, &iiErr) {
 		renderInvalidInputError(w, r, iiErr, http.StatusBadRequest)
 		return
+	} else if errors.Is(err, ports.ErrUserAlreadyExists) {
+		renderPlainError(w, r, err, http.StatusConflict)
+		return
 	} else if errors.Is(err, domain.ErrPermissionDenied) {
 		renderPlainError(w, r, err, http.StatusForbidden)
 		return
