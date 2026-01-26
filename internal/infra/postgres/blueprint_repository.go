@@ -36,9 +36,11 @@ func (r *Repository) SaveBlueprint(ctx context.Context, blueprint *entity.Bluepr
 }
 
 func (r *Repository) DeleteBlueprint(ctx context.Context, id value.BlueprintID) error {
-	err := r.softDeleteBlueprintRow(ctx, r.db, string(id))
-	if errors.Is(err, pgutils.ErrNoAffectedRows) {
-		return fmt.Errorf("%w: %s", ports.ErrBlueprintNotFound, id)
-	}
-	return err
+	return pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
+		err := r.softDeleteBlueprintRow(ctx, r.db, string(id))
+		if errors.Is(err, pgutils.ErrNoAffectedRows) {
+			return fmt.Errorf("%w: %s", ports.ErrBlueprintNotFound, id)
+		}
+		return r.softDeleteBlueprintJobRows(ctx, r.db, string(id))
+	})
 }
