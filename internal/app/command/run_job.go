@@ -45,20 +45,26 @@ func (h RunJobHandler) Handle(ctx context.Context, job request.RunJob) error {
 		if err2 != nil {
 			return fmt.Errorf("failed to read build context: %w", err2)
 		}
-		image, err2 := h.r.Build(ctx2, buildCtx, job.BlueprintID())
-		if err2 != nil {
-			return err2
+
+		var image value.ImageTag
+		image, err = h.r.Build(ctx2, buildCtx, job.BlueprintID())
+		if err != nil {
+			res = value.NewResult(-1).WithOutput(err.Error())
+			return job.Finish(res)
 		}
-		res, err2 = h.r.Run(ctx2, image, job.Input())
-		if err2 != nil {
-			return err2
+
+		res, err = h.r.Run(ctx2, image, job.Input())
+		if err != nil {
+			res = value.NewResult(-1).WithOutput(err.Error())
+			return job.Finish(res)
 		}
+
 		return job.Finish(res)
 	})
 	if err != nil {
 		l.ErrorContext(ctx, "failed to update job", slog.String("error", err.Error()))
 		return err
 	}
-	l.InfoContext(ctx, "job successfully run", slog.Int("code", int(res.Code())), slog.String("output", res.Output()))
+	l.InfoContext(ctx, "job completed", slog.Int("code", int(res.Code())), slog.String("output", res.Output()))
 	return nil
 }
