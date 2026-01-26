@@ -19,13 +19,17 @@ func (r *Repository) SaveBlueprint(ctx context.Context, blueprint *entity.Bluepr
 		if err := r.insertBlueprintRow(ctx, tx, rB); err != nil {
 			return err
 		}
-		rIn := blueprintFieldRowsFromDomain(blueprint.In(), blueprint.ID())
-		if err := r.insertBlueprintInputFieldRows(ctx, tx, rIn); err != nil {
-			return err
+		if len(blueprint.In()) > 0 {
+			rIn := blueprintFieldRowsFromDomain(blueprint.In(), blueprint.ID())
+			if err := r.insertBlueprintInputFieldRows(ctx, tx, rIn); err != nil {
+				return err
+			}
 		}
-		rOut := blueprintFieldRowsFromDomain(blueprint.Out(), blueprint.ID())
-		if err := r.insertBlueprintOutputFieldRows(ctx, tx, rOut); err != nil {
-			return err
+		if len(blueprint.Out()) > 0 {
+			rOut := blueprintFieldRowsFromDomain(blueprint.Out(), blueprint.ID())
+			if err := r.insertBlueprintOutputFieldRows(ctx, tx, rOut); err != nil {
+				return err
+			}
 		}
 		return nil
 	})
