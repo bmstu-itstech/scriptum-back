@@ -40,7 +40,7 @@ func (h DeleteUserHandler) Handle(ctx context.Context, req request.DeleteUser) e
 	err = h.ur.DeleteUser(ctx, value.UserID(req.UID))
 	if errors.Is(err, ports.ErrUserNotFound) {
 		l.WarnContext(ctx, "user does not exist")
-		return nil
+		return err
 	} else if err != nil {
 		l.ErrorContext(ctx, "failed to delete user", slog.String("error", err.Error()))
 		return err
