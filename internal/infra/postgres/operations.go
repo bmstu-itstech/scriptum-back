@@ -287,7 +287,9 @@ func (r *Repository) selectJobRow(ctx context.Context, qc sqlx.QueryerContext, j
 			result_msg, 
 			finished_at
 		FROM job.jobs
-		WHERE id = $1
+		WHERE 
+			id = $1
+			AND deleted_at IS NULL
 		`,
 		jobID,
 	)
@@ -316,7 +318,9 @@ func (r *Repository) selectUserJobRows(
 			result_msg, 
 			finished_at
 		FROM job.jobs
-		WHERE owner_id = $1
+		WHERE 
+			owner_id = $1
+			AND deleted_at IS NULL
 		ORDER BY created_at DESC
 		`,
 		uid,
@@ -350,6 +354,7 @@ func (r *Repository) selectUserJobRowsWithState(
 		WHERE 
 			owner_id = $1
 			AND state = $2
+			AND deleted_at IS NULL
 		ORDER BY created_at DESC
 		`,
 		uid,
@@ -405,7 +410,9 @@ func (r *Repository) updateJobRow(ctx context.Context, ec sqlx.ExtContext, row j
 			result_code = :result_code,
 			result_msg = :result_msg,
 			finished_at = :finished_at
-		WHERE id = :id
+		WHERE 
+			id = :id
+			AND deleted_at IS NULL
 		`,
 		row,
 	))
