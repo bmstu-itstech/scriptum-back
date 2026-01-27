@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -59,7 +60,17 @@ func (h RunJobHandler) Handle(ctx context.Context, job request.RunJob) error {
 			return job.Finish(res)
 		}
 
-		return job.Finish(res)
+		err = job.Finish(res)
+		if errors.Is(err, entity.ErrJobResultParseFailed) {
+			l.WarnContext(ctx2, "failed to parse job result", slog.String("error", err.Error()))
+			res = value.NewResult(-1).WithOutput(err.Error())
+			return job.Finish(res)
+		} else if err != nil {
+			l.ErrorContext(ctx2, "failed to finish job", slog.String("error", err.Error()))
+			return err
+		}
+
+		return nil
 	})
 	if err != nil {
 		l.ErrorContext(ctx, "failed to update job", slog.String("error", err.Error()))

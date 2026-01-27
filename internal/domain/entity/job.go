@@ -10,6 +10,7 @@ import (
 )
 
 var ErrInvalidJobStateChange = errors.New("invalid job state change")
+var ErrJobResultParseFailed = errors.New("job result parse failed")
 
 type Job struct {
 	id          value.JobID
@@ -65,14 +66,14 @@ func (j *Job) parseOutput(output string) ([]value.Value, error) {
 	lines := strings.Split(output, "\n")
 	lines = lines[:len(lines)-1]
 	if len(lines) != len(j.out) {
-		return nil, fmt.Errorf("failed to parse job out: expected %d lines, got %d", len(j.out), len(lines))
+		return nil, fmt.Errorf("%w: expected %d lines, got %d", ErrJobResultParseFailed, len(j.out), len(lines))
 	}
 	res := make([]value.Value, len(j.out))
 	for i, line := range lines {
 		field := j.out[i]
 		v, err := value.NewValue(field.Type(), line)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse job out line=%d: %w", i+1, err)
+			return nil, fmt.Errorf("%w: line=%d: %w", ErrJobResultParseFailed, i+1, err)
 		}
 		res[i] = v
 	}
