@@ -417,7 +417,33 @@ paths:
               schema:
                 $ref: '#/components/schemas/PlainError'
 
-  /user/{id}:
+  /users/me:
+    get:
+      operationId: getUserMe
+      tags:
+        - users
+      description: Возвращает информацию о текущем пользователе.
+      responses:
+        "200":
+          description: ОК.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetUserMeResponse'
+        "401":
+          description: Неавторизованный доступ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlainError'
+        "403":
+          description: Доступ запрещён для не-администраторов.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlainError'
+
+  /users/{id}:
     get:
       operationId: getUser
       tags:
@@ -433,11 +459,11 @@ paths:
           description: Уникальный ID пользователя.
       responses:
         "200":
+          description: ОК.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetUsersResponse'
-          description: ОК.
+                $ref: '#/components/schemas/GetUserResponse'
         "401":
           description: Неавторизованный доступ.
           content:
@@ -852,6 +878,12 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/User'
+
+    GetUserResponse:
+      $ref: '#/components/schemas/User'
+
+    GetUserMeResponse:
+      $ref: '#/components/schemas/User'
 
     CreateUserResponse:
       type: object

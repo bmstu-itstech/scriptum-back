@@ -293,6 +293,30 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request, id string) {
 	render.JSON(w, r, res)
 }
 
+func (s *Server) GetUserMe(w http.ResponseWriter, r *http.Request) {
+	uid, ok := jwtauth.FromContext(r.Context())
+	if !ok {
+		renderPlainError(w, r, ErrAuthorizationRequired, http.StatusUnauthorized)
+		return
+	}
+
+	user, err := s.app.Queries.GetUser.Handle(r.Context(), request.GetUser{ActorID: uid, UserID: uid})
+	if errors.Is(err, domain.ErrPermissionDenied) {
+		renderPlainError(w, r, err, http.StatusForbidden)
+		return
+	} else if errors.Is(err, ports.ErrUserNotFound) {
+		renderPlainError(w, r, err, http.StatusNotFound)
+		return
+	} else if err != nil {
+		renderInternalServerError(w, r)
+		return
+	}
+
+	res := userToAPI(user)
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
+}
+
 func (s *Server) GetUsers(w http.ResponseWriter, r *http.Request) {
 	uid, ok := jwtauth.FromContext(r.Context())
 	if !ok {

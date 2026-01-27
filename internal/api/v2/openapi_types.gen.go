@@ -96,6 +96,12 @@ type GetBlueprintsResponse = []Blueprint
 // GetJobsResponse defines model for GetJobsResponse.
 type GetJobsResponse = []Job
 
+// GetUserMeResponse defines model for GetUserMeResponse.
+type GetUserMeResponse = User
+
+// GetUserResponse defines model for GetUserResponse.
+type GetUserResponse = User
+
 // GetUsersResponse defines model for GetUsersResponse.
 type GetUsersResponse = []User
 
@@ -233,8 +239,8 @@ type StartJobJSONRequestBody = StartJobRequest
 // UploadFileMultipartRequestBody defines body for UploadFile for multipart/form-data ContentType.
 type UploadFileMultipartRequestBody UploadFileMultipartBody
 
-// PatchUserJSONRequestBody defines body for PatchUser for application/json ContentType.
-type PatchUserJSONRequestBody = PatchUserRequest
-
 // CreateUserJSONRequestBody defines body for CreateUser for application/json ContentType.
 type CreateUserJSONRequestBody = CreateUserRequest
+
+// PatchUserJSONRequestBody defines body for PatchUser for application/json ContentType.
+type PatchUserJSONRequestBody = PatchUserRequest
