@@ -144,14 +144,14 @@ func (r *Repository) softDeleteBlueprintRow(ctx context.Context, ec sqlx.ExecerC
 }
 
 func (r *Repository) softDeleteBlueprintJobRows(ctx context.Context, ec sqlx.ExecerContext, blueprintID string) error {
-	err := pgutils.RequireAffected(pgutils.Exec(ctx, ec, `
+	_, err := pgutils.Exec(ctx, ec, `
 		UPDATE job.jobs
 		SET
 			deleted_at = NOW()
 		WHERE id = $1
 		`,
 		blueprintID,
-	))
+	)
 	if err != nil {
 		return fmt.Errorf("failed to soft delete blueprint row: %w", err)
 	}
