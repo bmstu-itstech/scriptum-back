@@ -43,6 +43,9 @@ func (s *Server) StartJob(w http.ResponseWriter, r *http.Request, id string) {
 	if errors.As(err, &iiErr) {
 		renderInvalidInputError(w, r, iiErr, http.StatusBadRequest)
 		return
+	} else if errors.Is(err, ports.ErrBlueprintNotFound) {
+		renderPlainError(w, r, err, http.StatusNotFound)
+		return
 	} else if errors.Is(err, domain.ErrPermissionDenied) {
 		renderPlainError(w, r, err, http.StatusForbidden)
 		return

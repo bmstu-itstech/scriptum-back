@@ -38,7 +38,7 @@ func (h StartJobHandler) Handle(ctx context.Context, req request.StartJob) (stri
 
 	blueprint, err := h.bp.Blueprint(ctx, value.BlueprintID(req.BlueprintID))
 	if err != nil {
-		l.InfoContext(ctx, "blueprint not found")
+		l.WarnContext(ctx, "blueprint not found")
 		return "", err
 	}
 
