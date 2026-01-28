@@ -45,9 +45,6 @@ func (j *Job) Finish(res value.Result) error {
 			"%w: expected JobRunning -> JobFinished, got %s -> JobFinished", ErrInvalidJobStateChange, j.state.String(),
 		)
 	}
-	j.state = value.JobFinished
-	now := time.Now()
-	j.finishedAt = &now
 	if res.Code().IsSuccess() {
 		out, err := j.parseOutput(res.Output())
 		if err != nil {
@@ -59,6 +56,9 @@ func (j *Job) Finish(res value.Result) error {
 		jRes := value.NewFailureJobResult(res.Code(), res.Output())
 		j.result = &jRes
 	}
+	j.state = value.JobFinished
+	now := time.Now()
+	j.finishedAt = &now
 	return nil
 }
 
