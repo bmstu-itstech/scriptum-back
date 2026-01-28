@@ -55,7 +55,7 @@ func blueprintToAPI(b dto.Blueprint) Blueprint {
 	return Blueprint{
 		ArchiveID:  b.ArchiveID,
 		CreatedAt:  b.CreatedAt,
-		Desc:       b.Desc,
+		Desc:       nilOnNilOrEmpty(b.Desc),
 		Id:         b.ID,
 		In:         fieldsToAPI(b.In),
 		Name:       b.Name,
