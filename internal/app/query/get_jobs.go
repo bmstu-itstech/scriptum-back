@@ -36,7 +36,7 @@ func (h GetJobsHandler) Handle(ctx context.Context, req request.GetJobs) (respon
 		optState = &state
 	}
 
-	l.DebugContext(ctx, "querying job")
+	l.DebugContext(ctx, "querying jobs")
 
 	var jobs []*entity.Job
 	var err error
@@ -49,7 +49,7 @@ func (h GetJobsHandler) Handle(ctx context.Context, req request.GetJobs) (respon
 		l.ErrorContext(ctx, "failed to query jobs", slog.String("error", err.Error()))
 		return response.GetJobs{}, err
 	}
-	l.InfoContext(ctx, "got job", slog.Int("count", len(jobs)))
+	l.InfoContext(ctx, "got jobs", slog.Int("count", len(jobs)))
 
 	return dto.JobsToDTOs(jobs), nil
 }

@@ -45,6 +45,7 @@ func (h DeleteUserHandler) Handle(ctx context.Context, req request.DeleteUser) e
 		l.ErrorContext(ctx, "failed to delete user", slog.String("error", err.Error()))
 		return err
 	}
+	l.InfoContext(ctx, "successfully deleted user")
 
 	return nil
 }
