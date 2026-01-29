@@ -49,6 +49,7 @@ type Blueprint struct {
 	Name       string     `json:"name"`
 	Out        []Field    `json:"out"`
 	OwnerID    string     `json:"ownerID"`
+	OwnerName  string     `json:"ownerName"`
 	Visibility Visibility `json:"visibility"`
 }
 

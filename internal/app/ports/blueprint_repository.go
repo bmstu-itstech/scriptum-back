@@ -8,8 +8,7 @@ import (
 )
 
 type BlueprintRepository interface {
-	BlueprintProvider
-
+	Blueprint(ctx context.Context, id value.BlueprintID) (*entity.Blueprint, error)
 	SaveBlueprint(ctx context.Context, box *entity.Blueprint) error
 	DeleteBlueprint(ctx context.Context, id value.BlueprintID) error
 }

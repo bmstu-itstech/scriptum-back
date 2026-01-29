@@ -2,4 +2,4 @@ package response
 
 import "github.com/bmstu-itstech/scriptum-back/internal/app/dto"
 
-type GetBlueprint = dto.Blueprint
+type GetBlueprint = dto.BlueprintWithUser

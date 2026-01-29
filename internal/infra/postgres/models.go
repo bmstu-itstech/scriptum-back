@@ -12,6 +12,17 @@ type blueprintRow struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
+type blueprintWithUserRow struct {
+	ID        string    `db:"id"`
+	ArchiveID string    `db:"archive_id"`
+	Name      string    `db:"name"`
+	Desc      *string   `db:"desc"`
+	Vis       string    `db:"vis"`
+	OwnerID   string    `db:"owner_id"`
+	OwnerName string    `db:"owner_name"`
+	CreatedAt time.Time `db:"created_at"`
+}
+
 type blueprintFieldRow struct {
 	BlueprintID string  `db:"blueprint_id"`
 	Index       int     `db:"index"`

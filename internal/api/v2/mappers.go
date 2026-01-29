@@ -51,7 +51,7 @@ func fieldsToAPI(fs []dto.Field) []Field {
 	return res
 }
 
-func blueprintToAPI(b dto.Blueprint) Blueprint {
+func blueprintToAPI(b dto.BlueprintWithUser) Blueprint {
 	return Blueprint{
 		ArchiveID:  b.ArchiveID,
 		CreatedAt:  b.CreatedAt,
@@ -61,11 +61,12 @@ func blueprintToAPI(b dto.Blueprint) Blueprint {
 		Name:       b.Name,
 		Out:        fieldsToAPI(b.Out),
 		OwnerID:    b.OwnerID,
+		OwnerName:  b.OwnerName,
 		Visibility: Visibility(b.Visibility),
 	}
 }
 
-func blueprintsToAPI(bs []dto.Blueprint) []Blueprint {
+func blueprintsToAPI(bs []dto.BlueprintWithUser) []Blueprint {
 	res := make([]Blueprint, len(bs))
 	for i, v := range bs {
 		res[i] = blueprintToAPI(v)

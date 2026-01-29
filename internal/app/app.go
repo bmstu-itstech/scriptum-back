@@ -59,7 +59,7 @@ func NewApp(infra Infra, l *slog.Logger) *App {
 			DeleteUser:      command.NewDeleteUserHandler(infra.UserRepository, l),
 			Login:           command.NewLoginHandler(infra.UserProvider, infra.PasswordHasher, infra.TokenService, l),
 			RunJob:          command.NewRunJobHandler(infra.Runner, infra.JobRepository, infra.FileReader, l),
-			StartJob:        command.NewStartJobHandler(infra.BlueprintProvider, infra.JobRepository, infra.JobPublisher, l),
+			StartJob:        command.NewStartJobHandler(infra.BlueprintRepository, infra.JobRepository, infra.JobPublisher, l),
 			UpdateUser:      command.NewUpdateUserHandler(infra.UserRepository, infra.PasswordHasher, l),
 			UploadFile:      command.NewUploadFileHandler(infra.FileUploader, l),
 		},

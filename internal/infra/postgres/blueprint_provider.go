@@ -9,15 +9,15 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/zhikh23/pgutils"
 
+	"github.com/bmstu-itstech/scriptum-back/internal/app/dto"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/ports"
-	"github.com/bmstu-itstech/scriptum-back/internal/domain/entity"
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/value"
 )
 
-func (r *Repository) Blueprint(ctx context.Context, id value.BlueprintID) (*entity.Blueprint, error) {
-	var blueprint *entity.Blueprint
+func (r *Repository) BlueprintWithUser(ctx context.Context, id value.BlueprintID) (dto.BlueprintWithUser, error) {
+	var blueprint dto.BlueprintWithUser
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
-		rB, err := r.selectBlueprintRow(ctx, tx, string(id))
+		rB, err := r.selectBlueprintWithUserRow(ctx, tx, string(id))
 		if err != nil {
 			return err
 		}
@@ -29,25 +29,22 @@ func (r *Repository) Blueprint(ctx context.Context, id value.BlueprintID) (*enti
 		if err != nil {
 			return err
 		}
-		blueprint, err = blueprintRowToDomain(rB, rIn, rOut)
-		if err != nil {
-			return err
-		}
+		blueprint = blueprintWithUserRowToDTO(rB, rIn, rOut)
 		return nil
 	})
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, fmt.Errorf("%w: %s", ports.ErrBlueprintNotFound, string(id))
+		return dto.BlueprintWithUser{}, fmt.Errorf("%w: %s", ports.ErrBlueprintNotFound, string(id))
 	}
 	if err != nil {
-		return nil, err
+		return dto.BlueprintWithUser{}, err
 	}
 	return blueprint, nil
 }
 
-func (r *Repository) Blueprints(ctx context.Context, uid value.UserID) ([]*entity.Blueprint, error) {
-	blueprints := make([]*entity.Blueprint, 0)
+func (r *Repository) BlueprintsWithUsers(ctx context.Context, uid value.UserID) ([]dto.BlueprintWithUser, error) {
+	blueprints := make([]dto.BlueprintWithUser, 0)
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
-		rBs, err := r.selectPublicAndUserBlueprintRows(ctx, tx, string(uid))
+		rBs, err := r.selectPublicAndUserBlueprintWithUserRows(ctx, tx, string(uid))
 		if err != nil {
 			return err
 		}
@@ -60,10 +57,7 @@ func (r *Repository) Blueprints(ctx context.Context, uid value.UserID) ([]*entit
 			if err2 != nil {
 				return err2
 			}
-			blueprint, err2 := blueprintRowToDomain(rB, rIn, rOut)
-			if err2 != nil {
-				return err2
-			}
+			blueprint := blueprintWithUserRowToDTO(rB, rIn, rOut)
 			blueprints = append(blueprints, blueprint)
 		}
 		return nil
@@ -74,10 +68,10 @@ func (r *Repository) Blueprints(ctx context.Context, uid value.UserID) ([]*entit
 	return blueprints, nil
 }
 
-func (r *Repository) SearchBlueprints(ctx context.Context, uid value.UserID, name string) ([]*entity.Blueprint, error) {
-	blueprints := make([]*entity.Blueprint, 0)
+func (r *Repository) SearchBlueprintsWithUsers(ctx context.Context, uid value.UserID, name string) ([]dto.BlueprintWithUser, error) {
+	blueprints := make([]dto.BlueprintWithUser, 0)
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
-		rBs, err := r.selectPublicAndUserBlueprintByNameRows(ctx, tx, string(uid), name)
+		rBs, err := r.selectPublicAndUserBlueprintWithUserByNameRows(ctx, tx, string(uid), name)
 		if err != nil {
 			return err
 		}
@@ -90,10 +84,7 @@ func (r *Repository) SearchBlueprints(ctx context.Context, uid value.UserID, nam
 			if err2 != nil {
 				return err2
 			}
-			blueprint, err2 := blueprintRowToDomain(rB, rIn, rOut)
-			if err2 != nil {
-				return err2
-			}
+			blueprint := blueprintWithUserRowToDTO(rB, rIn, rOut)
 			blueprints = append(blueprints, blueprint)
 		}
 		return nil

@@ -13,19 +13,19 @@ import (
 )
 
 type StartJobHandler struct {
-	bp ports.BlueprintProvider
+	br ports.BlueprintRepository
 	jr ports.JobRepository
 	jp ports.JobPublisher
 	l  *slog.Logger
 }
 
 func NewStartJobHandler(
-	bp ports.BlueprintProvider,
+	br ports.BlueprintRepository,
 	jr ports.JobRepository,
 	jp ports.JobPublisher,
 	l *slog.Logger,
 ) StartJobHandler {
-	return StartJobHandler{bp, jr, jp, l}
+	return StartJobHandler{br, jr, jp, l}
 }
 
 func (h StartJobHandler) Handle(ctx context.Context, req request.StartJob) (string, error) {
@@ -36,7 +36,7 @@ func (h StartJobHandler) Handle(ctx context.Context, req request.StartJob) (stri
 	)
 	l.DebugContext(ctx, "starting job", "input", fmt.Sprintf("%+v", req.Values))
 
-	blueprint, err := h.bp.Blueprint(ctx, value.BlueprintID(req.BlueprintID))
+	blueprint, err := h.br.Blueprint(ctx, value.BlueprintID(req.BlueprintID))
 	if err != nil {
 		l.WarnContext(ctx, "blueprint not found")
 		return "", err

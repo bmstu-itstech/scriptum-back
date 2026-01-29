@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 
@@ -12,6 +13,36 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/entity"
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/value"
 )
+
+func (r *Repository) Blueprint(ctx context.Context, id value.BlueprintID) (*entity.Blueprint, error) {
+	var blueprint *entity.Blueprint
+	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
+		rB, err := r.selectBlueprintRow(ctx, tx, string(id))
+		if err != nil {
+			return err
+		}
+		rIn, err := r.selectBlueprintInputFieldRows(ctx, tx, string(id))
+		if err != nil {
+			return err
+		}
+		rOut, err := r.selectBlueprintOutputFieldRows(ctx, tx, string(id))
+		if err != nil {
+			return err
+		}
+		blueprint, err = blueprintRowToDomain(rB, rIn, rOut)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w: %s", ports.ErrBlueprintNotFound, string(id))
+	}
+	if err != nil {
+		return nil, err
+	}
+	return blueprint, nil
+}
 
 func (r *Repository) SaveBlueprint(ctx context.Context, blueprint *entity.Blueprint) error {
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {

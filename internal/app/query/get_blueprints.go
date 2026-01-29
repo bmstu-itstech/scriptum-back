@@ -4,7 +4,6 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/bmstu-itstech/scriptum-back/internal/app/dto"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/dto/request"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/dto/response"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/ports"
@@ -27,12 +26,12 @@ func (h GetBlueprintsHandler) Handle(ctx context.Context, req request.GetBluepri
 	)
 
 	l.DebugContext(ctx, "querying blueprints")
-	bs, err := h.bp.Blueprints(ctx, value.UserID(req.ActorID))
+	bs, err := h.bp.BlueprintsWithUsers(ctx, value.UserID(req.ActorID))
 	if err != nil {
 		l.ErrorContext(ctx, "failed to query blueprints", slog.String("error", err.Error()))
 		return nil, err
 	}
 	l.InfoContext(ctx, "got blueprints", slog.Int("count", len(bs)))
 
-	return dto.BlueprintsToDTOs(bs), nil
+	return bs, nil
 }

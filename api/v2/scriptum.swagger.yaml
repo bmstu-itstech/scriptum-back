@@ -604,8 +604,6 @@ components:
       properties:
         id:
           type: string
-        ownerID:
-          type: string
         archiveID:
           type: string
         name:
@@ -622,18 +620,23 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Field'
+        ownerID:
+          type: string
+        ownerName:
+          type: string
         createdAt:
           type: string
           format: date-time
           example: 2025-31-01T23:59:59.01Z
       required:
         - id
-        - ownerID
         - archiveID
         - name
         - visibility
         - in
         - out
+        - ownerID
+        - ownerName
         - createdAt
 
     Value:

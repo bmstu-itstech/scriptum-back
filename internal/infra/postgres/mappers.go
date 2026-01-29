@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"github.com/bmstu-itstech/scriptum-back/internal/app/dto"
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/entity"
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/value"
 )
@@ -23,6 +24,23 @@ func blueprintFieldRowsToDomain(rows []blueprintFieldRow) ([]value.Field, error)
 		res[i] = r
 	}
 	return res, nil
+}
+
+func blueprintFieldTowToDTO(r blueprintFieldRow) dto.Field {
+	return dto.Field{
+		Type: r.Type,
+		Name: r.Name,
+		Desc: r.Desc,
+		Unit: r.Unit,
+	}
+}
+
+func blueprintFieldRowsToDTO(rs []blueprintFieldRow) []dto.Field {
+	res := make([]dto.Field, len(rs))
+	for i, r := range rs {
+		res[i] = blueprintFieldTowToDTO(r)
+	}
+	return res
 }
 
 func blueprintRowToDomain(rB blueprintRow, rInput []blueprintFieldRow, rOutput []blueprintFieldRow) (*entity.Blueprint, error) {
@@ -49,6 +67,23 @@ func blueprintRowToDomain(rB blueprintRow, rInput []blueprintFieldRow, rOutput [
 		out,
 		rB.CreatedAt,
 	)
+}
+
+func blueprintWithUserRowToDTO(rB blueprintWithUserRow, rInput []blueprintFieldRow, rOutput []blueprintFieldRow) dto.BlueprintWithUser {
+	in := blueprintFieldRowsToDTO(rInput)
+	out := blueprintFieldRowsToDTO(rOutput)
+	return dto.BlueprintWithUser{
+		ID:         rB.ID,
+		ArchiveID:  rB.ArchiveID,
+		Name:       rB.Name,
+		Desc:       rB.Desc,
+		Visibility: rB.Vis,
+		In:         in,
+		Out:        out,
+		OwnerID:    rB.OwnerID,
+		OwnerName:  rB.OwnerName,
+		CreatedAt:  rB.CreatedAt,
+	}
 }
 
 func blueprintFieldRowsFromDomain(fields []value.Field, blueprintID value.BlueprintID) []blueprintFieldRow {

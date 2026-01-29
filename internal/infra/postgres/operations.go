@@ -32,24 +32,56 @@ func (r *Repository) selectBlueprintRow(ctx context.Context, qc sqlx.QueryerCont
 	return row, nil
 }
 
-func (r *Repository) selectPublicAndUserBlueprintRows(
+func (r *Repository) selectBlueprintWithUserRow(ctx context.Context, qc sqlx.QueryerContext, blueprintID string) (blueprintWithUserRow, error) {
+	var row blueprintWithUserRow
+	err := pgutils.Get(ctx, qc, &row, `
+		SELECT
+			b.id,
+			b.archive_id,
+			b.name,
+			b."desc",
+			b.vis,
+			b.owner_id,
+			u.name AS owner_name,
+			b.created_at
+		FROM blueprint.blueprints b
+		LEFT JOIN users u
+			ON u.id = b.owner_id
+			AND u.deleted_at IS NULL
+		WHERE 
+			b.id = $1
+			AND b.deleted_at IS NULL
+		`,
+		blueprintID,
+	)
+	if err != nil {
+		return blueprintWithUserRow{}, fmt.Errorf("select blueprint with user row: %w", err)
+	}
+	return row, nil
+}
+
+func (r *Repository) selectPublicAndUserBlueprintWithUserRows(
 	ctx context.Context,
 	qc sqlx.QueryerContext,
 	userID string,
-) ([]blueprintRow, error) {
-	var rows []blueprintRow
+) ([]blueprintWithUserRow, error) {
+	var rows []blueprintWithUserRow
 	err := pgutils.Select(ctx, qc, &rows, `
 		SELECT
-			id,
-			owner_id,
-			archive_id,
-			name,
-			"desc",
-			vis,
-			created_at
-		FROM blueprint.blueprints
+			b.id,
+			b.archive_id,
+			b.name,
+			b."desc",
+			b.vis,
+			b.owner_id,
+			u.name AS owner_name,
+			b.created_at
+		FROM blueprint.blueprints b
+		LEFT JOIN users u
+			ON u.id = b.owner_id
+			AND u.deleted_at IS NULL
 		WHERE
-			deleted_at IS NULL
+			b.deleted_at IS NULL
 			AND (
 			    vis = 'public'
 			    OR owner_id = $1
@@ -64,26 +96,30 @@ func (r *Repository) selectPublicAndUserBlueprintRows(
 	return rows, nil
 }
 
-func (r *Repository) selectPublicAndUserBlueprintByNameRows(
+func (r *Repository) selectPublicAndUserBlueprintWithUserByNameRows(
 	ctx context.Context,
 	qc sqlx.QueryerContext,
 	userID string,
 	name string,
-) ([]blueprintRow, error) {
-	var rows []blueprintRow
+) ([]blueprintWithUserRow, error) {
+	var rows []blueprintWithUserRow
 	err := pgutils.Select(ctx, qc, &rows, `
 		SELECT
-			id,
-			owner_id,
-			archive_id,
-			name,
-			"desc",
-			vis,
-			created_at
-		FROM blueprint.blueprints
+			b.id,
+			b.archive_id,
+			b.name,
+			b."desc",
+			b.vis,
+			b.owner_id,
+			u.name AS owner_name,
+			b.created_at
+		FROM blueprint.blueprints b
+		LEFT JOIN users u
+			ON u.id = b.owner_id
+			AND u.deleted_at IS NULL
 		WHERE
-			deleted_at IS NULL
-			AND name ILIKE $2
+			b.deleted_at IS NULL
+			AND b.name ILIKE $2
 			AND (
 			    vis = 'public'
 			    OR owner_id = $1
@@ -94,7 +130,7 @@ func (r *Repository) selectPublicAndUserBlueprintByNameRows(
 		"%"+name+"%",
 	)
 	if err != nil {
-		return nil, fmt.Errorf("select public and user blueprint rows: %w", err)
+		return nil, fmt.Errorf("select public and user blueprint with user rows: %w", err)
 	}
 	return rows, nil
 }

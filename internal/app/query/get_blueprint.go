@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log/slog"
 
-	"github.com/bmstu-itstech/scriptum-back/internal/app/dto"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/dto/request"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/dto/response"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/ports"
@@ -30,7 +29,7 @@ func (h GetBlueprintHandler) Handle(ctx context.Context, req request.GetBlueprin
 	)
 
 	l.DebugContext(ctx, "querying blueprint")
-	blueprint, err := h.bp.Blueprint(ctx, value.BlueprintID(req.BlueprintID))
+	blueprint, err := h.bp.BlueprintWithUser(ctx, value.BlueprintID(req.BlueprintID))
 	if err != nil {
 		if errors.Is(err, ports.ErrBlueprintNotFound) {
 			l.WarnContext(ctx, "blueprint not found")
@@ -40,11 +39,11 @@ func (h GetBlueprintHandler) Handle(ctx context.Context, req request.GetBlueprin
 		return response.GetBlueprint{}, err
 	}
 
-	if !blueprint.IsAvailableFor(value.UserID(req.ActorID)) {
-		l.WarnContext(ctx, "user can't see the blueprint", slog.String("owner_id", string(blueprint.OwnerID())))
+	if blueprint.Visibility != value.VisibilityPublic.String() && blueprint.OwnerID != req.ActorID {
+		l.WarnContext(ctx, "user can't see the blueprint", slog.String("owner_id", blueprint.OwnerID))
 		return response.GetBlueprint{}, domain.ErrPermissionDenied
 	}
 	l.InfoContext(ctx, "got blueprint")
 
-	return dto.BlueprintToDTO(blueprint), nil
+	return blueprint, nil
 }
