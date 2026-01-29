@@ -15,21 +15,24 @@ import (
 )
 
 func (r *Repository) BlueprintWithUser(ctx context.Context, id value.BlueprintID) (dto.BlueprintWithUser, error) {
-	var blueprint dto.BlueprintWithUser
+	var rB blueprintWithUserRow
+	var rIs []blueprintFieldRow
+	var rOs []blueprintFieldRow
+
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
-		rB, err := r.selectBlueprintWithUserRow(ctx, tx, string(id))
+		var err error
+		rB, err = r.selectBlueprintWithUserRow(ctx, tx, string(id))
 		if err != nil {
 			return err
 		}
-		rIn, err := r.selectBlueprintInputFieldRows(ctx, tx, string(id))
+		rIs, err = r.selectBlueprintInputFieldRows(ctx, tx, string(id))
 		if err != nil {
 			return err
 		}
-		rOut, err := r.selectBlueprintOutputFieldRows(ctx, tx, string(id))
+		rOs, err = r.selectBlueprintOutputFieldRows(ctx, tx, string(id))
 		if err != nil {
 			return err
 		}
-		blueprint = blueprintWithUserRowToDTO(rB, rIn, rOut)
 		return nil
 	})
 	if errors.Is(err, sql.ErrNoRows) {
@@ -38,59 +41,82 @@ func (r *Repository) BlueprintWithUser(ctx context.Context, id value.BlueprintID
 	if err != nil {
 		return dto.BlueprintWithUser{}, err
 	}
-	return blueprint, nil
+
+	return blueprintWithUserRowToDTO(rB, rIs, rOs), nil
 }
 
 func (r *Repository) BlueprintsWithUsers(ctx context.Context, uid value.UserID) ([]dto.BlueprintWithUser, error) {
-	blueprints := make([]dto.BlueprintWithUser, 0)
+	var rBs []blueprintWithUserRow
+	var rIs map[string][]blueprintFieldRow
+	var rOs map[string][]blueprintFieldRow
+
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
-		rBs, err := r.selectPublicAndUserBlueprintWithUserRows(ctx, tx, string(uid))
+		var err error
+		rBs, err = r.selectPublicAndUserBlueprintWithUserRows(ctx, tx, string(uid))
 		if err != nil {
 			return err
 		}
-		for _, rB := range rBs {
-			rIn, err2 := r.selectBlueprintInputFieldRows(ctx, tx, rB.ID)
-			if err2 != nil {
-				return err2
-			}
-			rOut, err2 := r.selectBlueprintOutputFieldRows(ctx, tx, rB.ID)
-			if err2 != nil {
-				return err2
-			}
-			blueprint := blueprintWithUserRowToDTO(rB, rIn, rOut)
-			blueprints = append(blueprints, blueprint)
+		ids := idsFromBlueprints(rBs)
+		rIs, err = r.selectBlueprintsInputFieldRows(ctx, tx, ids)
+		if err != nil {
+			return err
+		}
+		rOs, err = r.selectBlueprintsOutputFieldRows(ctx, tx, ids)
+		if err != nil {
+			return err
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return blueprints, nil
+
+	bs := make([]dto.BlueprintWithUser, len(rBs))
+	for i, rB := range rBs {
+		bs[i] = blueprintWithUserRowToDTO(rB, rIs[rB.ID], rOs[rB.ID])
+	}
+
+	return bs, nil
 }
 
 func (r *Repository) SearchBlueprintsWithUsers(ctx context.Context, uid value.UserID, name string) ([]dto.BlueprintWithUser, error) {
-	blueprints := make([]dto.BlueprintWithUser, 0)
+	var rBs []blueprintWithUserRow
+	var rIs map[string][]blueprintFieldRow
+	var rOs map[string][]blueprintFieldRow
+
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
-		rBs, err := r.selectPublicAndUserBlueprintWithUserByNameRows(ctx, tx, string(uid), name)
+		var err error
+		rBs, err = r.selectPublicAndUserBlueprintWithUserByNameRows(ctx, tx, string(uid), name)
 		if err != nil {
 			return err
 		}
-		for _, rB := range rBs {
-			rIn, err2 := r.selectBlueprintInputFieldRows(ctx, tx, rB.ID)
-			if err2 != nil {
-				return err2
-			}
-			rOut, err2 := r.selectBlueprintOutputFieldRows(ctx, tx, rB.ID)
-			if err2 != nil {
-				return err2
-			}
-			blueprint := blueprintWithUserRowToDTO(rB, rIn, rOut)
-			blueprints = append(blueprints, blueprint)
+		ids := idsFromBlueprints(rBs)
+		rIs, err = r.selectBlueprintsInputFieldRows(ctx, tx, ids)
+		if err != nil {
+			return err
+		}
+		rOs, err = r.selectBlueprintsOutputFieldRows(ctx, tx, ids)
+		if err != nil {
+			return err
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return blueprints, nil
+
+	bs := make([]dto.BlueprintWithUser, len(rBs))
+	for i, rB := range rBs {
+		bs[i] = blueprintWithUserRowToDTO(rB, rIs[rB.ID], rOs[rB.ID])
+	}
+
+	return bs, nil
+}
+
+func idsFromBlueprints(bRs []blueprintWithUserRow) []string {
+	res := make([]string, len(bRs))
+	for i, bR := range bRs {
+		res[i] = bR.ID
+	}
+	return res
 }

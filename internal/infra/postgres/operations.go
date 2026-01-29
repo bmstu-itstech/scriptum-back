@@ -220,6 +220,47 @@ func (r *Repository) selectBlueprintInputFieldRows(
 	return rows, nil
 }
 
+func (r *Repository) selectBlueprintsInputFieldRows(
+	ctx context.Context,
+	qc sqlx.QueryerContext,
+	blueprintIDs []string,
+) (map[string][]blueprintFieldRow, error) {
+	var rows []blueprintFieldRow
+	query, args, err := sqlx.In(`
+		SELECT
+			blueprint_id, 
+			index, 
+			type, 
+			name, 
+			"desc", 
+			unit
+		FROM blueprint.input_fields
+		WHERE
+			blueprint_id IN (?)
+		ORDER BY index
+		`,
+		blueprintIDs,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("sqlx.In: %w", err)
+	}
+	query = r.db.Rebind(query)
+	err = pgutils.Select(ctx, qc, &rows, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("pgutils.Select: %w", err)
+	}
+	return mapFieldRows(rows), nil
+}
+
+func mapFieldRows(bs []blueprintFieldRow) map[string][]blueprintFieldRow {
+	m := make(map[string][]blueprintFieldRow)
+	for _, row := range bs {
+		key := row.BlueprintID
+		m[key] = append(m[key], row)
+	}
+	return m
+}
+
 func (r *Repository) insertBlueprintInputFieldRows(
 	ctx context.Context,
 	ec sqlx.ExtContext,
@@ -275,6 +316,38 @@ func (r *Repository) selectBlueprintOutputFieldRows(
 		return nil, fmt.Errorf("select blueprint output fields rows: %w", err)
 	}
 	return rows, nil
+}
+
+func (r *Repository) selectBlueprintsOutputFieldRows(
+	ctx context.Context,
+	qc sqlx.QueryerContext,
+	blueprintIDs []string,
+) (map[string][]blueprintFieldRow, error) {
+	var rows []blueprintFieldRow
+	query, args, err := sqlx.In(`
+		SELECT
+			blueprint_id, 
+			index, 
+			type, 
+			name, 
+			"desc", 
+			unit
+		FROM blueprint.output_fields
+		WHERE
+			blueprint_id IN (?)
+		ORDER BY index
+		`,
+		blueprintIDs,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("sqlx.In: %w", err)
+	}
+	query = r.db.Rebind(query)
+	err = pgutils.Select(ctx, qc, &rows, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("pgutils.Select: %w", err)
+	}
+	return mapFieldRows(rows), nil
 }
 
 func (r *Repository) insertBlueprintOutputFieldRows(

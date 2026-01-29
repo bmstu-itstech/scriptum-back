@@ -15,21 +15,21 @@ import (
 )
 
 func (r *Repository) Blueprint(ctx context.Context, id value.BlueprintID) (*entity.Blueprint, error) {
-	var blueprint *entity.Blueprint
+	var rB blueprintRow
+	var rIs []blueprintFieldRow
+	var rOs []blueprintFieldRow
+
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
-		rB, err := r.selectBlueprintRow(ctx, tx, string(id))
+		var err error
+		rB, err = r.selectBlueprintRow(ctx, tx, string(id))
 		if err != nil {
 			return err
 		}
-		rIn, err := r.selectBlueprintInputFieldRows(ctx, tx, string(id))
+		rIs, err = r.selectBlueprintInputFieldRows(ctx, tx, string(id))
 		if err != nil {
 			return err
 		}
-		rOut, err := r.selectBlueprintOutputFieldRows(ctx, tx, string(id))
-		if err != nil {
-			return err
-		}
-		blueprint, err = blueprintRowToDomain(rB, rIn, rOut)
+		rOs, err = r.selectBlueprintOutputFieldRows(ctx, tx, string(id))
 		if err != nil {
 			return err
 		}
@@ -41,7 +41,8 @@ func (r *Repository) Blueprint(ctx context.Context, id value.BlueprintID) (*enti
 	if err != nil {
 		return nil, err
 	}
-	return blueprint, nil
+
+	return blueprintRowToDomain(rB, rIs, rOs)
 }
 
 func (r *Repository) SaveBlueprint(ctx context.Context, blueprint *entity.Blueprint) error {
