@@ -8,7 +8,6 @@ import (
 	"github.com/bmstu-itstech/scriptum-back/internal/app/dto/request"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/dto/response"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/ports"
-	"github.com/bmstu-itstech/scriptum-back/internal/domain/entity"
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/value"
 )
 
@@ -38,7 +37,7 @@ func (h GetJobsHandler) Handle(ctx context.Context, req request.GetJobs) (respon
 
 	l.DebugContext(ctx, "querying jobs")
 
-	var jobs []*entity.Job
+	var jobs []dto.Job
 	var err error
 	if optState == nil {
 		jobs, err = h.jp.UserJobs(ctx, value.UserID(req.ActorID))
@@ -51,5 +50,5 @@ func (h GetJobsHandler) Handle(ctx context.Context, req request.GetJobs) (respon
 	}
 	l.InfoContext(ctx, "got jobs", slog.Int("count", len(jobs)))
 
-	return dto.JobsToDTOs(jobs), nil
+	return jobs, nil
 }

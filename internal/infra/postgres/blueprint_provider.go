@@ -113,9 +113,9 @@ func (r *Repository) SearchBlueprintsWithUsers(ctx context.Context, uid value.Us
 	return bs, nil
 }
 
-func idsFromBlueprints(bRs []blueprintWithUserRow) []string {
-	res := make([]string, len(bRs))
-	for i, bR := range bRs {
+func idsFromBlueprints(rBs []blueprintWithUserRow) []string {
+	res := make([]string, len(rBs))
+	for i, bR := range rBs {
 		res[i] = bR.ID
 	}
 	return res

@@ -74,35 +74,21 @@ func blueprintsToAPI(bs []dto.BlueprintWithUser) []Blueprint {
 	return res
 }
 
-func jobResultToAPI(jr dto.JobResult) JobResult {
-	return JobResult{
-		Code:    jr.Code,
-		Message: jr.Message,
-		Output:  valuesToAPI(jr.Output),
-	}
-}
-
-func jobResultToAPIOrNil(jrOpt *dto.JobResult) *JobResult {
-	if jrOpt == nil {
-		return nil
-	}
-	jr := jobResultToAPI(*jrOpt)
-	return &jr
-}
-
 func jobToAPI(j dto.Job) Job {
 	return Job{
-		ArchiveID:   j.ArchiveID,
-		BlueprintID: j.BlueprintID,
-		CreatedAt:   j.CreatedAt,
-		FinishedAt:  j.FinishedAt,
-		Id:          j.ID,
-		Input:       valuesToAPI(j.Input),
-		Out:         fieldsToAPI(j.Out),
-		OwnerID:     j.OwnerID,
-		Result:      jobResultToAPIOrNil(j.Result),
-		StartedAt:   j.StartedAt,
-		State:       JobState(j.State),
+		BlueprintID:   j.BlueprintID,
+		BlueprintName: j.BlueprintName,
+		CreatedAt:     j.CreatedAt,
+		FinishedAt:    j.FinishedAt,
+		Id:            j.ID,
+		In:            fieldsToAPI(j.In),
+		Input:         valuesToAPI(j.Input),
+		Out:           fieldsToAPI(j.Out),
+		Output:        valuesToAPI(j.Output),
+		ResultCode:    j.ResultCode,
+		ResultMsg:     j.ResultMsg,
+		StartedAt:     j.StartedAt,
+		State:         JobState(j.State),
 	}
 }
 

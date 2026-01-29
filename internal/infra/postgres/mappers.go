@@ -192,6 +192,51 @@ func jobRowToDomain(
 	)
 }
 
+func jobFieldsToDTOs(rs []jobFieldRow) []dto.Field {
+	res := make([]dto.Field, len(rs))
+	for i, r := range rs {
+		res[i] = dto.Field{
+			Type: r.Type,
+			Name: r.Name,
+			Desc: r.Desc,
+			Unit: r.Unit,
+		}
+	}
+	return res
+}
+
+func jobValuesToDTOs(rs []jobValueRow) []dto.Value {
+	res := make([]dto.Value, len(rs))
+	for i, r := range rs {
+		res[i] = dto.Value{
+			Type:  r.Type,
+			Value: r.Value,
+		}
+	}
+	return res
+}
+
+func readJobRowToDTO(
+	rJ readJobRow, rIFs []jobFieldRow, rOSs []jobFieldRow, rIVs []jobValueRow, rOVs []jobValueRow,
+) dto.Job {
+	return dto.Job{
+		ID:            rJ.ID,
+		OwnerID:       rJ.OwnerID,
+		BlueprintID:   rJ.BlueprintID,
+		BlueprintName: rJ.BlueprintName,
+		State:         rJ.State,
+		In:            jobFieldsToDTOs(rIFs),
+		Out:           jobFieldsToDTOs(rOSs),
+		Input:         jobValuesToDTOs(rIVs),
+		Output:        jobValuesToDTOs(rOVs),
+		ResultCode:    rJ.ResultCode,
+		ResultMsg:     rJ.ResultMsg,
+		CreatedAt:     rJ.CreatedAt,
+		StartedAt:     rJ.StartedAt,
+		FinishedAt:    rJ.FinishedAt,
+	}
+}
+
 func userRowFromDomain(u *entity.User) userRow {
 	return userRow{
 		ID:        string(u.ID()),

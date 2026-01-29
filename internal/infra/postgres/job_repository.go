@@ -74,6 +74,30 @@ func (r *Repository) UpdateJob(
 	return err
 }
 
+func (r *Repository) job(ctx context.Context, qc sqlx.QueryerContext, id value.JobID) (*entity.Job, error) {
+	rJob, err := r.selectJobRow(ctx, qc, string(id))
+	if err != nil {
+		return nil, err
+	}
+	rInput, err := r.selectJobInputValueRows(ctx, qc, string(id))
+	if err != nil {
+		return nil, err
+	}
+	rOutput, err := r.selectJobOutputValueRows(ctx, qc, string(id))
+	if err != nil {
+		return nil, err
+	}
+	rOut, err := r.selectJobOutputFieldRows(ctx, qc, string(id))
+	if err != nil {
+		return nil, err
+	}
+	job, err := jobRowToDomain(rJob, rInput, rOutput, rOut)
+	if err != nil {
+		return nil, err
+	}
+	return job, nil
+}
+
 func (r *Repository) updateJob(ctx context.Context, ec sqlx.ExtContext, job *entity.Job) error {
 	rJob := jobRowFromDomain(job)
 	if err := r.updateJobRow(ctx, ec, rJob); err != nil {

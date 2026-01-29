@@ -656,64 +656,61 @@ components:
         - running
         - finished
 
-    JobResult:
-      type: object
-      properties:
-        code:
-          type: integer
-        output:
-          type: array
-          items:
-            $ref: '#/components/schemas/Value'
-        message:
-          type: string
-      required:
-        - code
-        - output
-
     Job:
       type: object
       properties:
         id:
           type: string
+        ownerID:
+          type: string
         blueprintID:
           type: string
-        archiveID:
-          type: string
-        ownerID:
+        blueprintName:
           type: string
         state:
           $ref: '#/components/schemas/JobState'
-        input:
+        in:
           type: array
           items:
-            $ref: '#/components/schemas/Value'
+            $ref: '#/components/schemas/Field'
         out:
           type: array
           items:
             $ref: '#/components/schemas/Field'
+        input:
+          type: array
+          items:
+            $ref: '#/components/schemas/Value'
+        output:
+          type: array
+          items:
+            $ref: '#/components/schemas/Value'
         createdAt:
           type: string
           format: date-time
           example: 2025-31-01T23:59:59.01Z
+        resultCode:
+          type: integer
+        resultMsg:
+          type: string
         startedAt:
           type: string
           format: date-time
           example: 2025-31-01T23:59:59.01Z
-        result:
-          $ref: '#/components/schemas/JobResult'
         finishedAt:
           type: string
           format: date-time
           example: 2025-31-01T23:59:59.01Z
       required:
         - id
-        - blueprintID
-        - archiveID
         - ownerID
+        - blueprintID
+        - blueprintName
         - state
-        - input
+        - in
         - out
+        - input
+        - output
         - createdAt
 
     Role:

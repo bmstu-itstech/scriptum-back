@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log/slog"
 
-	"github.com/bmstu-itstech/scriptum-back/internal/app/dto"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/dto/request"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/dto/response"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/ports"
@@ -40,11 +39,11 @@ func (h GetJobHandler) Handle(ctx context.Context, req request.GetJob) (response
 		return response.GetJob{}, err
 	}
 
-	if job.OwnerID() != value.UserID(req.ActorID) {
-		l.WarnContext(ctx, "user does not own job", slog.String("owner_id", string(job.OwnerID())))
+	if job.OwnerID != req.ActorID {
+		l.WarnContext(ctx, "user does not own job", slog.String("owner_id", job.OwnerID))
 		return response.GetJob{}, domain.ErrPermissionDenied
 	}
-	l.InfoContext(ctx, "got job", slog.String("state", job.State().String()))
+	l.InfoContext(ctx, "got job", slog.String("state", job.State))
 
-	return dto.JobToDTO(job), nil
+	return job, nil
 }

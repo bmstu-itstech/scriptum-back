@@ -117,24 +117,20 @@ type InvalidInputError struct {
 
 // Job defines model for Job.
 type Job struct {
-	ArchiveID   string     `json:"archiveID"`
-	BlueprintID string     `json:"blueprintID"`
-	CreatedAt   time.Time  `json:"createdAt"`
-	FinishedAt  *time.Time `json:"finishedAt,omitempty"`
-	Id          string     `json:"id"`
-	Input       []Value    `json:"input"`
-	Out         []Field    `json:"out"`
-	OwnerID     string     `json:"ownerID"`
-	Result      *JobResult `json:"result,omitempty"`
-	StartedAt   *time.Time `json:"startedAt,omitempty"`
-	State       JobState   `json:"state"`
-}
-
-// JobResult defines model for JobResult.
-type JobResult struct {
-	Code    int     `json:"code"`
-	Message *string `json:"message,omitempty"`
-	Output  []Value `json:"output"`
+	BlueprintID   string     `json:"blueprintID"`
+	BlueprintName string     `json:"blueprintName"`
+	CreatedAt     time.Time  `json:"createdAt"`
+	FinishedAt    *time.Time `json:"finishedAt,omitempty"`
+	Id            string     `json:"id"`
+	In            []Field    `json:"in"`
+	Input         []Value    `json:"input"`
+	Out           []Field    `json:"out"`
+	Output        []Value    `json:"output"`
+	OwnerID       string     `json:"ownerID"`
+	ResultCode    *int       `json:"resultCode,omitempty"`
+	ResultMsg     *string    `json:"resultMsg,omitempty"`
+	StartedAt     *time.Time `json:"startedAt,omitempty"`
+	State         JobState   `json:"state"`
 }
 
 // JobState defines model for JobState.

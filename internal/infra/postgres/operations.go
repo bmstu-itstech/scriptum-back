@@ -225,7 +225,6 @@ func (r *Repository) selectBlueprintsInputFieldRows(
 	qc sqlx.QueryerContext,
 	blueprintIDs []string,
 ) (map[string][]blueprintFieldRow, error) {
-	var rows []blueprintFieldRow
 	query, args, err := sqlx.In(`
 		SELECT
 			blueprint_id, 
@@ -245,14 +244,16 @@ func (r *Repository) selectBlueprintsInputFieldRows(
 		return nil, fmt.Errorf("sqlx.In: %w", err)
 	}
 	query = r.db.Rebind(query)
+
+	var rows []blueprintFieldRow
 	err = pgutils.Select(ctx, qc, &rows, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("pgutils.Select: %w", err)
 	}
-	return mapFieldRows(rows), nil
+	return mapBlueprintFieldRows(rows), nil
 }
 
-func mapFieldRows(bs []blueprintFieldRow) map[string][]blueprintFieldRow {
+func mapBlueprintFieldRows(bs []blueprintFieldRow) map[string][]blueprintFieldRow {
 	m := make(map[string][]blueprintFieldRow)
 	for _, row := range bs {
 		key := row.BlueprintID
@@ -347,7 +348,7 @@ func (r *Repository) selectBlueprintsOutputFieldRows(
 	if err != nil {
 		return nil, fmt.Errorf("pgutils.Select: %w", err)
 	}
-	return mapFieldRows(rows), nil
+	return mapBlueprintFieldRows(rows), nil
 }
 
 func (r *Repository) insertBlueprintOutputFieldRows(
@@ -408,28 +409,58 @@ func (r *Repository) selectJobRow(ctx context.Context, qc sqlx.QueryerContext, j
 	return row, nil
 }
 
-func (r *Repository) selectUserJobRows(
+func (r *Repository) selectReadJobRow(ctx context.Context, qc sqlx.QueryerContext, jobID string) (readJobRow, error) {
+	var row readJobRow
+	err := pgutils.Get(ctx, qc, &row, `
+		SELECT
+			j.id, 
+			j.owner_id,
+			j.blueprint_id, 
+			b.name AS blueprint_name,
+			j.state, 
+			j.created_at, 
+			j.started_at, 
+			j.result_code, 
+			j.result_msg, 
+			j.finished_at
+		FROM job.jobs j
+		JOIN blueprint.blueprints b 
+			ON j.blueprint_id = b.id
+			AND b.deleted_at IS NULL
+		WHERE 
+			j.id = $1
+			AND j.deleted_at IS NULL
+		`,
+		jobID,
+	)
+	return row, err
+}
+
+func (r *Repository) selectUserReadJobRows(
 	ctx context.Context,
 	qc sqlx.QueryerContext,
 	uid string,
-) ([]jobRow, error) {
-	var rows []jobRow
+) ([]readJobRow, error) {
+	var rows []readJobRow
 	err := pgutils.Select(ctx, qc, &rows, `
 		SELECT
-			id, 
-			blueprint_id, 
-			archive_id, 
-			owner_id, 
-			state, 
-			created_at, 
-			started_at, 
-			result_code, 
-			result_msg, 
-			finished_at
-		FROM job.jobs
+			j.id, 
+			j.owner_id,
+			j.blueprint_id, 
+			b.name AS blueprint_name,
+			j.state, 
+			j.created_at, 
+			j.started_at, 
+			j.result_code, 
+			j.result_msg, 
+			j.finished_at
+		FROM job.jobs j
+		JOIN blueprint.blueprints b 
+			ON j.blueprint_id = b.id
+			AND b.deleted_at IS NULL
 		WHERE 
-			owner_id = $1
-			AND deleted_at IS NULL
+			j.owner_id = $1
+			AND j.deleted_at IS NULL
 		ORDER BY created_at DESC
 		`,
 		uid,
@@ -440,37 +471,40 @@ func (r *Repository) selectUserJobRows(
 	return rows, nil
 }
 
-func (r *Repository) selectUserJobRowsWithState(
+func (r *Repository) selectUserReadJobRowsWithState(
 	ctx context.Context,
 	qc sqlx.QueryerContext,
 	uid string,
 	state string,
-) ([]jobRow, error) {
-	var rows []jobRow
+) ([]readJobRow, error) {
+	var rows []readJobRow
 	err := pgutils.Select(ctx, qc, &rows, `
 		SELECT
-			id, 
-			blueprint_id, 
-			archive_id, 
-			owner_id, 
-			state, 
-			created_at, 
-			started_at, 
-			result_code, 
-			result_msg, 
-			finished_at
-		FROM job.jobs
+			j.id, 
+			j.owner_id,
+			j.blueprint_id, 
+			b.name AS blueprint_name,
+			j.state, 
+			j.created_at, 
+			j.started_at, 
+			j.result_code, 
+			j.result_msg, 
+			j.finished_at
+		FROM job.jobs j
+		JOIN blueprint.blueprints b 
+			ON j.blueprint_id = b.id
+			AND b.deleted_at IS NULL
 		WHERE 
-			owner_id = $1
+			j.owner_id = $1
 			AND state = $2
-			AND deleted_at IS NULL
+			AND j.deleted_at IS NULL
 		ORDER BY created_at DESC
 		`,
 		uid,
 		state,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("select user job rows with state: %w", err)
+		return nil, fmt.Errorf("select user job rows: %w", err)
 	}
 	return rows, nil
 }
@@ -555,6 +589,46 @@ func (r *Repository) selectJobInputValueRows(
 	return rows, nil
 }
 
+func (r *Repository) selectJobsInputValuesRows(
+	ctx context.Context,
+	qc sqlx.QueryerContext,
+	jobIDs []string,
+) (map[string][]jobValueRow, error) {
+	query, args, err := sqlx.In(`
+		SELECT
+			job_id, 
+			index, 
+			type, 
+			value
+		FROM job.input_values
+		WHERE job_id IN (?)
+		ORDER BY index
+		`,
+		jobIDs,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("sqlx.In: %w", err)
+	}
+	query = r.db.Rebind(query)
+
+	var rows []jobValueRow
+	err = pgutils.Select(ctx, qc, &rows, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("pgutils.Select: %w", err)
+	}
+
+	return mapJobValueRows(rows), nil
+}
+
+func mapJobValueRows(rs []jobValueRow) map[string][]jobValueRow {
+	m := make(map[string][]jobValueRow)
+	for _, r := range rs {
+		key := r.JobID
+		m[key] = append(m[key], r)
+	}
+	return m
+}
+
 func (r *Repository) insertJobInputValueRows(
 	ctx context.Context,
 	ec sqlx.ExtContext,
@@ -606,6 +680,37 @@ func (r *Repository) selectJobOutputValueRows(
 		return nil, fmt.Errorf("select job output value rows: %w", err)
 	}
 	return rows, nil
+}
+
+func (r *Repository) selectJobsOutputValuesRows(
+	ctx context.Context,
+	qc sqlx.QueryerContext,
+	jobIDs []string,
+) (map[string][]jobValueRow, error) {
+	query, args, err := sqlx.In(`
+		SELECT
+			job_id, 
+			index, 
+			type, 
+			value
+		FROM job.output_values
+		WHERE job_id IN (?)
+		ORDER BY index
+		`,
+		jobIDs,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("sqlx.In: %w", err)
+	}
+	query = r.db.Rebind(query)
+
+	var rows []jobValueRow
+	err = pgutils.Select(ctx, qc, &rows, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("pgutils.Select: %w", err)
+	}
+
+	return mapJobValueRows(rows), nil
 }
 
 func (r *Repository) insertJobOutputValueRows(
@@ -661,6 +766,135 @@ func (r *Repository) selectJobOutputFieldRows(
 		return nil, fmt.Errorf("select job output fields rows: %w", err)
 	}
 	return rows, nil
+}
+
+func (r *Repository) selectJobInputFieldRows(
+	ctx context.Context,
+	qc sqlx.QueryerContext,
+	jobID string,
+) ([]jobFieldRow, error) {
+	var rows []jobFieldRow
+	err := pgutils.Select(ctx, qc, &rows, `
+		SELECT
+			j.id AS job_id,
+			bif.index,
+			bif.type,
+			bif.name,
+			bif."desc",
+			bif.unit
+		FROM blueprint.input_fields bif
+		JOIN job.jobs j
+			ON j.blueprint_id = bif.blueprint_id
+		WHERE j.id = $1
+		`,
+		jobID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("pgutils.Select: %w", err)
+	}
+	return rows, nil
+}
+
+func (r *Repository) selectJobsInputFieldsRows(
+	ctx context.Context,
+	qc sqlx.QueryerContext,
+	jobIDs []string,
+) (map[string][]jobFieldRow, error) {
+	query, args, err := sqlx.In(`
+		SELECT
+			j.id AS job_id, 
+			bif.index,
+			bif.type, 
+			bif.name,
+			bif."desc",
+			bif.unit
+		FROM blueprint.input_fields bif
+		JOIN job.jobs j
+			ON j.blueprint_id = bif.blueprint_id
+		WHERE j.id IN (?)
+		ORDER BY index
+		`,
+		jobIDs,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("sqlx.In: %w", err)
+	}
+	query = r.db.Rebind(query)
+
+	var rows []jobFieldRow
+	err = pgutils.Select(ctx, qc, &rows, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("pgutils.Select: %w", err)
+	}
+
+	return mapJobFieldsRows(rows), nil
+}
+
+func (r *Repository) selectJobOutputFieldsRows(
+	ctx context.Context,
+	qc sqlx.QueryerContext,
+	jobID string,
+) ([]jobFieldRow, error) {
+	var rows []jobFieldRow
+	err := pgutils.Select(ctx, qc, &rows, `
+		SELECT
+			job_id, 
+			index, 
+			type, 
+			name,
+			"desc",
+			unit
+		FROM job.output_fields
+		WHERE job_id = $1
+		`,
+		jobID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("pgutils.Select: %w", err)
+	}
+	return rows, nil
+}
+
+func (r *Repository) selectJobsOutputFieldsRows(
+	ctx context.Context,
+	qc sqlx.QueryerContext,
+	jobIDs []string,
+) (map[string][]jobFieldRow, error) {
+	query, args, err := sqlx.In(`
+		SELECT
+			job_id, 
+			index, 
+			type, 
+			name,
+			"desc",
+			unit
+		FROM job.output_fields
+		WHERE job_id IN (?)
+		ORDER BY index
+		`,
+		jobIDs,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("sqlx.In: %w", err)
+	}
+	query = r.db.Rebind(query)
+
+	var rows []jobFieldRow
+	err = pgutils.Select(ctx, qc, &rows, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("pgutils.Select: %w", err)
+	}
+
+	return mapJobFieldsRows(rows), nil
+}
+
+func mapJobFieldsRows(rows []jobFieldRow) map[string][]jobFieldRow {
+	m := make(map[string][]jobFieldRow)
+	for _, r := range rows {
+		key := r.JobID
+		m[key] = append(m[key], r)
+	}
+	return m
 }
 
 func (r *Repository) insertJobOutputFieldRows(

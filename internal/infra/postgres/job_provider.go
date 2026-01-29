@@ -9,138 +9,148 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/zhikh23/pgutils"
 
+	"github.com/bmstu-itstech/scriptum-back/internal/app/dto"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/ports"
-	"github.com/bmstu-itstech/scriptum-back/internal/domain/entity"
 	"github.com/bmstu-itstech/scriptum-back/internal/domain/value"
 )
 
-func (r *Repository) Job(ctx context.Context, id value.JobID) (*entity.Job, error) {
-	var job *entity.Job
+func (r *Repository) Job(ctx context.Context, id value.JobID) (dto.Job, error) {
+	var rJ readJobRow
+	var rIFs []jobFieldRow
+	var rOFs []jobFieldRow
+	var rIVs []jobValueRow
+	var rOVs []jobValueRow
+
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
 		var err error
-		job, err = r.job(ctx, tx, id)
-		return err
+		rJ, err = r.selectReadJobRow(ctx, tx, string(id))
+		if err != nil {
+			return err
+		}
+		rIFs, err = r.selectJobInputFieldRows(ctx, tx, string(id))
+		if err != nil {
+			return err
+		}
+		rOFs, err = r.selectJobOutputFieldRows(ctx, tx, string(id))
+		if err != nil {
+			return err
+		}
+		rIVs, err = r.selectJobInputValueRows(ctx, tx, string(id))
+		if err != nil {
+			return err
+		}
+		rOVs, err = r.selectJobOutputValueRows(ctx, tx, string(id))
+		if err != nil {
+			return err
+		}
+		return nil
 	})
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, fmt.Errorf("%w: %s", ports.ErrJobNotFound, err.Error())
+		return dto.Job{}, fmt.Errorf("%w: %s", ports.ErrJobNotFound, string(id))
 	}
 	if err != nil {
-		return nil, err
+		return dto.Job{}, err
 	}
-	return job, nil
+
+	return readJobRowToDTO(rJ, rIFs, rOFs, rIVs, rOVs), nil
 }
 
-func (r *Repository) job(ctx context.Context, qc sqlx.QueryerContext, id value.JobID) (*entity.Job, error) {
-	rJob, err := r.selectJobRow(ctx, qc, string(id))
-	if err != nil {
-		return nil, err
-	}
-	rInput, err := r.selectJobInputValueRows(ctx, qc, string(id))
-	if err != nil {
-		return nil, err
-	}
-	rOutput, err := r.selectJobOutputValueRows(ctx, qc, string(id))
-	if err != nil {
-		return nil, err
-	}
-	rOut, err := r.selectJobOutputFieldRows(ctx, qc, string(id))
-	if err != nil {
-		return nil, err
-	}
-	job, err := jobRowToDomain(rJob, rInput, rOutput, rOut)
-	if err != nil {
-		return nil, err
-	}
-	return job, nil
-}
+func (r *Repository) UserJobs(ctx context.Context, uid value.UserID) ([]dto.Job, error) {
+	var rJs []readJobRow
+	var rIFs map[string][]jobFieldRow
+	var rOFs map[string][]jobFieldRow
+	var rIVs map[string][]jobValueRow
+	var rOVs map[string][]jobValueRow
 
-func (r *Repository) UserJobs(ctx context.Context, uid value.UserID) ([]*entity.Job, error) {
-	var jobs []*entity.Job
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
 		var err error
-		jobs, err = r.userJobs(ctx, tx, uid)
-		return err
+		rJs, err = r.selectUserReadJobRows(ctx, tx, string(uid))
+		if err != nil {
+			return err
+		}
+		ids := idsFromJobs(rJs)
+		rIFs, err = r.selectJobsInputFieldsRows(ctx, tx, ids)
+		if err != nil {
+			return err
+		}
+		rOFs, err = r.selectJobsOutputFieldsRows(ctx, tx, ids)
+		if err != nil {
+			return err
+		}
+		rIVs, err = r.selectJobsInputValuesRows(ctx, tx, ids)
+		if err != nil {
+			return err
+		}
+		rOVs, err = r.selectJobsOutputValuesRows(ctx, tx, ids)
+		if err != nil {
+			return err
+		}
+		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return jobs, nil
-}
 
-func (r *Repository) userJobs(ctx context.Context, qc sqlx.QueryerContext, uid value.UserID) ([]*entity.Job, error) {
-	jobs := make([]*entity.Job, 0)
-	rJobs, err := r.selectUserJobRows(ctx, qc, string(uid))
-	if err != nil {
-		return nil, err
+	js := make([]dto.Job, len(rJs))
+	for i, rJ := range rJs {
+		js[i] = readJobRowToDTO(rJ, rIFs[rJ.ID], rOFs[rJ.ID], rIVs[rJ.ID], rOVs[rJ.ID])
 	}
-	for _, rJob := range rJobs {
-		rInput, err2 := r.selectJobInputValueRows(ctx, qc, rJob.ID)
-		if err2 != nil {
-			return nil, err2
-		}
-		rOutput, err2 := r.selectJobOutputValueRows(ctx, qc, rJob.ID)
-		if err2 != nil {
-			return nil, err2
-		}
-		rOut, err2 := r.selectJobOutputFieldRows(ctx, qc, rJob.ID)
-		if err2 != nil {
-			return nil, err2
-		}
-		job, err2 := jobRowToDomain(rJob, rInput, rOutput, rOut)
-		if err2 != nil {
-			return nil, err2
-		}
-		jobs = append(jobs, job)
-	}
-	return jobs, nil
+
+	return js, nil
 }
 
 func (r *Repository) UserJobsWithState(
 	ctx context.Context,
 	uid value.UserID,
 	state value.JobState,
-) ([]*entity.Job, error) {
-	var jobs []*entity.Job
+) ([]dto.Job, error) {
+	var rJs []readJobRow
+	var rIFs map[string][]jobFieldRow
+	var rOFs map[string][]jobFieldRow
+	var rIVs map[string][]jobValueRow
+	var rOVs map[string][]jobValueRow
+
 	err := pgutils.RunTx(ctx, r.db, func(tx *sqlx.Tx) error {
 		var err error
-		jobs, err = r.userJobsWithState(ctx, tx, uid, state)
-		return err
+		rJs, err = r.selectUserReadJobRowsWithState(ctx, tx, string(uid), state.String())
+		if err != nil {
+			return err
+		}
+		ids := idsFromJobs(rJs)
+		rIFs, err = r.selectJobsInputFieldsRows(ctx, tx, ids)
+		if err != nil {
+			return err
+		}
+		rOFs, err = r.selectJobsOutputFieldsRows(ctx, tx, ids)
+		if err != nil {
+			return err
+		}
+		rIVs, err = r.selectJobsInputValuesRows(ctx, tx, ids)
+		if err != nil {
+			return err
+		}
+		rOVs, err = r.selectJobsOutputValuesRows(ctx, tx, ids)
+		if err != nil {
+			return err
+		}
+		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return jobs, nil
+
+	js := make([]dto.Job, len(rJs))
+	for i, rJ := range rJs {
+		js[i] = readJobRowToDTO(rJ, rIFs[rJ.ID], rOFs[rJ.ID], rIVs[rJ.ID], rOVs[rJ.ID])
+	}
+
+	return js, nil
 }
 
-func (r *Repository) userJobsWithState(
-	ctx context.Context,
-	qc sqlx.QueryerContext,
-	uid value.UserID,
-	state value.JobState,
-) ([]*entity.Job, error) {
-	jobs := make([]*entity.Job, 0)
-	rJobs, err := r.selectUserJobRowsWithState(ctx, qc, string(uid), state.String())
-	if err != nil {
-		return nil, err
+func idsFromJobs(rJs []readJobRow) []string {
+	res := make([]string, len(rJs))
+	for i, rJ := range rJs {
+		res[i] = rJ.ID
 	}
-	for _, rJob := range rJobs {
-		rInput, err2 := r.selectJobInputValueRows(ctx, qc, rJob.ID)
-		if err2 != nil {
-			return nil, err2
-		}
-		rOutput, err2 := r.selectJobOutputValueRows(ctx, qc, rJob.ID)
-		if err2 != nil {
-			return nil, err2
-		}
-		rOut, err2 := r.selectJobOutputFieldRows(ctx, qc, rJob.ID)
-		if err2 != nil {
-			return nil, err2
-		}
-		job, err2 := jobRowToDomain(rJob, rInput, rOutput, rOut)
-		if err2 != nil {
-			return nil, err2
-		}
-		jobs = append(jobs, job)
-	}
-	return jobs, nil
+	return res
 }
