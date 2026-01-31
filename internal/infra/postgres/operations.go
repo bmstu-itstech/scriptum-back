@@ -225,6 +225,9 @@ func (r *Repository) selectBlueprintsInputFieldRows(
 	qc sqlx.QueryerContext,
 	blueprintIDs []string,
 ) (map[string][]blueprintFieldRow, error) {
+	if len(blueprintIDs) == 0 {
+		return map[string][]blueprintFieldRow{}, nil
+	}
 	query, args, err := sqlx.In(`
 		SELECT
 			blueprint_id, 
@@ -324,6 +327,9 @@ func (r *Repository) selectBlueprintsOutputFieldRows(
 	qc sqlx.QueryerContext,
 	blueprintIDs []string,
 ) (map[string][]blueprintFieldRow, error) {
+	if len(blueprintIDs) == 0 {
+		return map[string][]blueprintFieldRow{}, nil
+	}
 	var rows []blueprintFieldRow
 	query, args, err := sqlx.In(`
 		SELECT
@@ -594,6 +600,9 @@ func (r *Repository) selectJobsInputValuesRows(
 	qc sqlx.QueryerContext,
 	jobIDs []string,
 ) (map[string][]jobValueRow, error) {
+	if len(jobIDs) == 0 {
+		return map[string][]jobValueRow{}, nil
+	}
 	query, args, err := sqlx.In(`
 		SELECT
 			job_id, 
@@ -687,6 +696,9 @@ func (r *Repository) selectJobsOutputValuesRows(
 	qc sqlx.QueryerContext,
 	jobIDs []string,
 ) (map[string][]jobValueRow, error) {
+	if len(jobIDs) == 0 {
+		return map[string][]jobValueRow{}, nil
+	}
 	query, args, err := sqlx.In(`
 		SELECT
 			job_id, 
@@ -800,6 +812,9 @@ func (r *Repository) selectJobsInputFieldsRows(
 	qc sqlx.QueryerContext,
 	jobIDs []string,
 ) (map[string][]jobFieldRow, error) {
+	if len(jobIDs) == 0 {
+		return map[string][]jobFieldRow{}, nil
+	}
 	query, args, err := sqlx.In(`
 		SELECT
 			j.id AS job_id, 
@@ -860,6 +875,9 @@ func (r *Repository) selectJobsOutputFieldsRows(
 	qc sqlx.QueryerContext,
 	jobIDs []string,
 ) (map[string][]jobFieldRow, error) {
+	if len(jobIDs) == 0 {
+		return map[string][]jobFieldRow{}, nil
+	}
 	query, args, err := sqlx.In(`
 		SELECT
 			job_id, 
