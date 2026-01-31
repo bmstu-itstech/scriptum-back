@@ -113,7 +113,7 @@ func createBlueprintToDTO(r CreateBlueprintRequest, uid string) request.CreateBl
 		ActorID:   uid,
 		ArchiveID: r.ArchiveID,
 		Name:      r.Name,
-		Desc:      r.Desc,
+		Desc:      nilOnNilOrEmpty(r.Desc),
 		In:        fieldsToDTO(r.In),
 		Out:       fieldsToDTO(r.Out),
 	}
