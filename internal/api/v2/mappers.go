@@ -45,7 +45,9 @@ func fieldsToAPI(fs []dto.Field) []Field {
 	for i, v := range fs {
 		res[i] = Field{
 			Name: v.Name,
+			Desc: v.Desc,
 			Type: ValueType(v.Type),
+			Unit: v.Unit,
 		}
 	}
 	return res
