@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	"github.com/bmstu-itstech/scriptum-back/internal/domain"
 	"log/slog"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/app/dto"
@@ -48,12 +49,22 @@ func (h CreateBlueprintHandler) Handle(ctx context.Context, req request.CreateBl
 		return "", err
 	}
 
+	vis, err := value.VisibilityFromString(req.Visibility)
+	if err != nil {
+		l.InfoContext(ctx, "failed to convert visibility from string", slog.String("error", err.Error()))
+		return "", err
+	}
+
+	if !user.CanCreateBlueprintWithVisibility(vis) {
+		return "", domain.ErrPermissionDenied
+	}
+
 	blueprint, err := entity.NewBlueprint(
 		value.UserID(req.ActorID),
 		value.FileID(req.ArchiveID),
 		req.Name,
 		req.Desc,
-		user.BlueprintVisibility(),
+		vis,
 		input,
 		output,
 	)

@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Scriptum API
-  version: 2.1.0
+  version: 2.2.0
 servers:
   - url: "{url}/api/v2"
     variables:
@@ -758,11 +758,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Field'
+        visibility:
+          $ref: '#/components/schemas/Visibility'
       required:
         - archiveID
         - name
         - in
         - out
+        - visibility
 
     StartJobRequest:
       type: object

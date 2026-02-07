@@ -45,12 +45,14 @@ func NewUser(name string, email value.Email, passhash []byte, role value.Role) (
 	}, nil
 }
 
-func (u *User) BlueprintVisibility() value.Visibility {
+func (u *User) CanCreateBlueprintWithVisibility(v value.Visibility) bool {
 	switch u.role {
 	case value.RoleAdmin:
-		return value.VisibilityPublic
+		return true
+	case value.RoleUser:
+		return v == value.VisibilityPrivate
 	}
-	return value.VisibilityPrivate
+	return false
 }
 
 func (u *User) CanSee(uid value.UserID) bool {

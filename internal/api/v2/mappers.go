@@ -112,12 +112,13 @@ func startJobRequestToDTO(r StartJobRequest, uid string, blueprintID string) req
 
 func createBlueprintToDTO(r CreateBlueprintRequest, uid string) request.CreateBlueprint {
 	return request.CreateBlueprint{
-		ActorID:   uid,
-		ArchiveID: r.ArchiveID,
-		Name:      r.Name,
-		Desc:      nilOnNilOrEmpty(r.Desc),
-		In:        fieldsToDTO(r.In),
-		Out:       fieldsToDTO(r.Out),
+		ActorID:    uid,
+		ArchiveID:  r.ArchiveID,
+		Name:       r.Name,
+		Desc:       nilOnNilOrEmpty(r.Desc),
+		In:         fieldsToDTO(r.In),
+		Out:        fieldsToDTO(r.Out),
+		Visibility: string(r.Visibility),
 	}
 }
 

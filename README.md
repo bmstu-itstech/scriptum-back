@@ -1,3 +1,1 @@
 # scriptum-back
-
-## Запуск

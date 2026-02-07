@@ -55,11 +55,12 @@ type Blueprint struct {
 
 // CreateBlueprintRequest defines model for CreateBlueprintRequest.
 type CreateBlueprintRequest struct {
-	ArchiveID string  `json:"archiveID"`
-	Desc      *string `json:"desc,omitempty"`
-	In        []Field `json:"in"`
-	Name      string  `json:"name"`
-	Out       []Field `json:"out"`
+	ArchiveID  string     `json:"archiveID"`
+	Desc       *string    `json:"desc,omitempty"`
+	In         []Field    `json:"in"`
+	Name       string     `json:"name"`
+	Out        []Field    `json:"out"`
+	Visibility Visibility `json:"visibility"`
 }
 
 // CreateBlueprintResponse defines model for CreateBlueprintResponse.
