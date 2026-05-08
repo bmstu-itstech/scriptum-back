@@ -7,7 +7,7 @@ docker:
   runner_timeout: 15m
 
 logging:
-  level: debug
+  level: prod
 
 postgres:
   uri:
