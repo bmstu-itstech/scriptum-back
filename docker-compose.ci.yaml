@@ -1,3 +1,13 @@
+x-logging:
+  &default-logging
+  driver: loki
+  options:
+    loki-url: "${LOKI_ADDRESS:-http://localhost:3100}/loki/api/v1/push"
+    loki-batch-size: 100
+    loki-retries: 2
+    loki-max-backoff: 1000ms
+    loki-timeout: 1s
+
 services:
   http:
     build: .
@@ -10,13 +20,18 @@ services:
       SC_JWT_SECRET: $SC_JWT_SECRET
       SC_HTTP_CORS_ALLOW_ORIGINS: $SC_HTTP_CORS_ALLOW_ORIGINS
       PGSSLROOTCERT: /certs/root.crt
+      SC_LOGGING_LEVEL: ${SC_LOGGING_LEVEL:-}
     ports:
       - ${EXTERNAL_HTTP_PORT:-8000}:8000
     volumes:
       - ./config:/etc/app:ro
       - ${EXTERNAL_UPLOADS_DIR:-./uploads}:/var/app/uploads
-      - $PGSSLROOTCERT:/certs:ro
+      - ${PGSSLROOTCERT-./certs}:/certs:ro
       - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    logging: *default-logging
+    networks:
+      - observability
 
   migrate:
     image: migrate/migrate
@@ -30,3 +45,7 @@ services:
     volumes:
       - ./migrations:/migrations
       - $PGSSLROOTCERT:/certs:ro
+
+networks:
+  observability:
+    external: true

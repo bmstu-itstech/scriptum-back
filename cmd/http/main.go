@@ -14,6 +14,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 
+	"github.com/bmstu-itstech/scriptum-back/pkg/reqctx"
+
 	apiv2 "github.com/bmstu-itstech/scriptum-back/internal/api/v2"
 	"github.com/bmstu-itstech/scriptum-back/internal/app"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/dto/request"
@@ -42,7 +44,7 @@ func main() {
 	}
 	cfg := config.MustLoad(cfgPath)
 
-	l := logs.NewLogger(cfg.Logging)
+	l := logs.NewLogger(cfg.Logging.Level)
 
 	l.Debug(fmt.Sprintf("config: %+v", cfg))
 
@@ -72,6 +74,7 @@ func main() {
 
 	root := chi.NewRouter()
 	root.Use(middleware.RequestID)
+	root.Use(reqctx.ChiRequestID)
 	root.Use(middleware.RealIP)
 	root.Use(sl.NewLoggerMiddleware(l))
 	root.Use(middleware.Recoverer)

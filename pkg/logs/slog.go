@@ -4,35 +4,41 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/bmstu-itstech/scriptum-back/internal/config"
+	"github.com/bmstu-itstech/scriptum-back/pkg/logs/handlers/slogcontext"
 	"github.com/bmstu-itstech/scriptum-back/pkg/logs/handlers/slogpretty"
 )
 
 const (
-	logDebug = "debug"
-	logInfo  = "info"
-	logWarn  = "warn"
-	logError = "error"
+	envLocal = "local"
+	envDev   = "dev"
+	envProd  = "prod"
 )
 
-func NewLogger(cfg config.Logging) *slog.Logger {
-	level := slog.LevelDebug
-	switch cfg.Level {
-	case logDebug:
-		level = slog.LevelDebug
-	case logInfo:
-		level = slog.LevelInfo
-	case logWarn:
-		level = slog.LevelWarn
-	case logError:
-		level = slog.LevelError
+func NewLogger(env string) *slog.Logger {
+	var log *slog.Logger
+
+	var handler slog.Handler
+	switch env {
+	case envProd:
+		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			Level: slog.LevelInfo,
+		})
+	case envLocal, envDev:
+		handler = slogpretty.PrettyHandlerOptions{
+			SlogOpts: &slog.HandlerOptions{
+				Level: slog.LevelDebug,
+			},
+		}.NewPrettyHandler(os.Stdout)
+	default:
+		handler = slogpretty.PrettyHandlerOptions{
+			SlogOpts: &slog.HandlerOptions{
+				Level: slog.LevelDebug,
+			},
+		}.NewPrettyHandler(os.Stdout)
 	}
 
-	return slog.New(
-		slogpretty.PrettyHandlerOptions{
-			SlogOpts: &slog.HandlerOptions{
-				Level: level,
-			},
-		}.NewPrettyHandler(os.Stdout),
-	)
+	handler = slogcontext.NewContextHandler(handler)
+	log = slog.New(handler)
+
+	return log
 }
