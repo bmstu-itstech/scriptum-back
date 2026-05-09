@@ -62,7 +62,7 @@ func (h RunJobHandler) Handle(ctx context.Context, job request.RunJob) error {
 
 		err = job.Finish(res)
 		if errors.Is(err, entity.ErrJobResultParseFailed) {
-			l.WarnContext(ctx2, "failed to parse job result", slog.String("error", err.Error()))
+			l.InfoContext(ctx2, "failed to parse job result", slog.String("error", err.Error()))
 			res = value.NewResult(-1).WithOutput(err.Error())
 			return job.Finish(res)
 		} else if err != nil {

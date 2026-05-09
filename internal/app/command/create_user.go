@@ -36,7 +36,7 @@ func (h CreateUserHandler) Handle(ctx context.Context, req request.CreateUser) (
 		return response.CreateUser{}, err
 	}
 	if actor.Role() != value.RoleAdmin {
-		l.WarnContext(ctx, "actor is not admin")
+		l.InfoContext(ctx, "actor is not admin")
 		return response.CreateUser{}, domain.ErrPermissionDenied
 	}
 
@@ -66,7 +66,7 @@ func (h CreateUserHandler) Handle(ctx context.Context, req request.CreateUser) (
 
 	err = h.ur.SaveUser(ctx, user)
 	if errors.Is(err, ports.ErrUserAlreadyExists) {
-		l.WarnContext(ctx, "user already exists", slog.String("error", err.Error()))
+		l.InfoContext(ctx, "user already exists", slog.String("error", err.Error()))
 		return response.CreateUser{}, ports.ErrUserAlreadyExists
 	} else if err != nil {
 		l.ErrorContext(ctx, "failed to save user", slog.String("error", err.Error()))

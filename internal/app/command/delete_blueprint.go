@@ -29,7 +29,7 @@ func (h DeleteBlueprintHandler) Handle(ctx context.Context, req request.DeleteBl
 
 	bp, err := h.br.Blueprint(ctx, value.BlueprintID(req.BlueprintID))
 	if errors.Is(err, ports.ErrBlueprintNotFound) {
-		l.WarnContext(ctx, "blueprint not found")
+		l.InfoContext(ctx, "blueprint not found")
 		return nil
 	} else if err != nil {
 		l.ErrorContext(ctx, "could not find blueprint", slog.String("error", err.Error()))
@@ -37,7 +37,7 @@ func (h DeleteBlueprintHandler) Handle(ctx context.Context, req request.DeleteBl
 	}
 
 	if bp.OwnerID() != value.UserID(req.ActorID) {
-		l.WarnContext(ctx, "not authorized to delete this blueprint", slog.String("owner_id", string(bp.OwnerID())))
+		l.InfoContext(ctx, "not authorized to delete this blueprint", slog.String("owner_id", string(bp.OwnerID())))
 		return domain.ErrPermissionDenied
 	}
 

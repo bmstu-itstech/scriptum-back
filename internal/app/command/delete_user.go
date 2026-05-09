@@ -33,13 +33,13 @@ func (h DeleteUserHandler) Handle(ctx context.Context, req request.DeleteUser) e
 		return err
 	}
 	if actor.Role() != value.RoleAdmin {
-		l.WarnContext(ctx, "actor is not admin")
+		l.InfoContext(ctx, "actor is not admin")
 		return domain.ErrPermissionDenied
 	}
 
 	err = h.ur.DeleteUser(ctx, value.UserID(req.UID))
 	if errors.Is(err, ports.ErrUserNotFound) {
-		l.WarnContext(ctx, "user does not exist")
+		l.InfoContext(ctx, "user does not exist")
 		return err
 	} else if err != nil {
 		l.ErrorContext(ctx, "failed to delete user", slog.String("error", err.Error()))

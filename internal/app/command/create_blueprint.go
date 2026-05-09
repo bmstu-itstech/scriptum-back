@@ -2,8 +2,9 @@ package command
 
 import (
 	"context"
-	"github.com/bmstu-itstech/scriptum-back/internal/domain"
 	"log/slog"
+
+	"github.com/bmstu-itstech/scriptum-back/internal/domain"
 
 	"github.com/bmstu-itstech/scriptum-back/internal/app/dto"
 	"github.com/bmstu-itstech/scriptum-back/internal/app/dto/request"
@@ -31,7 +32,7 @@ func (h CreateBlueprintHandler) Handle(ctx context.Context, req request.CreateBl
 
 	user, err := h.up.User(ctx, value.UserID(req.ActorID))
 	if err != nil {
-		l.WarnContext(ctx, "unknown user creating blueprint", slog.String("error", err.Error()))
+		l.InfoContext(ctx, "unknown user creating blueprint", slog.String("error", err.Error()))
 		return "", err
 	}
 	l = l.With(slog.String("role", user.Role().String()))

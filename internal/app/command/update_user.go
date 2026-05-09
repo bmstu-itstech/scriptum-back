@@ -36,7 +36,7 @@ func (h UpdateUserHandler) Handle(ctx context.Context, req request.UpdateUser) (
 		return response.UpdateUser{}, err
 	}
 	if actor.Role() != value.RoleAdmin {
-		l.WarnContext(ctx, "actor is not admin")
+		l.InfoContext(ctx, "actor is not admin")
 		return response.UpdateUser{}, domain.ErrPermissionDenied
 	}
 
@@ -45,7 +45,7 @@ func (h UpdateUserHandler) Handle(ctx context.Context, req request.UpdateUser) (
 		if pEmail := req.Email; pEmail != nil {
 			email, errTx := value.EmailFromString(*pEmail)
 			if errTx != nil {
-				l.WarnContext(ctx, "failed to validate email", slog.String("error", errTx.Error()))
+				l.InfoContext(ctx, "failed to validate email", slog.String("error", errTx.Error()))
 				return errTx
 			}
 			errTx = u.SetEmail(email)
@@ -58,7 +58,7 @@ func (h UpdateUserHandler) Handle(ctx context.Context, req request.UpdateUser) (
 		if pPassword := req.Password; pPassword != nil {
 			password, errTx := h.ph.Hash(*pPassword)
 			if errTx != nil {
-				l.WarnContext(ctx, "failed to validate password", slog.String("error", errTx.Error()))
+				l.InfoContext(ctx, "failed to validate password", slog.String("error", errTx.Error()))
 				return errTx
 			}
 			errTx = u.SetPassword(password)
@@ -79,11 +79,11 @@ func (h UpdateUserHandler) Handle(ctx context.Context, req request.UpdateUser) (
 		if pRole := req.Role; pRole != nil {
 			role, errTx := value.RoleFromString(*pRole)
 			if errTx != nil {
-				l.WarnContext(ctx, "failed to validate role", slog.String("error", errTx.Error()))
+				l.InfoContext(ctx, "failed to validate role", slog.String("error", errTx.Error()))
 				return errTx
 			}
 			if actor.ID() == u.ID() {
-				l.WarnContext(ctx, "user can not change self role")
+				l.InfoContext(ctx, "user can not change self role")
 				return domain.ErrPermissionDenied
 			}
 			errTx = u.SetRole(role)

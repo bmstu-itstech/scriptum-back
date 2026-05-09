@@ -38,12 +38,12 @@ func (h StartJobHandler) Handle(ctx context.Context, req request.StartJob) (stri
 
 	blueprint, err := h.br.Blueprint(ctx, value.BlueprintID(req.BlueprintID))
 	if err != nil {
-		l.WarnContext(ctx, "blueprint not found")
+		l.InfoContext(ctx, "blueprint not found")
 		return "", err
 	}
 
 	if !blueprint.IsAvailableFor(value.UserID(req.ActorID)) {
-		l.WarnContext(ctx, "blueprint is not available")
+		l.InfoContext(ctx, "blueprint is not available")
 		return "", domain.ErrPermissionDenied
 	}
 

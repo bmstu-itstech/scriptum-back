@@ -30,17 +30,17 @@ func (h GetJobHandler) Handle(ctx context.Context, req request.GetJob) (response
 
 	l.DebugContext(ctx, "querying job")
 	job, err := h.jp.Job(ctx, value.JobID(req.JobID))
+	if errors.Is(err, ports.ErrJobNotFound) {
+		l.InfoContext(ctx, "job not found", slog.String("error", err.Error()))
+		return response.GetJob{}, err
+	}
 	if err != nil {
-		if errors.Is(err, ports.ErrJobNotFound) {
-			l.WarnContext(ctx, "job not found")
-		} else {
-			l.ErrorContext(ctx, "failed to query job", slog.String("error", err.Error()))
-		}
+		l.ErrorContext(ctx, "failed to query job", slog.String("error", err.Error()))
 		return response.GetJob{}, err
 	}
 
 	if job.OwnerID != req.ActorID {
-		l.WarnContext(ctx, "user does not own job", slog.String("owner_id", job.OwnerID))
+		l.InfoContext(ctx, "user does not own job", slog.String("owner_id", job.OwnerID))
 		return response.GetJob{}, domain.ErrPermissionDenied
 	}
 	l.InfoContext(ctx, "got job", slog.String("state", job.State))

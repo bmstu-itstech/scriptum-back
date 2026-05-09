@@ -30,7 +30,7 @@ func (h *LoginHandler) Handle(ctx context.Context, req request.Login) (response.
 
 	user, err := h.ur.UserByEmail(ctx, req.Email)
 	if errors.Is(err, ports.ErrUserNotFound) {
-		l.WarnContext(ctx, "user not found")
+		l.InfoContext(ctx, "user not found")
 		return response.LoginResponse{}, domain.ErrInvalidCredentials
 	} else if err != nil {
 		l.ErrorContext(ctx, "failed to get user", slog.String("error", err.Error()))
@@ -38,7 +38,7 @@ func (h *LoginHandler) Handle(ctx context.Context, req request.Login) (response.
 	}
 
 	if !h.ph.Verify(req.Password, user.PasswordHash()) {
-		l.WarnContext(ctx, "password mismatch")
+		l.InfoContext(ctx, "password mismatch")
 		return response.LoginResponse{}, domain.ErrInvalidCredentials
 	}
 

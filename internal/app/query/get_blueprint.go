@@ -32,7 +32,7 @@ func (h GetBlueprintHandler) Handle(ctx context.Context, req request.GetBlueprin
 	blueprint, err := h.bp.BlueprintWithUser(ctx, value.BlueprintID(req.BlueprintID))
 	if err != nil {
 		if errors.Is(err, ports.ErrBlueprintNotFound) {
-			l.WarnContext(ctx, "blueprint not found")
+			l.InfoContext(ctx, "blueprint not found")
 		} else {
 			l.ErrorContext(ctx, "failed to query blueprint", slog.String("error", err.Error()))
 		}
@@ -40,7 +40,7 @@ func (h GetBlueprintHandler) Handle(ctx context.Context, req request.GetBlueprin
 	}
 
 	if blueprint.Visibility != value.VisibilityPublic.String() && blueprint.OwnerID != req.ActorID {
-		l.WarnContext(ctx, "user can't see the blueprint", slog.String("owner_id", blueprint.OwnerID))
+		l.InfoContext(ctx, "user can't see the blueprint", slog.String("owner_id", blueprint.OwnerID))
 		return response.GetBlueprint{}, domain.ErrPermissionDenied
 	}
 	l.InfoContext(ctx, "got blueprint")
