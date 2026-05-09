@@ -11,12 +11,14 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
       - name: Deploy
         uses: appleboy/ssh-action@v1.0.3
         env:
           EXTERNAL_GRPC_PORT: ${{ vars.EXTERNAL_GRPC_PORT }}
+          LOKI_ADDRESS: ${{ vars.LOKI_ADDRESS }}
           PGSSLROOTCERT: ${{ vars.PGSSLROOTCERT }}
           SC_POSTGRES_URI: ${{ secrets.SC_POSTGRES_URI }}
           SC_JWT_SECRET: ${{ secrets.SC_JWT_SECRET }}
@@ -27,7 +29,7 @@ jobs:
           username: ${{ vars.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script_stop: true
-          envs: EXTERNAL_GRPC_PORT, PGSSLROOTCERT, SC_POSTGRES_URI, SC_JWT_SECRET, SC_HTTP_CORS_ALLOW_ORIGINS
+          envs: EXTERNAL_GRPC_PORT, LOKI_ADDRESS, PGSSLROOTCERT, SC_POSTGRES_URI, SC_JWT_SECRET, SC_HTTP_CORS_ALLOW_ORIGINS
           script: |
             cd ${{ vars.PROJECT_DIR }}
             git stash
