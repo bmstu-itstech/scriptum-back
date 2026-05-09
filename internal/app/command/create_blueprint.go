@@ -20,11 +20,15 @@ type CreateBlueprintHandler struct {
 	l  *slog.Logger
 }
 
-func NewCreateBlueprintHandler(br ports.BlueprintRepository, up ports.UserProvider, l *slog.Logger) CreateBlueprintHandler {
+func NewCreateBlueprintHandler(
+	br ports.BlueprintRepository, up ports.UserProvider, l *slog.Logger,
+) CreateBlueprintHandler {
 	return CreateBlueprintHandler{br, up, l}
 }
 
-func (h CreateBlueprintHandler) Handle(ctx context.Context, req request.CreateBlueprint) (response.CreateBlueprint, error) {
+func (h CreateBlueprintHandler) Handle(
+	ctx context.Context, req request.CreateBlueprint,
+) (response.CreateBlueprint, error) {
 	l := h.l.With(
 		slog.String("op", "app.CreateBlueprint"),
 		slog.String("uid", req.ActorID),

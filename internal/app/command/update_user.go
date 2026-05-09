@@ -23,6 +23,7 @@ func NewUpdateUserHandler(ur ports.UserRepository, ph ports.PasswordHasher, l *s
 	return UpdateUserHandler{ur, ph, l}
 }
 
+//nolint:gocognit // Метод состоит из повторяющихся блоков кода.
 func (h UpdateUserHandler) Handle(ctx context.Context, req request.UpdateUser) (response.UpdateUser, error) {
 	l := h.l.With(
 		slog.String("op", "app.UpdateUser"),
@@ -35,6 +36,7 @@ func (h UpdateUserHandler) Handle(ctx context.Context, req request.UpdateUser) (
 		l.ErrorContext(ctx, "failed to fetch user", slog.String("error", err.Error()))
 		return response.UpdateUser{}, err
 	}
+
 	if actor.Role() != value.RoleAdmin {
 		l.InfoContext(ctx, "actor is not admin")
 		return response.UpdateUser{}, domain.ErrPermissionDenied
@@ -43,61 +45,95 @@ func (h UpdateUserHandler) Handle(ctx context.Context, req request.UpdateUser) (
 	var ret *entity.User
 	err = h.ur.UpdateUser(ctx, value.UserID(req.UserID), func(inner context.Context, u *entity.User) error {
 		if pEmail := req.Email; pEmail != nil {
-			email, errTx := value.EmailFromString(*pEmail)
-			if errTx != nil {
-				l.InfoContext(ctx, "failed to validate email", slog.String("error", errTx.Error()))
-				return errTx
-			}
-			errTx = u.SetEmail(email)
+			errTx := h.updateEmail(inner, l, u, *pEmail)
 			if errTx != nil {
 				return errTx
 			}
-			l.InfoContext(ctx, "updated user email", slog.String("email", email.String()))
 		}
 
 		if pPassword := req.Password; pPassword != nil {
-			password, errTx := h.ph.Hash(*pPassword)
-			if errTx != nil {
-				l.InfoContext(ctx, "failed to validate password", slog.String("error", errTx.Error()))
-				return errTx
-			}
-			errTx = u.SetPassword(password)
+			errTx := h.updatePassword(inner, l, u, *pPassword)
 			if errTx != nil {
 				return errTx
 			}
-			l.InfoContext(ctx, "updated user password")
 		}
 
 		if pName := req.Name; pName != nil {
 			errTx := u.SetName(*pName)
 			if errTx != nil {
+				l.ErrorContext(ctx, "failed to set user name", slog.String("error", errTx.Error()))
 				return errTx
 			}
 			l.InfoContext(ctx, "updated user name", slog.String("name", *pName))
 		}
 
 		if pRole := req.Role; pRole != nil {
-			role, errTx := value.RoleFromString(*pRole)
-			if errTx != nil {
-				l.InfoContext(ctx, "failed to validate role", slog.String("error", errTx.Error()))
-				return errTx
-			}
-			if actor.ID() == u.ID() {
-				l.InfoContext(ctx, "user can not change self role")
-				return domain.ErrPermissionDenied
-			}
-			errTx = u.SetRole(role)
+			errTx := h.updateRole(ctx, l, u, actor, *pRole)
 			if errTx != nil {
 				return errTx
 			}
-			l.InfoContext(ctx, "updated user role", slog.String("role", *pRole))
 		}
+
 		ret = u
 		return nil
 	})
 	if err != nil {
-		l.ErrorContext(ctx, "failed to update user", slog.String("error", err.Error()))
 		return response.UpdateUser{}, err
 	}
 	return dto.UserToDTO(ret), nil
+}
+
+func (h UpdateUserHandler) updateEmail(
+	ctx context.Context, l *slog.Logger, u *entity.User, emailStr string,
+) error {
+	email, errTx := value.EmailFromString(emailStr)
+	if errTx != nil {
+		l.InfoContext(ctx, "failed to validate email", slog.String("error", errTx.Error()))
+		return errTx
+	}
+	errTx = u.SetEmail(email)
+	if errTx != nil {
+		l.ErrorContext(ctx, "failed to set user email", slog.String("error", errTx.Error()))
+		return errTx
+	}
+	l.InfoContext(ctx, "updated user email", slog.String("email", email.String()))
+	return nil
+}
+
+func (h UpdateUserHandler) updatePassword(
+	ctx context.Context, l *slog.Logger, u *entity.User, passwordStr string,
+) error {
+	password, errTx := h.ph.Hash(passwordStr)
+	if errTx != nil {
+		l.InfoContext(ctx, "failed to validate password", slog.String("error", errTx.Error()))
+		return errTx
+	}
+	errTx = u.SetPassword(password)
+	if errTx != nil {
+		l.ErrorContext(ctx, "failed to set user password", slog.String("error", errTx.Error()))
+		return errTx
+	}
+	l.InfoContext(ctx, "updated user password")
+	return nil
+}
+
+func (h UpdateUserHandler) updateRole(
+	ctx context.Context, l *slog.Logger, u *entity.User, actor *entity.User, roleStr string,
+) error {
+	role, errTx := value.RoleFromString(roleStr)
+	if errTx != nil {
+		l.InfoContext(ctx, "failed to validate role", slog.String("error", errTx.Error()))
+		return errTx
+	}
+	if actor.ID() == u.ID() {
+		l.InfoContext(ctx, "user can not change self role")
+		return domain.ErrPermissionDenied
+	}
+	errTx = u.SetRole(role)
+	if errTx != nil {
+		l.ErrorContext(ctx, "failed to set user role", slog.String("error", errTx.Error()))
+		return errTx
+	}
+	l.InfoContext(ctx, "updated user role", slog.String("role", role.String()))
+	return nil
 }

@@ -18,7 +18,9 @@ type LoginHandler struct {
 	l  *slog.Logger
 }
 
-func NewLoginHandler(ur ports.UserProvider, ph ports.PasswordHasher, ts ports.TokenService, l *slog.Logger) LoginHandler {
+func NewLoginHandler(
+	ur ports.UserProvider, ph ports.PasswordHasher, ts ports.TokenService, l *slog.Logger,
+) LoginHandler {
 	return LoginHandler{ur, ph, ts, l}
 }
 
